@@ -990,8 +990,7 @@ local function triggerSpeedhack()
         rootPart.CFrame = rootPart.CFrame + step
     end)
 end
-
--- Функция Silent Aim
+--silent aim
 local function toggleSilentAim(enable)
     local player = game.Players.LocalPlayer
     local mouse = player:GetMouse()
@@ -1008,7 +1007,7 @@ local function toggleSilentAim(enable)
         silentAimConnection = RunService.RenderStepped:Connect(function()
             if isSilentAimEnabled then
                 local mousePos = Vector2.new(mouse.X, mouse.Y)
-                fovCircle.Position = mousePos
+                fovCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 20) -- Смещаем круг на 20 пикселей вниз
 
                 local closestTarget = nil
                 local closestTargetPart = nil
