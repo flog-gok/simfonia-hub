@@ -1007,7 +1007,7 @@ local function toggleSilentAim(enable)
         silentAimConnection = RunService.RenderStepped:Connect(function()
             if isSilentAimEnabled then
                 local mousePos = Vector2.new(mouse.X, mouse.Y)
-                fovCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 20) -- Смещаем круг на 20 пикселей вниз
+                fovCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 54 ) -- Смещаем круг на 20 пикселей вниз
 
                 local closestTarget = nil
                 local closestTargetPart = nil
@@ -1035,7 +1035,7 @@ local function toggleSilentAim(enable)
                     end
                 end
 
-                if isLinesEnabled and closestTarget then
+		if isLinesEnabled and closestTarget then
                     for target, line in pairs(lines) do
                         line:Remove()
                         lines[target] = nil
@@ -1045,7 +1045,7 @@ local function toggleSilentAim(enable)
                     line.Color = Color3.fromRGB(255, 0, 0)
                     line.Transparency = 1
                     local targetPos = workspace.CurrentCamera:WorldToViewportPoint(closestTargetPart.Position)
-                    line.From = mousePos
+                    line.From = Vector2.new(mousePos.X, mousePos.Y + 54)
                     line.To = Vector2.new(targetPos.X, targetPos.Y)
                     line.Visible = true
                     lines[closestTarget] = line
