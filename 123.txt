@@ -1369,6 +1369,9 @@ FOVSizeUpButton.MouseButton1Click:Connect(function()
     if fovSize < 200 then
         fovSize = fovSize + 10
         FOVSizeLabel.Text = "FOV: " .. fovSize
+        if fovCircle then -- Проверяем, существует ли круг
+            fovCircle.Radius = fovSize -- Обновляем радиус круга
+        end
     end
 end)
 
@@ -1376,6 +1379,9 @@ FOVSizeDownButton.MouseButton1Click:Connect(function()
     if fovSize > 50 then
         fovSize = fovSize - 10
         FOVSizeLabel.Text = "FOV: " .. fovSize
+        if fovCircle then -- Проверяем, существует ли круг
+            fovCircle.Radius = fovSize -- Обновляем радиус круга
+        end
     end
 end)
 
