@@ -206,7 +206,7 @@ LinesStroke.Parent = LinesButton
 
 local FOVSizeLabel = Instance.new("TextLabel")
 FOVSizeLabel.Size = UDim2.new(0, 100, 0, 30)
-FOVSizeLabel.Position = UDim2.new(0, 220, 0, 100)
+FOVSizeLabel.Position = UDim2.new(0, 220, 0, 200) -- Сдвинули вниз до Y = 200
 FOVSizeLabel.Text = "FOV: 100"
 FOVSizeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 FOVSizeLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -220,7 +220,7 @@ FOVSizeStroke.Parent = FOVSizeLabel
 
 local FOVSizeUpButton = Instance.new("TextButton")
 FOVSizeUpButton.Size = UDim2.new(0, 50, 0, 30)
-FOVSizeUpButton.Position = UDim2.new(0, 330, 0, 100)
+FOVSizeUpButton.Position = UDim2.new(0, 330, 0, 200) -- Сдвинули вниз до Y = 200
 FOVSizeUpButton.Text = "+"
 FOVSizeUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 FOVSizeUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -234,7 +234,7 @@ FOVSizeUpStroke.Parent = FOVSizeUpButton
 
 local FOVSizeDownButton = Instance.new("TextButton")
 FOVSizeDownButton.Size = UDim2.new(0, 50, 0, 30)
-FOVSizeDownButton.Position = UDim2.new(0, 390, 0, 100)
+FOVSizeDownButton.Position = UDim2.new(0, 390, 0, 200) -- Сдвинули вниз до Y = 200
 FOVSizeDownButton.Text = "-"
 FOVSizeDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 FOVSizeDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
