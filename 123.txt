@@ -20,7 +20,7 @@ Gradient.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Text = "SIMFONIA HUBv8.1"
+Title.Text = "SIMFONIA HUBv8.2"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.BackgroundTransparency = 1
 Title.TextSize = 24
