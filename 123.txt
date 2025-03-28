@@ -1710,13 +1710,12 @@ Frame.InputEnded:Connect(function(input)
     end
 end)
 
--- Открытие/закрытие GUI по RightShift
+-- Открытие/закрытие GUI по N
 local isGUIOpen = false
 UIS.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightShift then
+    if input.KeyCode == Enum.KeyCode.N then
         isGUIOpen = not isGUIOpen
         Frame.Visible = isGUIOpen
-        UIS.MouseBehavior = isGUIOpen and Enum.MouseBehavior.Default or Enum.MouseBehavior.LockCenter
     end
 end)
 
