@@ -20,7 +20,7 @@ Gradient.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Text = "SIMFONIA HUBv9.2"
+Title.Text = "SIMFONIA HUBv9.4"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.BackgroundTransparency = 1
 Title.TextSize = 24
@@ -1127,6 +1127,13 @@ local function updateViewModelFOV()
 	local camera = workspace.CurrentCamera
 	camera.FieldOfView = viewModelFOV
 end
+-- После функции updateViewModelFOV
+task.spawn(function()
+    while true do
+        updateViewModelFOV()
+        wait(0.6) -- Обновление каждые 0.6 секунды
+    end
+end)
 
 -- Функция Day Visual
 local function toggleDayVisual(enable)
