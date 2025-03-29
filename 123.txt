@@ -1783,12 +1783,24 @@ AimbotPriorityButton.MouseButton1Click:Connect(function()
 end)
 
 AimbotBindButton.MouseButton1Click:Connect(function()
-    AimbotBindButton.Text = "Press a key to bind..."
+    AimbotBindButton.Text = "Press a key or mouse button..."
     local bindConnection
     bindConnection = UIS.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Keyboard then
             aimbotBind = input.KeyCode
             AimbotBindButton.Text = "Aimbot Bind: " .. input.KeyCode.Name
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+            aimbotBind = Enum.UserInputType.MouseButton1
+            AimbotBindButton.Text = "Aimbot Bind: LMB"
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            aimbotBind = Enum.UserInputType.MouseButton2
+            AimbotBindButton.Text = "Aimbot Bind: RMB"
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
+            aimbotBind = Enum.UserInputType.MouseButton3
+            AimbotBindButton.Text = "Aimbot Bind: MMB"
             bindConnection:Disconnect()
         end
     end)
