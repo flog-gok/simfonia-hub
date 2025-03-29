@@ -20,7 +20,7 @@ Gradient.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Text = "SIMFONIA HUBv9.4"
+Title.Text = "SIMFONIA HUBv9.5"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.BackgroundTransparency = 1
 Title.TextSize = 24
@@ -1498,36 +1498,41 @@ end
 
 -- Функция Arm Material
 local function toggleArmMaterial(level)
-	local player = game.Players.LocalPlayer
-	local character = player.Character
-	if not character then return end
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
 
-	local arms = {character:FindFirstChild("Right Arm"), character:FindFirstChild("Left Arm")}
-	for _, arm in pairs(arms) do
-		if arm then
-			if level == 0 then
-				arm.Material = Enum.Material.Plastic
-				arm.Color = Color3.fromRGB(255, 204, 153)
-				arm.Transparency = 0
-			elseif level == 1 then
-				arm.Material = Enum.Material.Neon
-				arm.Color = Color3.fromRGB(255, 255, 255)
-				arm.Transparency = 0.5
-			elseif level == 2 then
-				arm.Material = Enum.Material.Neon
-				arm.Color = Color3.fromRGB(128, 0, 128)
-				arm.Transparency = 0
-			elseif level == 3 then
-				arm.Material = Enum.Material.Neon
-				arm.Color = Color3.fromRGB(0, 0, 139)
-				arm.Transparency = 0.5
-			elseif level == 4 then
-				arm.Material = Enum.Material.Plastic
-				arm.Color = Color3.fromRGB(75, 0, 130)
-				arm.Transparency = 0
-			end
-		end
-	end
+    -- Ищем руки с учётом возможных названий (зависит от R6/R15)
+    local arms = {
+        character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm"),
+        character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+    }
+
+    for _, arm in pairs(arms) do
+        if arm and arm:IsA("BasePart") then -- Проверяем, что рука существует и это часть
+            if level == 0 then -- Default
+                arm.Material = Enum.Material.Plastic
+                arm.Color = Color3.fromRGB(255, 204, 153) -- Стандартный цвет кожи Roblox
+                arm.Transparency = 0
+            elseif level == 1 then -- Neon Transparent
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(255, 255, 255)
+                arm.Transparency = 0.5
+            elseif level == 2 then -- Purple Neon
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(128, 0, 128)
+                arm.Transparency = 0
+            elseif level == 3 then -- Dark Blue Neon
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(0, 0, 139)
+                arm.Transparency = 0.5
+            elseif level == 4 then -- Dark Purple
+                arm.Material = Enum.Material.Plastic
+                arm.Color = Color3.fromRGB(75, 0, 130)
+                arm.Transparency = 0
+            end
+        end
+    end
 end
 
 local function toggleCrosshair(mode)
@@ -2224,9 +2229,11 @@ end)
 
 -- Обработка появления персонажа локального игрока
 game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
-	if currentArmMaterial ~= 0 then
-		toggleArmMaterial(currentArmMaterial)
-	end
+    if currentArmMaterial ~= 0 then
+        -- Ждём, пока руки загрузятся (для R15 может потребоваться время)
+        task.wait(0.1) -- Небольшая задержка для надёжности
+        toggleArmMaterial(currentArmMaterial)
+    end
 end)
 
 -- Удаление визуальных элементов при выходе игрока
