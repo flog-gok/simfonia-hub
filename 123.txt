@@ -1396,37 +1396,39 @@ local function toggleNoclipV2(enable)
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
 
     local rootPart = character.HumanoidRootPart
+    local humanoid = character:FindFirstChild("Humanoid")
 
     if enable then
-        noclipV2Connection = RunService.Stepped:Connect(function()
-            if not isNoclipV2Enabled then return end
+        noclipV2Connection = RunService.Heartbeat:Connect(function(deltaTime)
+            if not isNoclipV2Enabled or not humanoid then return end
 
-            -- Проверяем столкновение со стеной
+            -- Проверяем столкновение впереди
             local rayOrigin = rootPart.Position
-            local rayDirection = rootPart.CFrame.LookVector * 2 -- Проверяем на 2 studs вперёд
+            local rayDirection = rootPart.CFrame.LookVector * 1.5 -- Проверяем на 1.5 studs вперёд
             local raycastParams = RaycastParams.new()
             raycastParams.FilterDescendantsInstances = {character}
             raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
             local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
 
             if raycastResult then
-                -- Если столкнулись со стеной
                 local wall = raycastResult.Instance
-                if wall and wall:IsA("BasePart") and not wall.CanCollide == false then
-                    -- Создаём нагрузку для зависания (1 FPS на 6 секунд)
-                    local startTime = tick()
-                    while tick() - startTime < 6 do
-                        -- Тяжёлая операция для снижения FPS
-                        for i = 1, 1000000 do
-                            math.sqrt(i) -- Искусственная нагрузка
-                        end
-                        task.wait() -- Принудительный 1 FPS
-                    end
+                if wall and wall:IsA("BasePart") and wall.CanCollide then
+                    -- Микротелепортация через стену
+                    local stepDistance = 0.2 -- Маленький шаг для маскировки
+                    local wallNormal = raycastResult.Normal
+                    local wallThickness = wall.Size.Magnitude / 2 -- Примерная толщина стены
+                    local teleportTarget = rootPart.Position + wallNormal * (wallThickness + 1) -- Цель за стеной
 
-                    -- Телепортация сквозь стену
-                    local wallThickness = wall.Size.Z -- Предполагаем, что стена вдоль оси Z
-                    local teleportOffset = raycastResult.Normal * (wallThickness + 2) -- Проходим стену + небольшой запас
-                    rootPart.CFrame = rootPart.CFrame + teleportOffset
+                    -- Плавное перемещение через стену
+                    local steps = math.ceil((teleportTarget - rootPart.Position).Magnitude / stepDistance)
+                    for i = 1, steps do
+                        if not isNoclipV2Enabled then break end
+                        local newPos = rootPart.Position:Lerp(teleportTarget, i / steps)
+                        rootPart.CFrame = CFrame.new(newPos) * rootPart.CFrame.Rotation
+                        humanoid.WalkSpeed = 0 -- Замораживаем скорость, чтобы избежать отката
+                        task.wait(0.05) -- Задержка для имитации легитимного движения
+                    end
+                    humanoid.WalkSpeed = 16 -- Восстанавливаем скорость
                 end
             end
         end)
@@ -1434,6 +1436,9 @@ local function toggleNoclipV2(enable)
         if noclipV2Connection then
             noclipV2Connection:Disconnect()
             noclipV2Connection = nil
+        end
+        if humanoid then
+            humanoid.WalkSpeed = 16 -- Убеждаемся, что скорость восстановлена
         end
     end
 end
