@@ -557,6 +557,20 @@ FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 FlyButton.TextSize = 18
 FlyButton.Parent = MiscFrame
 
+local NoclipV2Button = Instance.new("TextButton")
+NoclipV2Button.Size = UDim2.new(0, 200, 0, 40)
+NoclipV2Button.Position = UDim2.new(0, 0, 0, 590) -- Под ExitButton (Y=540) + отступ
+NoclipV2Button.Text = "NoclipV2: OFF"
+NoclipV2Button.TextColor3 = Color3.fromRGB(255, 0, 0)
+NoclipV2Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+NoclipV2Button.TextSize = 18
+NoclipV2Button.Parent = MiscFrame
+
+local NoclipV2Stroke = Instance.new("UIStroke")
+NoclipV2Stroke.Thickness = 2
+NoclipV2Stroke.Color = Color3.fromRGB(100, 100, 100)
+NoclipV2Stroke.Parent = NoclipV2Button
+
 local FlyStroke = Instance.new("UIStroke")
 FlyStroke.Thickness = 2
 FlyStroke.Color = Color3.fromRGB(100, 100, 100)
@@ -771,6 +785,8 @@ local aimbotFOVSize = 100
 local aimbotSpeed = 50 -- В процентах (0-100)
 local aimbotFOVCircle
 local aimbotConnection
+local isNoclipV2Enabled = false
+local noclipV2Connection
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1372,6 +1388,54 @@ local function toggleDeleteWall(enable)
 			end
 		end)
 	end
+end
+
+local function toggleNoclipV2(enable)
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+    local rootPart = character.HumanoidRootPart
+
+    if enable then
+        noclipV2Connection = RunService.Stepped:Connect(function()
+            if not isNoclipV2Enabled then return end
+
+            -- Проверяем столкновение со стеной
+            local rayOrigin = rootPart.Position
+            local rayDirection = rootPart.CFrame.LookVector * 2 -- Проверяем на 2 studs вперёд
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterDescendantsInstances = {character}
+            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+            local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+            if raycastResult then
+                -- Если столкнулись со стеной
+                local wall = raycastResult.Instance
+                if wall and wall:IsA("BasePart") and not wall.CanCollide == false then
+                    -- Создаём нагрузку для зависания (1 FPS на 6 секунд)
+                    local startTime = tick()
+                    while tick() - startTime < 6 do
+                        -- Тяжёлая операция для снижения FPS
+                        for i = 1, 1000000 do
+                            math.sqrt(i) -- Искусственная нагрузка
+                        end
+                        task.wait() -- Принудительный 1 FPS
+                    end
+
+                    -- Телепортация сквозь стену
+                    local wallThickness = wall.Size.Z -- Предполагаем, что стена вдоль оси Z
+                    local teleportOffset = raycastResult.Normal * (wallThickness + 2) -- Проходим стену + небольшой запас
+                    rootPart.CFrame = rootPart.CFrame + teleportOffset
+                end
+            end
+        end)
+    else
+        if noclipV2Connection then
+            noclipV2Connection:Disconnect()
+            noclipV2Connection = nil
+        end
+    end
 end
 
 -- Функция Remove Grass
@@ -2027,6 +2091,13 @@ FlyButton.MouseButton1Click:Connect(function()
 	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
 	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	toggleFly(isFlyEnabled)
+end)
+
+NoclipV2Button.MouseButton1Click:Connect(function()
+    isNoclipV2Enabled = not isNoclipV2Enabled
+    NoclipV2Button.Text = isNoclipV2Enabled and "NoclipV2: ON" or "NoclipV2: OFF"
+    NoclipV2Button.TextColor3 = Color3.fromRGB(255, 0, 0)
+    toggleNoclipV2(isNoclipV2Enabled)
 end)
 
 FreecamButton.MouseButton1Click:Connect(function()
