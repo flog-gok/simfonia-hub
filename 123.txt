@@ -204,6 +204,137 @@ LinesStroke.Thickness = 2
 LinesStroke.Color = Color3.fromRGB(100, 100, 100)
 LinesStroke.Parent = LinesButton
 
+-- Кнопка активации Aimbot
+local AimbotButton = Instance.new("TextButton")
+AimbotButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotButton.Position = UDim2.new(0, 0, 0, 140) -- Под BodyButton (Y=90) + отступ
+AimbotButton.Text = "Aimbot: OFF"
+AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+AimbotButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotButton.TextSize = 18
+AimbotButton.Parent = RageFrame
+
+local AimbotStroke = Instance.new("UIStroke")
+AimbotStroke.Thickness = 2
+AimbotStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotStroke.Parent = AimbotButton
+
+-- Выбор приоритета (Head/Body)
+local AimbotPriorityButton = Instance.new("TextButton")
+AimbotPriorityButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotPriorityButton.Position = UDim2.new(0, 0, 0, 190) -- Под AimbotButton
+AimbotPriorityButton.Text = "Priority: Head"
+AimbotPriorityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotPriorityButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotPriorityButton.TextSize = 18
+AimbotPriorityButton.Parent = RageFrame
+
+local AimbotPriorityStroke = Instance.new("UIStroke")
+AimbotPriorityStroke.Thickness = 2
+AimbotPriorityStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotPriorityStroke.Parent = AimbotPriorityButton
+
+-- Бинд для Aimbot
+local AimbotBindButton = Instance.new("TextButton")
+AimbotBindButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotBindButton.Position = UDim2.new(0, 0, 0, 240) -- Под Priority
+AimbotBindButton.Text = "Aimbot Bind: None"
+AimbotBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotBindButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotBindButton.TextSize = 18
+AimbotBindButton.Parent = RageFrame
+
+local AimbotBindStroke = Instance.new("UIStroke")
+AimbotBindStroke.Thickness = 2
+AimbotBindStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotBindStroke.Parent = AimbotBindButton
+
+-- FOV для Aimbot
+local AimbotFOVLabel = Instance.new("TextLabel")
+AimbotFOVLabel.Size = UDim2.new(0, 100, 0, 30)
+AimbotFOVLabel.Position = UDim2.new(0, 0, 0, 290) -- Под Bind
+AimbotFOVLabel.Text = "Aimbot FOV: 100"
+AimbotFOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVLabel.TextSize = 16
+AimbotFOVLabel.Parent = RageFrame
+
+local AimbotFOVStroke = Instance.new("UIStroke")
+AimbotFOVStroke.Thickness = 2
+AimbotFOVStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVStroke.Parent = AimbotFOVLabel
+
+local AimbotFOVUpButton = Instance.new("TextButton")
+AimbotFOVUpButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotFOVUpButton.Position = UDim2.new(0, 110, 0, 290)
+AimbotFOVUpButton.Text = "+"
+AimbotFOVUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVUpButton.TextSize = 18
+AimbotFOVUpButton.Parent = RageFrame
+
+local AimbotFOVUpStroke = Instance.new("UIStroke")
+AimbotFOVUpStroke.Thickness = 2
+AimbotFOVUpStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVUpStroke.Parent = AimbotFOVUpButton
+
+local AimbotFOVDownButton = Instance.new("TextButton")
+AimbotFOVDownButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotFOVDownButton.Position = UDim2.new(0, 170, 0, 290)
+AimbotFOVDownButton.Text = "-"
+AimbotFOVDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVDownButton.TextSize = 18
+AimbotFOVDownButton.Parent = RageFrame
+
+local AimbotFOVDownStroke = Instance.new("UIStroke")
+AimbotFOVDownStroke.Thickness = 2
+AimbotFOVDownStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVDownStroke.Parent = AimbotFOVDownButton
+
+-- Скорость наводки
+local AimbotSpeedLabel = Instance.new("TextLabel")
+AimbotSpeedLabel.Size = UDim2.new(0, 100, 0, 30)
+AimbotSpeedLabel.Position = UDim2.new(0, 0, 0, 330) -- Под FOV
+AimbotSpeedLabel.Text = "Speed: 50%"
+AimbotSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedLabel.TextSize = 16
+AimbotSpeedLabel.Parent = RageFrame
+
+local AimbotSpeedStroke = Instance.new("UIStroke")
+AimbotSpeedStroke.Thickness = 2
+AimbotSpeedStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedStroke.Parent = AimbotSpeedLabel
+
+local AimbotSpeedUpButton = Instance.new("TextButton")
+AimbotSpeedUpButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotSpeedUpButton.Position = UDim2.new(0, 110, 0, 330)
+AimbotSpeedUpButton.Text = "+"
+AimbotSpeedUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedUpButton.TextSize = 18
+AimbotSpeedUpButton.Parent = RageFrame
+
+local AimbotSpeedUpStroke = Instance.new("UIStroke")
+AimbotSpeedUpStroke.Thickness = 2
+AimbotSpeedUpStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedUpStroke.Parent = AimbotSpeedUpButton
+
+local AimbotSpeedDownButton = Instance.new("TextButton")
+AimbotSpeedDownButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotSpeedDownButton.Position = UDim2.new(0, 170, 0, 330)
+AimbotSpeedDownButton.Text = "-"
+AimbotSpeedDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedDownButton.TextSize = 18
+AimbotSpeedDownButton.Parent = RageFrame
+
+local AimbotSpeedDownStroke = Instance.new("UIStroke")
+AimbotSpeedDownStroke.Thickness = 2
+AimbotSpeedDownStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedDownStroke.Parent = AimbotSpeedDownButton
+
 local FOVSizeLabel = Instance.new("TextLabel")
 FOVSizeLabel.Size = UDim2.new(0, 100, 0, 30)
 FOVSizeLabel.Position = UDim2.new(0, 220, 0, 200) -- Сдвинули вниз до Y = 200
@@ -633,6 +764,13 @@ local oresESPMode = 0 -- 0 = OFF, 1 = Iron, 2 = Stone, 3 = Sulfur
 local oreLabels = {} -- Таблица для хранения текстовых меток руд
 local activeOres = {} -- Таблица для хранения до 10 активных объектов руд
 local oresESPConnection -- Для обновления меток
+local isAimbotEnabled = false
+local aimbotPriority = "Head" -- "Head" или "Body"
+local aimbotBind = nil
+local aimbotFOVSize = 100
+local aimbotSpeed = 50 -- В процентах (0-100)
+local aimbotFOVCircle
+local aimbotConnection
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1122,6 +1260,66 @@ local function toggleSilentAim(enable)
 	end
 end
 
+local function toggleAimbot(enable)
+    local player = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+
+    if enable then
+        aimbotFOVCircle = Drawing.new("Circle")
+        aimbotFOVCircle.Thickness = 2
+        aimbotFOVCircle.Color = Color3.fromRGB(255, 0, 255) -- Отличается от Silent Aim
+        aimbotFOVCircle.Radius = aimbotFOVSize
+        aimbotFOVCircle.Filled = false
+        aimbotFOVCircle.Transparency = 1
+        aimbotFOVCircle.Visible = true
+
+        aimbotConnection = RunService.RenderStepped:Connect(function()
+            local mouse = player:GetMouse()
+            local mousePos = Vector2.new(mouse.X, mouse.Y)
+            aimbotFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 54)
+
+            if isAimbotEnabled and (aimbotBind == nil or UIS:IsKeyDown(aimbotBind)) then
+                local closestTarget = nil
+                local closestDistance = aimbotFOVSize
+                for _, target in pairs(game.Players:GetPlayers()) do
+                    if target ~= player and target.Character then
+                        local targetPart = (aimbotPriority == "Head" and target.Character:FindFirstChild("Head")) or target.Character:FindFirstChild("HumanoidRootPart")
+                        local humanoid = target.Character:FindFirstChild("Humanoid")
+                        if targetPart and humanoid and humanoid.Health > 0 then
+                            local screenPos, onScreen = camera:WorldToViewportPoint(targetPart.Position)
+                            if onScreen then
+                                local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                                if distance <= aimbotFOVSize and distance < closestDistance then
+                                    closestTarget = targetPart
+                                    closestDistance = distance
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if closestTarget then
+                    local targetPos = closestTarget.Position
+                    local currentLook = camera.CFrame.LookVector
+                    local targetDir = (targetPos - camera.CFrame.Position).Unit
+                    local speedFactor = aimbotSpeed / 100 -- Преобразуем процент в коэффициент (0-1)
+                    local newLook = currentLook:Lerp(targetDir, speedFactor) -- Плавный поворот
+                    camera.CFrame = CFrame.new(camera.CFrame.Position, camera.CFrame.Position + newLook)
+                end
+            end
+        end)
+    else
+        if aimbotFOVCircle then
+            aimbotFOVCircle:Remove()
+            aimbotFOVCircle = nil
+        end
+        if aimbotConnection then
+            aimbotConnection:Disconnect()
+            aimbotConnection = nil
+        end
+    end
+end
+
 -- Функция View Model
 local function updateViewModelFOV()
 	local camera = workspace.CurrentCamera
@@ -1572,6 +1770,64 @@ HeadButton.MouseButton1Click:Connect(function()
 	updateHeads(isHeadEnabled)
 end)
 
+AimbotButton.MouseButton1Click:Connect(function()
+    isAimbotEnabled = not isAimbotEnabled
+    AimbotButton.Text = isAimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
+    AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+    toggleAimbot(isAimbotEnabled)
+end)
+
+AimbotPriorityButton.MouseButton1Click:Connect(function()
+    aimbotPriority = (aimbotPriority == "Head") and "Body" or "Head"
+    AimbotPriorityButton.Text = "Priority: " .. aimbotPriority
+end)
+
+AimbotBindButton.MouseButton1Click:Connect(function()
+    AimbotBindButton.Text = "Press a key to bind..."
+    local bindConnection
+    bindConnection = UIS.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            aimbotBind = input.KeyCode
+            AimbotBindButton.Text = "Aimbot Bind: " .. input.KeyCode.Name
+            bindConnection:Disconnect()
+        end
+    end)
+end)
+
+AimbotFOVUpButton.MouseButton1Click:Connect(function()
+    if aimbotFOVSize < 200 then
+        aimbotFOVSize = aimbotFOVSize + 10
+        AimbotFOVLabel.Text = "Aimbot FOV: " .. aimbotFOVSize
+        if aimbotFOVCircle then
+            aimbotFOVCircle.Radius = aimbotFOVSize
+        end
+    end
+end)
+
+AimbotFOVDownButton.MouseButton1Click:Connect(function()
+    if aimbotFOVSize > 50 then
+        aimbotFOVSize = aimbotFOVSize - 10
+        AimbotFOVLabel.Text = "Aimbot FOV: " .. aimbotFOVSize
+        if aimbotFOVCircle then
+            aimbotFOVCircle.Radius = aimbotFOVSize
+        end
+    end
+end)
+
+AimbotSpeedUpButton.MouseButton1Click:Connect(function()
+    if aimbotSpeed < 100 then
+        aimbotSpeed = aimbotSpeed + 10
+        AimbotSpeedLabel.Text = "Speed: " .. aimbotSpeed .. "%"
+    end
+end)
+
+AimbotSpeedDownButton.MouseButton1Click:Connect(function()
+    if aimbotSpeed > 10 then
+        aimbotSpeed = aimbotSpeed - 10
+        AimbotSpeedLabel.Text = "Speed: " .. aimbotSpeed .. "%"
+    end
+end)
+
 BodyButton.MouseButton1Click:Connect(function()
 	isBodyEnabled = not isBodyEnabled
 	BodyButton.Text = isBodyEnabled and "body expander: ON" or "body expander: OFF"
@@ -1899,10 +2155,6 @@ ExitButton.MouseButton1Click:Connect(function()
 	if oresESPMode ~= 0 then
 		oresESPMode = 0
 		toggleOresESP(0)
-	end
-	if chamsMode ~= 0 then
-    	chamsMode = 0
-    	toggleChams(0)
 	end
 	textureLevel = 0
 	setTextureLevel(0)
