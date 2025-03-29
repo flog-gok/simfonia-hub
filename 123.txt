@@ -1278,7 +1278,9 @@ local function toggleAimbot(enable)
             local mousePos = Vector2.new(mouse.X, mouse.Y)
             aimbotFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 54)
 
-            if isAimbotEnabled and (aimbotBind == nil or UIS:IsKeyDown(aimbotBind)) then
+            if isAimbotEnabled and (aimbotBind == nil or 
+    (typeof(aimbotBind) == "EnumItem" and aimbotBind.EnumType == Enum.KeyCode and UIS:IsKeyDown(aimbotBind)) or 
+    (typeof(aimbotBind) == "EnumItem" and aimbotBind.EnumType == Enum.UserInputType and UIS:IsMouseButtonPressed(aimbotBind))) then
                 local closestTarget = nil
                 local closestDistance = aimbotFOVSize
                 for _, target in pairs(game.Players:GetPlayers()) do
