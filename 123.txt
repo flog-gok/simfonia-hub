@@ -1128,10 +1128,10 @@ local function updateViewModelFOV()
 	camera.FieldOfView = viewModelFOV
 end
 -- После функции updateViewModelFOV
-task.spawn(function()
-    while true do
-        updateViewModelFOV()
-        wait(0.6) -- Обновление каждые 0.6 секунды
+RunService.Heartbeat:Connect(function()
+    local camera = workspace.CurrentCamera
+    if camera.FieldOfView ~= viewModelFOV then
+        camera.FieldOfView = viewModelFOV -- Принудительно устанавливаем нужное значение
     end
 end)
 
