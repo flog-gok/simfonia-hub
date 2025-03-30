@@ -896,81 +896,117 @@ end
 
 -- Обновление визуальных элементов
 local function updateVisuals()
-	local localPlayer = game.Players.LocalPlayer
-	local localRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local localPlayer = game.Players.LocalPlayer
+    local localRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
 
-	for player, box in pairs(boxes) do
-		if player.Character and player ~= localPlayer then
-			local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
-			local humanoid = player.Character:FindFirstChild("Humanoid")
-			if rootPart then
-				local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
-				if onScreen then
-					local characterSize = player.Character:GetExtentsSize()
-					local height = characterSize.Y
-					local width = math.max(characterSize.X, characterSize.Z)
+    for player, box in pairs(boxes) do
+        if player.Character and player ~= localPlayer then
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if rootPart then
+                local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
+                if onScreen then
+                    -- Собираем все части тела для точного определения размеров (R6 и R15)
+                    local parts = {}
+                    for _, part in pairs(player.Character:GetChildren()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            table.insert(parts, part)
+                        end
+                    end
 
-					local distance = (workspace.CurrentCamera.CFrame.Position - rootPart.Position).Magnitude
-					local scaleFactor = 1000 / distance
-					local screenWidth = width * scaleFactor
-					local screenHeight = height * scaleFactor
+                    -- Вычисляем границы персонажа для R15
+                    local minPos, maxPos = nil, nil
+                    for _, part in pairs(parts) do
+                        local partPos = part.Position
+                        local partSize = part.Size / 2
+                        local corners = {
+                            partPos + Vector3.new(partSize.X, partSize.Y, partSize.Z),
+                            partPos + Vector3.new(partSize.X, partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(partSize.X, -partSize.Y, partSize.Z),
+                            partPos + Vector3.new(partSize.X, -partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(-partSize.X, partSize.Y, partSize.Z),
+                            partPos + Vector3.new(-partSize.X, partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(-partSize.X, -partSize.Y, partSize.Z),
+                            partPos + Vector3.new(-partSize.X, -partSize.Y, -partSize.Z)
+                        }
+                        for _, corner in pairs(corners) do
+                            local worldPos = workspace.CurrentCamera:WorldToViewportPoint(corner)
+                            if not minPos then
+                                minPos = Vector2.new(worldPos.X, worldPos.Y)
+                                maxPos = Vector2.new(worldPos.X, worldPos.Y)
+                            else
+                                minPos = Vector2.new(math.min(minPos.X, worldPos.X), math.min(minPos.Y, worldPos.Y))
+                                maxPos = Vector2.new(math.max(maxPos.X, worldPos.X), math.max(maxPos.Y, worldPos.Y))
+                            end
+                        end
+                    end
 
-					if isESPEnabled then
-						box.Size = Vector2.new(screenWidth, screenHeight)
-						box.Position = Vector2.new(pos.X - screenWidth / 2, pos.Y - screenHeight / 2)
-						box.Visible = true
-					else
-						box.Visible = false
-					end
+                    if minPos and maxPos then
+                        local screenWidth = maxPos.X - minPos.X
+                        local screenHeight = maxPos.Y - minPos.Y
 
-					local studsLabel = studsLabels[player]
-					if studsLabel and isStudsEnabled and localRoot then
-						local dist = (localRoot.Position - rootPart.Position).Magnitude
-						studsLabel.Text = string.format("%.1f studs", dist)
-						studsLabel.Position = Vector2.new(pos.X - studsLabel.TextBounds.X / 2, pos.Y + screenHeight / 2 + 5)
-						studsLabel.Visible = true
-					elseif studsLabel then
-						studsLabel.Visible = false
-					end
+                        if isESPEnabled then
+                            box.Size = Vector2.new(screenWidth, screenHeight)
+                            box.Position = minPos
+                            box.Visible = true
+                        else
+                            box.Visible = false
+                        end
 
-					local nameLabel = nameLabels[player]
-					if nameLabel and isNamesEnabled then
-						nameLabel.Position = Vector2.new(pos.X - nameLabel.TextBounds.X / 2, pos.Y + screenHeight / 2 + (isStudsEnabled and 25 or 5))
-						nameLabel.Visible = true
-					elseif nameLabel then
-						nameLabel.Visible = false
-					end
+                        local studsLabel = studsLabels[player]
+                        if studsLabel and isStudsEnabled and localRoot then
+                            local dist = (localRoot.Position - rootPart.Position).Magnitude
+                            studsLabel.Text = string.format("%.1f studs", dist)
+                            studsLabel.Position = Vector2.new(pos.X - studsLabel.TextBounds.X / 2, minPos.Y + screenHeight + 5)
+                            studsLabel.Visible = true
+                        elseif studsLabel then
+                            studsLabel.Visible = false
+                        end
 
-					local hpLabel = hpLabels[player]
-					if hpLabel and isHealthEnabled and humanoid then
-						local health = math.floor(humanoid.Health)
-						local maxHealth = humanoid.MaxHealth
-						hpLabel.Text = string.format("%d/%d HP", health, maxHealth)
-						hpLabel.Color = Color3.fromRGB(255 * (health / maxHealth), 255 * (health / maxHealth), 0)
-						hpLabel.Position = Vector2.new(pos.X - hpLabel.TextBounds.X / 2, pos.Y + screenHeight / 2 + (isStudsEnabled and 40 or 20))
-						hpLabel.Visible = true
-					elseif hpLabel then
-						hpLabel.Visible = false
-					end
-				else
-					box.Visible = false
-					if studsLabels[player] then studsLabels[player].Visible = false end
-					if nameLabels[player] then nameLabels[player].Visible = false end
-					if hpLabels[player] then hpLabels[player].Visible = false end
-				end
-			else
-				box.Visible = false
-				if studsLabels[player] then studsLabels[player].Visible = false end
-				if nameLabels[player] then nameLabels[player].Visible = false end
-				if hpLabels[player] then hpLabels[player].Visible = false end
-			end
-		else
-			box.Visible = false
-			if studsLabels[player] then studsLabels[player].Visible = false end
-			if nameLabels[player] then nameLabels[player].Visible = false end
-			if hpLabels[player] then hpLabels[player].Visible = false end
-		end
-	end
+                        local nameLabel = nameLabels[player]
+                        if nameLabel and isNamesEnabled then
+                            nameLabel.Position = Vector2.new(pos.X - nameLabel.TextBounds.X / 2, minPos.Y + screenHeight + (isStudsEnabled and 25 or 5))
+                            nameLabel.Visible = true
+                        elseif nameLabel then
+                            nameLabel.Visible = false
+                        end
+
+                        local hpLabel = hpLabels[player]
+                        if hpLabel and isHealthEnabled and humanoid then
+                            local health = math.floor(humanoid.Health)
+                            local maxHealth = humanoid.MaxHealth
+                            hpLabel.Text = string.format("%d/%d HP", health, maxHealth)
+                            hpLabel.Color = Color3.fromRGB(255 * (health / maxHealth), 255 * (health / maxHealth), 0)
+                            hpLabel.Position = Vector2.new(pos.X - hpLabel.TextBounds.X / 2, minPos.Y + screenHeight + (isStudsEnabled and 40 or 20))
+                            hpLabel.Visible = true
+                        elseif hpLabel then
+                            hpLabel.Visible = false
+                        end
+                    else
+                        box.Visible = false
+                        if studsLabels[player] then studsLabels[player].Visible = false end
+                        if nameLabels[player] then nameLabels[player].Visible = false end
+                        if hpLabels[player] then hpLabels[player].Visible = false end
+                    end
+                else
+                    box.Visible = false
+                    if studsLabels[player] then studsLabels[player].Visible = false end
+                    if nameLabels[player] then nameLabels[player].Visible = false end
+                    if hpLabels[player] then hpLabels[player].Visible = false end
+                end
+            else
+                box.Visible = false
+                if studsLabels[player] then studsLabels[player].Visible = false end
+                if nameLabels[player] then nameLabels[player].Visible = false end
+                if hpLabels[player] then hpLabels[player].Visible = false end
+            end
+        else
+            box.Visible = false
+            if studsLabels[player] then studsLabels[player].Visible = false end
+            if nameLabels[player] then nameLabels[player].Visible = false end
+            if hpLabels[player] then hpLabels[player].Visible = false end
+        end
+    end
 end
 
 -- Обновлённая функция Fly
