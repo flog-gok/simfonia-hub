@@ -28,7 +28,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 300, 0, 50)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "SIMFONIA HUB v9.7"
+Title.Text = "SIMFONIA HUB v9.8"
 Title.TextColor3 = Color3.fromRGB(255, 255, 153) -- Мягкий жёлтый для контраста
 Title.TextSize = 34
 Title.Font = Enum.Font.SourceSansBold -- Жирный современный шрифт
@@ -555,6 +555,60 @@ CrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 CrosshairButton.TextSize = 18
 CrosshairButton.Parent = VisualsFrame
 
+-- Кнопка Spin Crosshair
+local SpinCrosshairButton = Instance.new("TextButton")
+SpinCrosshairButton.Size = UDim2.new(0, 200, 0, 40)
+SpinCrosshairButton.Position = UDim2.new(0, 0, 0, 140) -- Под CrosshairButton (Y=90) + отступ
+SpinCrosshairButton.Text = "Spin Crosshair: OFF"
+SpinCrosshairButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+SpinCrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpinCrosshairButton.TextSize = 18
+SpinCrosshairButton.Parent = VisualsFrame
+
+local SpinCrosshairStroke = Instance.new("UIStroke")
+SpinCrosshairStroke.Thickness = 2
+SpinCrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
+SpinCrosshairStroke.Parent = SpinCrosshairButton
+
+-- Кнопка Color Crosshair
+local ColorCrosshairButton = Instance.new("TextButton")
+ColorCrosshairButton.Size = UDim2.new(0, 200, 0, 40)
+ColorCrosshairButton.Position = UDim2.new(0, 0, 0, 190) -- Под SpinCrosshairButton
+ColorCrosshairButton.Text = "Color Crosshair"
+ColorCrosshairButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ColorCrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ColorCrosshairButton.TextSize = 18
+ColorCrosshairButton.Parent = VisualsFrame
+
+local ColorCrosshairStroke = Instance.new("UIStroke")
+ColorCrosshairStroke.Thickness = 2
+ColorCrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
+ColorCrosshairStroke.Parent = ColorCrosshairButton
+
+-- Палитра для выбора цвета (скрыта по умолчанию)
+local ColorPickerFrame = Instance.new("Frame")
+ColorPickerFrame.Size = UDim2.new(0, 100, 0, 100)
+ColorPickerFrame.Position = UDim2.new(0, 210, 0, 190) -- Справа от ColorCrosshairButton
+ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ColorPickerFrame.Visible = false
+ColorPickerFrame.Parent = VisualsFrame
+
+local ColorPickerStroke = Instance.new("UIStroke")
+ColorPickerStroke.Thickness = 1
+ColorPickerStroke.Color = Color3.fromRGB(150, 150, 150)
+ColorPickerStroke.Parent = ColorPickerFrame
+
+local ColorPickerGradient = Instance.new("UIGradient")
+ColorPickerGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),    -- Красный
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 0)), -- Жёлтый
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),   -- Зелёный
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 0, 255)),  -- Синий
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))    -- Фиолетовый
+})
+ColorPickerGradient.Rotation = 45 -- Диагональный градиент для палитры
+ColorPickerGradient.Parent = ColorPickerFrame
+
 local CrosshairStroke = Instance.new("UIStroke")
 CrosshairStroke.Thickness = 2
 CrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
@@ -800,6 +854,9 @@ local aimbotFOVCircle
 local aimbotConnection
 local isNoclipV2Enabled = false
 local noclipV2Connection
+local isSpinCrosshairEnabled = false
+local spinCrosshairConnection
+local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1653,13 +1710,42 @@ local function toggleArmMaterial(level)
     end
 end
 
-local function toggleCrosshair(mode)
-	-- Удаляем существующие линии
-	for _, line in pairs(crosshairLines) do
-		line:Remove()
-	end
-	crosshairLines = {}
-
+local function toggleCrosshair(enable)
+    if enable then
+        crosshairLines = {}
+        for i = 1, 4 do
+            local line = Drawing.new("Line")
+            line.Thickness = 2
+            line.Color = crosshairColor -- Используем переменную цвета
+            line.Transparency = 1
+            line.Visible = true
+            table.insert(crosshairLines, line)
+        end
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
+        crosshairLines[1].From = Vector2.new(centerX, centerY - 20)
+        crosshairLines[1].To = Vector2.new(centerX, centerY - 5)
+        crosshairLines[2].From = Vector2.new(centerX, centerY + 5)
+        crosshairLines[2].To = Vector2.new(centerX, centerY + 20)
+        crosshairLines[3].From = Vector2.new(centerX - 20, centerY)
+        crosshairLines[3].To = Vector2.new(centerX - 5, centerY)
+        crosshairLines[4].From = Vector2.new(centerX + 5, centerY)
+        crosshairLines[4].To = Vector2.new(centerX + 20, centerY)
+    else
+        if crosshairLines then
+            for _, line in pairs(crosshairLines) do
+                line:Remove()
+            end
+            crosshairLines = nil
+        end
+        if isSpinCrosshairEnabled then
+            isSpinCrosshairEnabled = false
+            toggleSpinCrosshair(false)
+            SpinCrosshairButton.Text = "Spin Crosshair: OFF"
+            SpinCrosshairButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    end
+end
 	if mode == 0 then
 		-- OFF: ничего не рисуем
 		return
@@ -1741,6 +1827,32 @@ local function toggleCrosshair(mode)
 		hook4.Visible = true
 		table.insert(crosshairLines, hook4)
 	end
+end
+
+local function toggleSpinCrosshair(enable)
+    if enable then
+        if not crosshairLines or #crosshairLines == 0 then
+            -- Если прицел ещё не создан, включаем его
+            toggleCrosshair(true)
+        end
+        spinCrosshairConnection = RunService.RenderStepped:Connect(function(deltaTime)
+            if not isSpinCrosshairEnabled or not crosshairLines then return end
+            for _, line in pairs(crosshairLines) do
+                line.Rotation = (line.Rotation + 360 * deltaTime) % 360 -- Вращение по часовой стрелке
+            end
+        end)
+    else
+        if spinCrosshairConnection then
+            spinCrosshairConnection:Disconnect()
+            spinCrosshairConnection = nil
+        end
+        -- Сбрасываем вращение до 0, если выключаем
+        if crosshairLines then
+            for _, line in pairs(crosshairLines) do
+                line.Rotation = 0
+            end
+        end
+    end
 end
 
 local function toggleOresESP(mode)
@@ -2138,6 +2250,40 @@ CrosshairButton.MouseButton1Click:Connect(function()
 		CrosshairButton.Text = "Crosshair: Sun"
 	end
 	toggleCrosshair(crosshairMode)
+end)
+
+SpinCrosshairButton.MouseButton1Click:Connect(function()
+    isSpinCrosshairEnabled = not isSpinCrosshairEnabled
+    SpinCrosshairButton.Text = isSpinCrosshairEnabled and "Spin Crosshair: ON" or "Spin Crosshair: OFF"
+    SpinCrosshairButton.TextColor3 = isSpinCrosshairEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    toggleSpinCrosshair(isSpinCrosshairEnabled)
+end)
+
+ColorCrosshairButton.MouseButton1Click:Connect(function()
+    ColorPickerFrame.Visible = not ColorPickerFrame.Visible -- Показываем/скрываем палитру
+end)
+
+ColorPickerFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and ColorPickerFrame.Visible then
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        local framePos = ColorPickerFrame.AbsolutePosition
+        local frameSize = ColorPickerFrame.AbsoluteSize
+        local relativeX = (mouse.X - framePos.X) / frameSize.X
+        local relativeY = (mouse.Y - framePos.Y) / frameSize.Y
+
+        -- Преобразуем позицию клика в цвет из градиента
+        local hue = relativeX -- Оттенок от 0 до 1
+        local saturation = 1 - relativeY -- Насыщенность от 1 до 0
+        local value = 1 -- Яркость фиксирована
+        crosshairColor = Color3.fromHSV(hue, saturation, value)
+
+        -- Обновляем цвет прицела
+        if crosshairLines then
+            for _, line in pairs(crosshairLines) do
+                line.Color = crosshairColor
+            end
+        end
+    end
 end)
 
 FlyButton.MouseButton1Click:Connect(function()
