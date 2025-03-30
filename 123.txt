@@ -28,7 +28,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 300, 0, 50)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "SIMFONIA HUB v9.8"
+Title.Text = "SIMFONIA HUB v9.9"
 Title.TextColor3 = Color3.fromRGB(255, 255, 153) -- Мягкий жёлтый для контраста
 Title.TextSize = 34
 Title.Font = Enum.Font.SourceSansBold -- Жирный современный шрифт
@@ -793,6 +793,20 @@ TextureLevelButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 TextureLevelButton.TextSize = 18
 TextureLevelButton.Parent = FPSFrame
 
+local TextureDeleteButton = Instance.new("TextButton")
+TextureDeleteButton.Size = UDim2.new(0, 200, 0, 40)
+TextureDeleteButton.Position = UDim2.new(0, 0, 0, 90)
+TextureDeleteButton.Text = "Texture Delete (BETA): OFF"
+TextureDeleteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextureDeleteButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TextureDeleteButton.TextSize = 18
+TextureDeleteButton.Parent = FPSFrame
+
+local TextureDeleteStroke = Instance.new("UIStroke")
+TextureDeleteStroke.Thickness = 2
+TextureDeleteStroke.Color = Color3.fromRGB(100, 100, 100)
+TextureDeleteStroke.Parent = TextureDeleteButton
+
 local TextureLevelStroke = Instance.new("UIStroke")
 TextureLevelStroke.Thickness = 2
 TextureLevelStroke.Color = Color3.fromRGB(100, 100, 100)
@@ -858,6 +872,7 @@ local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цв�
 local isViewModelEnabled = false
 local resetBind = nil -- Переменная для хранения бинда
 local isResetBindActive = false -- Состояние активации бинда
+local isTextureDeleteEnabled = false
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1470,6 +1485,18 @@ local function resetCharacter()
         -- Легитный способ: временно ломает персонажа, чтобы Roblox сам его перезагрузил
         humanoid:ChangeState(Enum.HumanoidStateType.Dead)
         -- Альтернатива: player:LoadCharacter() — но это менее "легитно" и может быть заблокировано
+    end
+end
+
+local function toggleTextureDelete(enable)
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Texture") or obj:IsA("Decal") then
+            if enable then
+                obj.Transparency = 1 -- Убираем текстуру, оставляя цвет и материал
+            else
+                obj.Transparency = 0 -- Восстанавливаем текстуру
+            end
+        end
     end
 end
 
@@ -2178,6 +2205,12 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             resetCharacter()
         end
     end
+end)
+
+TextureDeleteButton.MouseButton1Click:Connect(function()
+    isTextureDeleteEnabled = not isTextureDeleteEnabled
+    TextureDeleteButton.Text = isTextureDeleteEnabled and "Texture Delete (BETA): ON" or "Texture Delete (BETA): OFF"
+    toggleTextureDelete(isTextureDeleteEnabled)
 end)
 
 DayVisualButton.MouseButton1Click:Connect(function()
