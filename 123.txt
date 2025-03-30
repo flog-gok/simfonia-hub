@@ -624,20 +624,6 @@ FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 FlyButton.TextSize = 18
 FlyButton.Parent = MiscFrame
 
-local NoclipV2Button = Instance.new("TextButton")
-NoclipV2Button.Size = UDim2.new(0, 200, 0, 40)
-NoclipV2Button.Position = UDim2.new(0, 0, 0, 590) -- Под ExitButton (Y=540) + отступ
-NoclipV2Button.Text = "NoclipV2: OFF"
-NoclipV2Button.TextColor3 = Color3.fromRGB(255, 0, 0)
-NoclipV2Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-NoclipV2Button.TextSize = 18
-NoclipV2Button.Parent = MiscFrame
-
-local NoclipV2Stroke = Instance.new("UIStroke")
-NoclipV2Stroke.Thickness = 2
-NoclipV2Stroke.Color = Color3.fromRGB(100, 100, 100)
-NoclipV2Stroke.Parent = NoclipV2Button
-
 local FlyStroke = Instance.new("UIStroke")
 FlyStroke.Thickness = 2
 FlyStroke.Color = Color3.fromRGB(100, 100, 100)
@@ -750,6 +736,20 @@ DeleteWallButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 DeleteWallButton.TextSize = 18
 DeleteWallButton.Parent = MiscFrame
 
+local BindResetButton = Instance.new("TextButton")
+BindResetButton.Size = UDim2.new(0, 200, 0, 40)
+BindResetButton.Position = UDim2.new(0, 0, 0, 360) -- Слева внизу
+BindResetButton.Text = "Bind Reset: None"
+BindResetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BindResetButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+BindResetButton.TextSize = 18
+BindResetButton.Parent = MiscFrame
+
+local BindResetStroke = Instance.new("UIStroke")
+BindResetStroke.Thickness = 2
+BindResetStroke.Color = Color3.fromRGB(100, 100, 100)
+BindResetStroke.Parent = BindResetButton
+
 local DeleteWallStroke = Instance.new("UIStroke")
 DeleteWallStroke.Thickness = 2
 DeleteWallStroke.Color = Color3.fromRGB(100, 100, 100)
@@ -852,12 +852,12 @@ local aimbotFOVSize = 100
 local aimbotSpeed = 50 -- В процентах (0-100)
 local aimbotFOVCircle
 local aimbotConnection
-local isNoclipV2Enabled = false
-local noclipV2Connection
 local isSpinCrosshairEnabled = false
 local spinCrosshairConnection
 local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
 local isViewModelEnabled = false
+local resetBind = nil -- Переменная для хранения бинда
+local isResetBindActive = false -- Состояние активации бинда
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1462,6 +1462,17 @@ task.spawn(function()
     end
 end)
 
+local function resetCharacter()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    if humanoid then
+        -- Легитный способ: временно ломает персонажа, чтобы Roblox сам его перезагрузил
+        humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+        -- Альтернатива: player:LoadCharacter() — но это менее "легитно" и может быть заблокировано
+    end
+end
+
 -- Функция Day Visual
 local function toggleDayVisual(enable)
 	local lighting = game:GetService("Lighting")
@@ -1499,59 +1510,6 @@ local function toggleDeleteWall(enable)
 			end
 		end)
 	end
-end
-
-local function toggleNoclipV2(enable)
-    local player = game.Players.LocalPlayer
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
-    local rootPart = character.HumanoidRootPart
-    local humanoid = character:FindFirstChild("Humanoid")
-
-    if enable then
-        noclipV2Connection = RunService.Heartbeat:Connect(function(deltaTime)
-            if not isNoclipV2Enabled or not humanoid then return end
-
-            -- Проверяем столкновение впереди
-            local rayOrigin = rootPart.Position
-            local rayDirection = rootPart.CFrame.LookVector * 1.5 -- Проверяем на 1.5 studs вперёд
-            local raycastParams = RaycastParams.new()
-            raycastParams.FilterDescendantsInstances = {character}
-            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-            local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-
-            if raycastResult then
-                local wall = raycastResult.Instance
-                if wall and wall:IsA("BasePart") and wall.CanCollide then
-                    -- Микротелепортация через стену
-                    local stepDistance = 0.2 -- Маленький шаг для маскировки
-                    local wallNormal = raycastResult.Normal
-                    local wallThickness = wall.Size.Magnitude / 2 -- Примерная толщина стены
-                    local teleportTarget = rootPart.Position + wallNormal * (wallThickness + 1) -- Цель за стеной
-
-                    -- Плавное перемещение через стену
-                    local steps = math.ceil((teleportTarget - rootPart.Position).Magnitude / stepDistance)
-                    for i = 1, steps do
-                        if not isNoclipV2Enabled then break end
-                        local newPos = rootPart.Position:Lerp(teleportTarget, i / steps)
-                        rootPart.CFrame = CFrame.new(newPos) * rootPart.CFrame.Rotation
-                        humanoid.WalkSpeed = 0 -- Замораживаем скорость, чтобы избежать отката
-                        task.wait(0.05) -- Задержка для имитации легитимного движения
-                    end
-                    humanoid.WalkSpeed = 16 -- Восстанавливаем скорость
-                end
-            end
-        end)
-    else
-        if noclipV2Connection then
-            noclipV2Connection:Disconnect()
-            noclipV2Connection = nil
-        end
-        if humanoid then
-            humanoid.WalkSpeed = 16 -- Убеждаемся, что скорость восстановлена
-        end
-    end
 end
 
 -- Функция Remove Grass
@@ -2193,6 +2151,35 @@ ViewModelDownButton.MouseButton1Click:Connect(function()
     end
 end)
 
+BindResetButton.MouseButton1Click:Connect(function()
+    BindResetButton.Text = "Bind Reset: Press a key..."
+    local connection
+    connection = UIS.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            resetBind = input.KeyCode
+            BindResetButton.Text = "Bind Reset: " .. input.KeyCode.Name
+            isResetBindActive = true
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               input.UserInputType == Enum.UserInputType.MouseButton2 or 
+               input.UserInputType == Enum.UserInputType.MouseButton3 then
+            resetBind = input.UserInputType
+            BindResetButton.Text = "Bind Reset: " .. input.UserInputType.Name
+            isResetBindActive = true
+        end
+        connection:Disconnect()
+    end)
+end)
+
+-- Обработка нажатия бинда
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and isResetBindActive then
+        if (input.KeyCode == resetBind and resetBind ~= nil) or 
+           (input.UserInputType == resetBind and resetBind ~= nil) then
+            resetCharacter()
+        end
+    end
+end)
+
 DayVisualButton.MouseButton1Click:Connect(function()
 	isDayVisualEnabled = not isDayVisualEnabled
 	DayVisualButton.Text = isDayVisualEnabled and "Day Visual: ON" or "Day Visual: OFF"
@@ -2291,13 +2278,6 @@ FlyButton.MouseButton1Click:Connect(function()
 	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
 	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	toggleFly(isFlyEnabled)
-end)
-
-NoclipV2Button.MouseButton1Click:Connect(function()
-    isNoclipV2Enabled = not isNoclipV2Enabled
-    NoclipV2Button.Text = isNoclipV2Enabled and "NoclipV2: ON" or "NoclipV2: OFF"
-    NoclipV2Button.TextColor3 = Color3.fromRGB(255, 0, 0)
-    toggleNoclipV2(isNoclipV2Enabled)
 end)
 
 FreecamButton.MouseButton1Click:Connect(function()
