@@ -1710,19 +1710,42 @@ local function toggleArmMaterial(level)
     end
 end
 
-local function toggleCrosshair(enable)
-    if enable then
-        crosshairLines = {}
+local function toggleCrosshair(mode)
+    -- Отключаем прицел, если уже включён
+    if crosshairLines then
+        for _, line in pairs(crosshairLines) do
+            line:Remove()
+        end
+        crosshairLines = nil
+    end
+
+    if mode == 0 then
+        -- Выключаем прицел
+        crosshairMode = 0
+        if isSpinCrosshairEnabled then
+            isSpinCrosshairEnabled = false
+            toggleSpinCrosshair(false)
+            SpinCrosshairButton.Text = "Spin Crosshair: OFF"
+            SpinCrosshairButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+        return
+    end
+
+    crosshairMode = mode
+    crosshairLines = {}
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
+
+    if mode == 1 then
+        -- Cross: обычный крестик
         for i = 1, 4 do
             local line = Drawing.new("Line")
             line.Thickness = 2
-            line.Color = crosshairColor -- Используем переменную цвета
+            line.Color = crosshairColor
             line.Transparency = 1
             line.Visible = true
             table.insert(crosshairLines, line)
         end
-        local screenSize = workspace.CurrentCamera.ViewportSize
-        local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
         crosshairLines[1].From = Vector2.new(centerX, centerY - 20)
         crosshairLines[1].To = Vector2.new(centerX, centerY - 5)
         crosshairLines[2].From = Vector2.new(centerX, centerY + 5)
@@ -1731,102 +1754,66 @@ local function toggleCrosshair(enable)
         crosshairLines[3].To = Vector2.new(centerX - 5, centerY)
         crosshairLines[4].From = Vector2.new(centerX + 5, centerY)
         crosshairLines[4].To = Vector2.new(centerX + 20, centerY)
-    else
-        if crosshairLines then
-            for _, line in pairs(crosshairLines) do
-                line:Remove()
-            end
-            crosshairLines = nil
-        end
-        if isSpinCrosshairEnabled then
-            isSpinCrosshairEnabled = false
-            toggleSpinCrosshair(false)
-            SpinCrosshairButton.Text = "Spin Crosshair: OFF"
-            SpinCrosshairButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
+    elseif mode == 2 then
+        -- Sun: обратная свастика (знак солнца)
+        local size = 15 -- Размер свастики
+
+        -- Основные линии (крест)
+        local line1 = Drawing.new("Line")
+        line1.Thickness = 2
+        line1.Color = crosshairColor
+        line1.From = Vector2.new(centerX - size, centerY)
+        line1.To = Vector2.new(centerX + size, centerY)
+        line1.Visible = true
+        table.insert(crosshairLines, line1)
+
+        local line2 = Drawing.new("Line")
+        line2.Thickness = 2
+        line2.Color = crosshairColor
+        line2.From = Vector2.new(centerX, centerY - size)
+        line2.To = Vector2.new(centerX, centerY + size)
+        line2.Visible = true
+        table.insert(crosshairLines, line2)
+
+        -- "Крюки" обратной свастики
+        local hook1 = Drawing.new("Line") -- Верхний левый
+        hook1.Thickness = 2
+        hook1.Color = crosshairColor
+        hook1.From = Vector2.new(centerX - size, centerY)
+        hook1.To = Vector2.new(centerX - size, centerY + size / 2)
+        hook1.Visible = true
+        table.insert(crosshairLines, hook1)
+
+        local hook2 = Drawing.new("Line") -- Нижний левый
+        hook2.Thickness = 2
+        hook2.Color = crosshairColor
+        hook2.From = Vector2.new(centerX + size, centerY)
+        hook2.To = Vector2.new(centerX + size, centerY - size / 2)
+        hook2.Visible = true
+        table.insert(crosshairLines, hook2)
+
+        local hook3 = Drawing.new("Line") -- Верхний правый
+        hook3.Thickness = 2
+        hook3.Color = crosshairColor
+        hook3.From = Vector2.new(centerX, centerY - size)
+        hook3.To = Vector2.new(centerX + size / 2, centerY - size)
+        hook3.Visible = true
+        table.insert(crosshairLines, hook3)
+
+        local hook4 = Drawing.new("Line") -- Нижний правый
+        hook4.Thickness = 2
+        hook4.Color = crosshairColor
+        hook4.From = Vector2.new(centerX, centerY + size)
+        hook4.To = Vector2.new(centerX - size / 2, centerY + size)
+        hook4.Visible = true
+        table.insert(crosshairLines, hook4)
     end
-end
-	if mode == 0 then
-		-- OFF: ничего не рисуем
-		return
-	elseif mode == 1 then
-		-- Cross: обычный крестик
-		local screenSize = workspace.CurrentCamera.ViewportSize
-		local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
 
-		-- Горизонтальная линия
-		local horizontal = Drawing.new("Line")
-		horizontal.Thickness = 2
-		horizontal.Color = Color3.fromRGB(255, 255, 255)
-		horizontal.From = Vector2.new(centerX - 10, centerY)
-		horizontal.To = Vector2.new(centerX + 10, centerY)
-		horizontal.Visible = true
-		table.insert(crosshairLines, horizontal)
-
-		-- Вертикальная линия
-		local vertical = Drawing.new("Line")
-		vertical.Thickness = 2
-		vertical.Color = Color3.fromRGB(255, 255, 255)
-		vertical.From = Vector2.new(centerX, centerY - 10)
-		vertical.To = Vector2.new(centerX, centerY + 10)
-		vertical.Visible = true
-		table.insert(crosshairLines, vertical)
-	elseif mode == 2 then
-		-- Sun: обратная свастика (знак солнца)
-		local screenSize = workspace.CurrentCamera.ViewportSize
-		local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
-		local size = 15 -- Размер свастики
-
-		-- Основные линии (крест)
-		local line1 = Drawing.new("Line")
-		line1.Thickness = 2
-		line1.Color = Color3.fromRGB(255, 255, 255)
-		line1.From = Vector2.new(centerX - size, centerY)
-		line1.To = Vector2.new(centerX + size, centerY)
-		line1.Visible = true
-		table.insert(crosshairLines, line1)
-
-		local line2 = Drawing.new("Line")
-		line2.Thickness = 2
-		line2.Color = Color3.fromRGB(255, 255, 255)
-		line2.From = Vector2.new(centerX, centerY - size)
-		line2.To = Vector2.new(centerX, centerY + size)
-		line2.Visible = true
-		table.insert(crosshairLines, line2)
-
-		-- "Крюки" обратной свастики
-		local hook1 = Drawing.new("Line") -- Верхний левый
-		hook1.Thickness = 2
-		hook1.Color = Color3.fromRGB(255, 255, 255)
-		hook1.From = Vector2.new(centerX - size, centerY)
-		hook1.To = Vector2.new(centerX - size, centerY + size / 2)
-		hook1.Visible = true
-		table.insert(crosshairLines, hook1)
-
-		local hook2 = Drawing.new("Line") -- Нижний левый
-		hook2.Thickness = 2
-		hook2.Color = Color3.fromRGB(255, 255, 255)
-		hook2.From = Vector2.new(centerX + size, centerY)
-		hook2.To = Vector2.new(centerX + size, centerY - size / 2)
-		hook2.Visible = true
-		table.insert(crosshairLines, hook2)
-
-		local hook3 = Drawing.new("Line") -- Верхний правый
-		hook3.Thickness = 2
-		hook3.Color = Color3.fromRGB(255, 255, 255)
-		hook3.From = Vector2.new(centerX, centerY - size)
-		hook3.To = Vector2.new(centerX - size / 2, centerY - size)
-		hook3.Visible = true
-		table.insert(crosshairLines, hook3)
-
-		local hook4 = Drawing.new("Line") -- Нижний правый
-		hook4.Thickness = 2
-		hook4.Color = Color3.fromRGB(255, 255, 255)
-		hook4.From = Vector2.new(centerX, centerY + size)
-		hook4.To = Vector2.new(centerX + size / 2, centerY + size)
-		hook4.Visible = true
-		table.insert(crosshairLines, hook4)
-	end
+    -- Если вращение уже включено, перезапускаем его
+    if isSpinCrosshairEnabled then
+        toggleSpinCrosshair(false)
+        toggleSpinCrosshair(true)
+    end
 end
 
 local function toggleSpinCrosshair(enable)
