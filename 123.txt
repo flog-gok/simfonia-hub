@@ -857,6 +857,7 @@ local noclipV2Connection
 local isSpinCrosshairEnabled = false
 local spinCrosshairConnection
 local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
+local isViewModelEnabled = false
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1446,8 +1447,12 @@ end
 
 -- Функция View Model
 local function updateViewModelFOV()
-	local camera = workspace.CurrentCamera
-	camera.FieldOfView = viewModelFOV
+    local camera = workspace.CurrentCamera
+    if isViewModelEnabled then
+        camera.FieldOfView = viewModelFOV
+    else
+        camera.FieldOfView = defaultFOV
+    end
 end
 -- После функции updateViewModelFOV
 task.spawn(function()
@@ -2162,20 +2167,30 @@ HealthButton.MouseButton1Click:Connect(function()
 	end
 end)
 
+ViewModelButton.MouseButton1Click:Connect(function()
+    isViewModelEnabled = not isViewModelEnabled
+    ViewModelButton.Text = isViewModelEnabled and "View Model: " .. viewModelFOV or "View Model: OFF"
+    updateViewModelFOV()
+end)
+
 ViewModelUpButton.MouseButton1Click:Connect(function()
-	if viewModelFOV < 200 then
-		viewModelFOV = viewModelFOV + 10
-		ViewModelButton.Text = "View Model: " .. viewModelFOV
-		updateViewModelFOV()
-	end
+    if viewModelFOV < 200 then
+        viewModelFOV = viewModelFOV + 10
+        ViewModelButton.Text = isViewModelEnabled and "View Model: " .. viewModelFOV or "View Model: OFF"
+        if isViewModelEnabled then
+            updateViewModelFOV()
+        end
+    end
 end)
 
 ViewModelDownButton.MouseButton1Click:Connect(function()
-	if viewModelFOV > defaultFOV then
-		viewModelFOV = viewModelFOV - 10
-		ViewModelButton.Text = "View Model: " .. viewModelFOV
-		updateViewModelFOV()
-	end
+    if viewModelFOV > defaultFOV then
+        viewModelFOV = viewModelFOV - 10
+        ViewModelButton.Text = isViewModelEnabled and "View Model: " .. viewModelFOV or "View Model: OFF"
+        if isViewModelEnabled then
+            updateViewModelFOV()
+        end
+    end
 end)
 
 DayVisualButton.MouseButton1Click:Connect(function()
