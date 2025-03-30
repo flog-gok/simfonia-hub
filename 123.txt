@@ -623,6 +623,11 @@ AspectButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 AspectButton.TextSize = 18
 AspectButton.Parent = VisualsFrame
 
+local AspectStroke = Instance.new("UIStroke")
+AspectStroke.Thickness = 2
+AspectStroke.Color = Color3.fromRGB(100, 100, 100)
+AspectStroke.Parent = AspectButton
+
 local AspectWindow = Instance.new("Frame")
 AspectWindow.Size = UDim2.new(0, 150, 0, 150)
 AspectWindow.Position = UDim2.new(0.5, -75, 0.5, -75)
@@ -645,10 +650,50 @@ local AspectList = {
     {"5:4", 5/4}
 }
 
-local AspectStroke = Instance.new("UIStroke")
-AspectStroke.Thickness = 2
-AspectStroke.Color = Color3.fromRGB(100, 100, 100)
-AspectStroke.Parent = AspectButton
+local function updateAspectWindow()
+    AspectScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, #AspectList * 40)
+    for i, aspect in pairs(AspectList) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -10, 0, 30)
+        button.Position = UDim2.new(0, 5, 0, (i-1) * 40)
+        button.Text = aspect[1]
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        button.TextSize = 18
+        button.Parent = AspectScrollingFrame
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 2
+        stroke.Color = Color3.fromRGB(100, 100, 100)
+        stroke.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            currentAspect = aspect[1]
+            AspectButton.Text = "Aspect: " .. currentAspect
+            isAspectEnabled = (currentAspect ~= "Original")
+            workspace.CurrentCamera:ClearAllChildren()
+            if isAspectEnabled then
+                local viewport = Instance.new("ViewportFrame")
+                viewport.Size = UDim2.new(1, 0, 1, 0)
+                viewport.Position = UDim2.new(0, 0, 0, 0)
+                viewport.BackgroundTransparency = 1
+                viewport.CurrentCamera = workspace.CurrentCamera
+                viewport.Parent = ScreenGui
+                workspace.CurrentCamera.AspectRatio = aspect[2]
+            else
+                workspace.CurrentCamera.AspectRatio = defaultAspect
+            end
+            AspectWindow.Visible = false
+        end)
+    end
+end
+
+AspectButton.MouseButton1Click:Connect(function()
+    AspectWindow.Visible = not AspectWindow.Visible
+    if AspectWindow.Visible then
+        updateAspectWindow()
+    end
+end)
 
 -- Элементы для Misc
 local FlyButton = Instance.new("TextButton")
@@ -1539,44 +1584,6 @@ local function toggleTextureDelete(enable)
     end
 end
 
-local function updateAspectWindow()
-    AspectScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, #AspectList * 40)
-    for i, aspect in pairs(AspectList) do
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(1, -10, 0, 30)
-        button.Position = UDim2.new(0, 5, 0, (i-1) * 40)
-        button.Text = aspect[1]
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        button.TextSize = 18
-        button.Parent = AspectScrollingFrame
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Thickness = 2
-        stroke.Color = Color3.fromRGB(100, 100, 100)
-        stroke.Parent = button
-
-        button.MouseButton1Click:Connect(function()
-            currentAspect = aspect[1]
-            AspectButton.Text = "Aspect: " .. currentAspect
-            isAspectEnabled = (currentAspect ~= "Original")
-            workspace.CurrentCamera:ClearAllChildren()
-            if isAspectEnabled then
-                local viewport = Instance.new("ViewportFrame")
-                viewport.Size = UDim2.new(1, 0, 1, 0)
-                viewport.Position = UDim2.new(0, 0, 0, 0)
-                viewport.BackgroundTransparency = 1
-                viewport.CurrentCamera = workspace.CurrentCamera
-                viewport.Parent = ScreenGui
-                workspace.CurrentCamera.AspectRatio = aspect[2]
-            else
-                workspace.CurrentCamera.AspectRatio = defaultAspect
-            end
-            AspectWindow.Visible = false
-        end)
-    end
-end
-
 -- Функция Day Visual
 local function toggleDayVisual(enable)
 	local lighting = game:GetService("Lighting")
@@ -2288,13 +2295,6 @@ TextureDeleteButton.MouseButton1Click:Connect(function()
     isTextureDeleteEnabled = not isTextureDeleteEnabled
     TextureDeleteButton.Text = isTextureDeleteEnabled and "Texture Delete (BETA): ON" or "Texture Delete (BETA): OFF"
     toggleTextureDelete(isTextureDeleteEnabled)
-end)
-
-AspectButton.MouseButton1Click:Connect(function()
-    AspectWindow.Visible = not AspectWindow.Visible
-    if AspectWindow.Visible then
-        updateAspectWindow()
-    end
 end)
 
 DayVisualButton.MouseButton1Click:Connect(function()
