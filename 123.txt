@@ -868,7 +868,6 @@ local freecamConnection
 local noclipConnection
 local speedhackBind = nil
 local speedhackSpeed = 20
-local flySpeed = 19
 local fovCircle
 local silentAimConnection
 local lines = {}
@@ -880,29 +879,36 @@ local originalGrassState = {}
 local currentSkybox = 0
 local currentArmMaterial = 0
 local originalSkybox = {}
-local crosshairMode = 0 -- 0 = OFF, 1 = Cross, 2 = Sun
-local crosshairLines = {} -- Таблица для хранения линий прицела
-local oresESPMode = 0 -- 0 = OFF, 1 = Iron, 2 = Stone, 3 = Sulfur
-local oreLabels = {} -- Таблица для хранения текстовых меток руд
-local activeOres = {} -- Таблица для хранения до 10 активных объектов руд
-local oresESPConnection -- Для обновления меток
+local crosshairMode = 0
+local crosshairLines = {}
+local oresESPMode = 0
+local oreLabels = {}
+local activeOres = {}
+local oresESPConnection
 local isAimbotEnabled = false
-local aimbotPriority = "Head" -- "Head" или "Body"
+local aimbotPriority = "Head"
 local aimbotBind = nil
 local aimbotFOVSize = 100
-local aimbotSpeed = 50 -- В процентах (0-100)
+local aimbotSpeed = 50
 local aimbotFOVCircle
 local aimbotConnection
 local isSpinCrosshairEnabled = false
 local spinCrosshairConnection
-local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
+local crosshairColor = Color3.fromRGB(255, 255, 255)
 local isViewModelEnabled = false
-local resetBind = nil -- Переменная для хранения бинда
-local isResetBindActive = false -- Состояние активации бинда
+local resetBind = nil
+local isResetBindActive = false
 local isTextureDeleteEnabled = false
 local flySpeed = 20 -- Начальная скорость полёта
 local maxFlySpeed = 90 -- Максимальная скорость
-local flyConnection -- Для хранения подключения Fly
+local flyConnection
+local defaultMouseIcon = true -- Сохраняем начальное состояние мыши
+local dragging = false
+local dragStart = nil
+local startPos = nil
+local originalCameraCFrame = nil
+local yaw = 0
+local pitch = 0
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1714,7 +1720,7 @@ local function toggleCrosshair(mode)
         for _, line in pairs(crosshairLines) do
             line:Remove()
         end
-        crosshairLines = nil
+        crosshairLines = {} -- Очищаем таблицу, а не пересоздаём
     end
 
     if mode == 0 then
@@ -2433,7 +2439,7 @@ ExitButton.MouseButton1Click:Connect(function()
         isNamesEnabled = false
         isHealthEnabled = false
         for player, box in pairs(boxes) do
-            box:Remove()
+            if box then box:Remove() end
             boxes[player] = nil
             if studsLabels[player] then studsLabels[player]:Remove(); studsLabels[player] = nil end
             if nameLabels[player] then nameLabels[player]:Remove(); nameLabels[player] = nil end
@@ -2492,6 +2498,10 @@ ExitButton.MouseButton1Click:Connect(function()
         isResetBindActive = false
         resetBind = nil
         BindResetButton.Text = "Bind Reset: None"
+    end
+    if isAimbotEnabled then
+        isAimbotEnabled = false
+        toggleAimbot(false)
     end
     textureLevel = 0
     setTextureLevel(0)
