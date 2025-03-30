@@ -617,8 +617,8 @@ CrosshairStroke.Parent = CrosshairButton
 -- Элементы для Misc
 local FlyButton = Instance.new("TextButton")
 FlyButton.Size = UDim2.new(0, 200, 0, 40)
-FlyButton.Position = UDim2.new(0, 600, 0, 300) -- Сдвиг вправо на 600
-FlyButton.Text = "Fly: OFF (20)"
+FlyButton.Position = UDim2.new(0, 0, 0, 0)
+FlyButton.Text = "Fly: OFF"
 FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 FlyButton.TextSize = 18
@@ -628,34 +628,6 @@ local FlyStroke = Instance.new("UIStroke")
 FlyStroke.Thickness = 2
 FlyStroke.Color = Color3.fromRGB(100, 100, 100)
 FlyStroke.Parent = FlyButton
-
-local FlyUpButton = Instance.new("TextButton")
-FlyUpButton.Size = UDim2.new(0, 50, 0, 30)
-FlyUpButton.Position = UDim2.new(0, 810, 0, 300) -- 210 + 600 = 810
-FlyUpButton.Text = "+"
-FlyUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlyUpButton.TextSize = 18
-FlyUpButton.Parent = MiscFrame
-
-local FlyUpStroke = Instance.new("UIStroke")
-FlyUpStroke.Thickness = 2
-FlyUpStroke.Color = Color3.fromRGB(100, 100, 100)
-FlyUpStroke.Parent = FlyUpButton
-
-local FlyDownButton = Instance.new("TextButton")
-FlyDownButton.Size = UDim2.new(0, 50, 0, 30)
-FlyDownButton.Position = UDim2.new(0, 870, 0, 300) -- 270 + 600 = 870
-FlyDownButton.Text = "-"
-FlyDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlyDownButton.TextSize = 18
-FlyDownButton.Parent = MiscFrame
-
-local FlyDownStroke = Instance.new("UIStroke")
-FlyDownStroke.Thickness = 2
-FlyDownStroke.Color = Color3.fromRGB(100, 100, 100)
-FlyDownStroke.Parent = FlyDownButton
 
 local FreecamButton = Instance.new("TextButton")
 FreecamButton.Size = UDim2.new(0, 200, 0, 40)
@@ -864,10 +836,12 @@ local boxes = {}
 local studsLabels = {}
 local nameLabels = {}
 local hpLabels = {}
+local flyConnection
 local freecamConnection
 local noclipConnection
 local speedhackBind = nil
 local speedhackSpeed = 20
+local flySpeed = 19
 local fovCircle
 local silentAimConnection
 local lines = {}
@@ -879,36 +853,26 @@ local originalGrassState = {}
 local currentSkybox = 0
 local currentArmMaterial = 0
 local originalSkybox = {}
-local crosshairMode = 0
-local crosshairLines = {}
-local oresESPMode = 0
-local oreLabels = {}
-local activeOres = {}
-local oresESPConnection
+local crosshairMode = 0 -- 0 = OFF, 1 = Cross, 2 = Sun
+local crosshairLines = {} -- Таблица для хранения линий прицела
+local oresESPMode = 0 -- 0 = OFF, 1 = Iron, 2 = Stone, 3 = Sulfur
+local oreLabels = {} -- Таблица для хранения текстовых меток руд
+local activeOres = {} -- Таблица для хранения до 10 активных объектов руд
+local oresESPConnection -- Для обновления меток
 local isAimbotEnabled = false
-local aimbotPriority = "Head"
+local aimbotPriority = "Head" -- "Head" или "Body"
 local aimbotBind = nil
 local aimbotFOVSize = 100
-local aimbotSpeed = 50
+local aimbotSpeed = 50 -- В процентах (0-100)
 local aimbotFOVCircle
 local aimbotConnection
 local isSpinCrosshairEnabled = false
 local spinCrosshairConnection
-local crosshairColor = Color3.fromRGB(255, 255, 255)
+local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
 local isViewModelEnabled = false
-local resetBind = nil
-local isResetBindActive = false
+local resetBind = nil -- Переменная для хранения бинда
+local isResetBindActive = false -- Состояние активации бинда
 local isTextureDeleteEnabled = false
-local flySpeed = 20 -- Начальная скорость полёта
-local maxFlySpeed = 90 -- Максимальная скорость
-local flyConnection
-local defaultMouseIcon = true -- Сохраняем начальное состояние мыши
-local dragging = false
-local dragStart = nil
-local startPos = nil
-local originalCameraCFrame = nil
-local yaw = 0
-local pitch = 0
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
@@ -1120,46 +1084,67 @@ end
 
 -- Обновлённая функция Fly
 local function toggleFly(enable)
-    local player = game.Players.LocalPlayer
-    local character = player.Character
-    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character and character:FindFirstChild("Humanoid")
-    
-    if not humanoidRootPart or not humanoid then return end
-    
-    if enable then
-        humanoid.PlatformStand = true
-        if flyConnection then flyConnection:Disconnect() end
-        flyConnection = RunService.RenderStepped:Connect(function()
-            local moveDirection = Vector3.new()
-            if UIS:IsKeyDown(Enum.KeyCode.W) then
-                moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.LookVector * flySpeed)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.S) then
-                moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.LookVector * flySpeed)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.A) then
-                moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.RightVector * flySpeed)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.D) then
-                moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.RightVector * flySpeed)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.Space) then
-                moveDirection = moveDirection + Vector3.new(0, flySpeed, 0)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
-                moveDirection = moveDirection - Vector3.new(0, flySpeed, 0)
-            end
-            humanoidRootPart.Velocity = moveDirection
-        end)
-    else
-        humanoid.PlatformStand = false
-        if flyConnection then
-            flyConnection:Disconnect()
-            flyConnection = nil
-        end
-        humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-    end
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+	local rootPart = character.HumanoidRootPart
+	local humanoid = character:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	if enable then
+		local bodyForce = Instance.new("BodyForce")
+		bodyForce.Name = "FlyForce"
+		bodyForce.Force = Vector3.new(0, workspace.Gravity * rootPart:GetMass(), 0)
+		bodyForce.Parent = rootPart
+
+		local moveDirection = Vector3.new(0, 0, 0)
+		local camera = workspace.CurrentCamera
+
+		flyConnection = RunService.Heartbeat:Connect(function(dt)
+			if not isFlyEnabled then return end
+
+			moveDirection = Vector3.new(0, 0, 0)
+			local lookDirection = camera.CFrame.LookVector
+			local rightDirection = camera.CFrame.RightVector
+
+			if UIS:IsKeyDown(Enum.KeyCode.W) then
+				moveDirection = moveDirection + lookDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.S) then
+				moveDirection = moveDirection - lookDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.D) then
+				moveDirection = moveDirection + rightDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.A) then
+				moveDirection = moveDirection - rightDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.Space) then
+				moveDirection = moveDirection + Vector3.new(0, 1, 0)
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveDirection = moveDirection - Vector3.new(0, 1, 0)
+			end
+
+			if moveDirection.Magnitude > 0 then
+				moveDirection = moveDirection.Unit * flySpeed
+				rootPart.Velocity = Vector3.new(moveDirection.X, moveDirection.Y, moveDirection.Z)
+			else
+				rootPart.Velocity = Vector3.new(0, 0, 0)
+			end
+		end)
+	else
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
+		end
+		if rootPart:FindFirstChild("FlyForce") then
+			rootPart.FlyForce:Destroy()
+		end
+		humanoid.WalkSpeed = 16
+		rootPart.Velocity = Vector3.new(0, 0, 0)
+	end
 end
 
 -- Функция Freecam
@@ -1720,7 +1705,7 @@ local function toggleCrosshair(mode)
         for _, line in pairs(crosshairLines) do
             line:Remove()
         end
-        crosshairLines = {} -- Очищаем таблицу, а не пересоздаём
+        crosshairLines = nil
     end
 
     if mode == 0 then
@@ -2322,23 +2307,10 @@ ColorPickerFrame.InputBegan:Connect(function(input)
 end)
 
 FlyButton.MouseButton1Click:Connect(function()
-    isFlyEnabled = not isFlyEnabled
-    FlyButton.Text = isFlyEnabled and "Fly: ON (" .. flySpeed .. ")" or "Fly: OFF (" .. flySpeed .. ")"
-    toggleFly(isFlyEnabled)
-end)
-
-FlyUpButton.MouseButton1Click:Connect(function()
-    if flySpeed < maxFlySpeed then
-        flySpeed = flySpeed + 10
-        FlyButton.Text = isFlyEnabled and "Fly: ON (" .. flySpeed .. ")" or "Fly: OFF (" .. flySpeed .. ")"
-    end
-end)
-
-FlyDownButton.MouseButton1Click:Connect(function()
-    if flySpeed > 10 then
-        flySpeed = flySpeed - 10
-        FlyButton.Text = isFlyEnabled and "Fly: ON (" .. flySpeed .. ")" or "Fly: OFF (" .. flySpeed .. ")"
-    end
+	isFlyEnabled = not isFlyEnabled
+	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
+	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleFly(isFlyEnabled)
 end)
 
 FreecamButton.MouseButton1Click:Connect(function()
@@ -2426,88 +2398,72 @@ UIS.InputBegan:Connect(function(input)
 end)
 
 ExitButton.MouseButton1Click:Connect(function()
-    if isHeadEnabled then
-        isHeadEnabled = false
-        updateHeads(false)
-    end
-    if isBodyEnabled then
-        isBodyEnabled = false
-        updateBodies(false)
-    end
-    if isESPEnabled or isNamesEnabled or isHealthEnabled then
-        isESPEnabled = false
-        isNamesEnabled = false
-        isHealthEnabled = false
-        for player, box in pairs(boxes) do
-            if box then box:Remove() end
-            boxes[player] = nil
-            if studsLabels[player] then studsLabels[player]:Remove(); studsLabels[player] = nil end
-            if nameLabels[player] then nameLabels[player]:Remove(); nameLabels[player] = nil end
-            if hpLabels[player] then hpLabels[player]:Remove(); hpLabels[player] = nil end
-        end
-    end
-    if isFlyEnabled then
-        isFlyEnabled = false
-        toggleFly(false)
-        flySpeed = 20
-        FlyButton.Text = "Fly: OFF (" .. flySpeed .. ")"
-    end
-    if isFreecamEnabled then
-        isFreecamEnabled = false
-        toggleFreecam(false)
-    end
-    if isNoclipEnabled then
-        isNoclipEnabled = false
-        toggleNoclip(false)
-    end
-    if isSilentAimEnabled then
-        isSilentAimEnabled = false
-        toggleSilentAim(false)
-    end
-    if isDayVisualEnabled then
-        isDayVisualEnabled = false
-        toggleDayVisual(false)
-    end
-    if isRemoveGrassEnabled then
-        isRemoveGrassEnabled = false
-        toggleRemoveGrass(false)
-    end
-    if currentSkybox ~= 0 then
-        currentSkybox = 0
-        toggleSkybox(0)
-    end
-    if currentArmMaterial ~= 0 then
-        currentArmMaterial = 0
-        toggleArmMaterial(0)
-    end
-    if crosshairMode ~= 0 then
-        crosshairMode = 0
-        toggleCrosshair(0)
-        UIS.MouseIconEnabled = defaultMouseIcon
-    end
-    if oresESPMode ~= 0 then
-        oresESPMode = 0
-        toggleOresESP(0)
-    end
-    if isViewModelEnabled then
-        isViewModelEnabled = false
-        viewModelFOV = defaultFOV
-        updateViewModelFOV()
-    end
-    if isResetBindActive then
-        isResetBindActive = false
-        resetBind = nil
-        BindResetButton.Text = "Bind Reset: None"
-    end
-    if isAimbotEnabled then
-        isAimbotEnabled = false
-        toggleAimbot(false)
-    end
-    textureLevel = 0
-    setTextureLevel(0)
-    viewModelFOV = defaultFOV
-    updateViewModelFOV()
-    ScreenGui:Destroy()
+	if isHeadEnabled then
+		isHeadEnabled = false
+		updateHeads(false)
+	end
+	if isBodyEnabled then
+		isBodyEnabled = false
+		updateBodies(false)
+	end
+	if isESPEnabled or isNamesEnabled or isHealthEnabled then
+		isESPEnabled = false
+		isNamesEnabled = false
+		isHealthEnabled = false
+		for player, box in pairs(boxes) do
+			box:Remove()
+			boxes[player] = nil
+			if studsLabels[player] then studsLabels[player]:Remove(); studsLabels[player] = nil end
+			if nameLabels[player] then nameLabels[player]:Remove(); nameLabels[player] = nil end
+			if hpLabels[player] then hpLabels[player]:Remove(); hpLabels[player] = nil end
+		end
+	end
+	if isFlyEnabled then
+		isFlyEnabled = false
+		toggleFly(false)
+	end
+	if isFreecamEnabled then
+		isFreecamEnabled = false
+		toggleFreecam(false)
+	end
+	if isNoclipEnabled then
+		isNoclipEnabled = false
+		toggleNoclip(false)
+	end
+	if isSilentAimEnabled then
+		isSilentAimEnabled = false
+		toggleSilentAim(false)
+	end
+	if isDayVisualEnabled then
+		isDayVisualEnabled = false
+		toggleDayVisual(false)
+	end
+	if isRemoveGrassEnabled then
+		isRemoveGrassEnabled = false
+		toggleRemoveGrass(false)
+	end
+	if currentSkybox ~= 0 then
+		currentSkybox = 0
+		toggleSkybox(0)
+	end
+	if currentArmMaterial ~= 0 then
+		currentArmMaterial = 0
+		toggleArmMaterial(0)
+	end
+	if crosshairMode ~= 0 then
+		crosshairMode = 0
+		toggleCrosshair(0)
+		UIS.MouseIconEnabled = defaultMouseIcon
+	end
+	if oresESPMode ~= 0 then
+		oresESPMode = 0
+		toggleOresESP(0)
+	end
+	textureLevel = 0
+	setTextureLevel(0)
+	viewModelFOV = defaultFOV
+	updateViewModelFOV()
+	ScreenGui:Destroy()
 end)
 
 -- Глобальная обработка CharacterAdded для всех игроков
