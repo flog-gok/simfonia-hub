@@ -615,20 +615,6 @@ CrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
 CrosshairStroke.Parent = CrosshairButton
 
 -- Элементы для Misc
-local FlyButton = Instance.new("TextButton")
-FlyButton.Size = UDim2.new(0, 200, 0, 40)
-FlyButton.Position = UDim2.new(0, 0, 0, 0)
-FlyButton.Text = "Fly: OFF"
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlyButton.TextSize = 18
-FlyButton.Parent = MiscFrame
-
-local FlyStroke = Instance.new("UIStroke")
-FlyStroke.Thickness = 2
-FlyStroke.Color = Color3.fromRGB(100, 100, 100)
-FlyStroke.Parent = FlyButton
-
 local FreecamButton = Instance.new("TextButton")
 FreecamButton.Size = UDim2.new(0, 200, 0, 40)
 FreecamButton.Position = UDim2.new(0, 0, 0, 50)
@@ -769,6 +755,66 @@ ExitStroke.Thickness = 2
 ExitStroke.Color = Color3.fromRGB(100, 100, 100)
 ExitStroke.Parent = ExitButton
 
+-- Кнопка Fly (перемещена справа)
+local FlyButton = Instance.new("TextButton")
+FlyButton.Size = UDim2.new(0, 200, 0, 40)
+FlyButton.Position = UDim2.new(0, 220, 0, 0) -- Сдвинуто вправо от других функций
+FlyButton.Text = "Fly: OFF"
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlyButton.TextSize = 18
+FlyButton.Parent = MiscFrame
+
+local FlyStroke = Instance.new("UIStroke")
+FlyStroke.Thickness = 2
+FlyStroke.Color = Color3.fromRGB(100, 100, 100)
+FlyStroke.Parent = FlyButton
+
+-- Лейбл для скорости полета
+local FlySpeedLabel = Instance.new("TextLabel")
+FlySpeedLabel.Size = UDim2.new(0, 100, 0, 30)
+FlySpeedLabel.Position = UDim2.new(0, 220, 0, 50) -- Под FlyButton
+FlySpeedLabel.Text = "Fly Speed: 20"
+FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlySpeedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlySpeedLabel.TextSize = 16
+FlySpeedLabel.Parent = MiscFrame
+
+local FlySpeedStroke = Instance.new("UIStroke")
+FlySpeedStroke.Thickness = 2
+FlySpeedStroke.Color = Color3.fromRGB(100, 100, 100)
+FlySpeedStroke.Parent = FlySpeedLabel
+
+-- Кнопка увеличения скорости
+local FlySpeedUpButton = Instance.new("TextButton")
+FlySpeedUpButton.Size = UDim2.new(0, 50, 0, 30)
+FlySpeedUpButton.Position = UDim2.new(0, 330, 0, 50) -- Справа от FlySpeedLabel
+FlySpeedUpButton.Text = "+"
+FlySpeedUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlySpeedUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlySpeedUpButton.TextSize = 18
+FlySpeedUpButton.Parent = MiscFrame
+
+local FlySpeedUpStroke = Instance.new("UIStroke")
+FlySpeedUpStroke.Thickness = 2
+FlySpeedUpStroke.Color = Color3.fromRGB(100, 100, 100)
+FlySpeedUpStroke.Parent = FlySpeedUpButton
+
+-- Кнопка уменьшения скорости
+local FlySpeedDownButton = Instance.new("TextButton")
+FlySpeedDownButton.Size = UDim2.new(0, 50, 0, 30)
+FlySpeedDownButton.Position = UDim2.new(0, 390, 0, 50) -- Справа от FlySpeedUpButton
+FlySpeedDownButton.Text = "-"
+FlySpeedDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlySpeedDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlySpeedDownButton.TextSize = 18
+FlySpeedDownButton.Parent = MiscFrame
+
+local FlySpeedDownStroke = Instance.new("UIStroke")
+FlySpeedDownStroke.Thickness = 2
+FlySpeedDownStroke.Color = Color3.fromRGB(100, 100, 100)
+FlySpeedDownStroke.Parent = FlySpeedDownButton
+
 -- Элементы для FPS
 local RemoveGrassButton = Instance.new("TextButton")
 RemoveGrassButton.Size = UDim2.new(0, 200, 0, 40)
@@ -841,7 +887,7 @@ local freecamConnection
 local noclipConnection
 local speedhackBind = nil
 local speedhackSpeed = 20
-local flySpeed = 19
+local flySpeed = 20
 local fovCircle
 local silentAimConnection
 local lines = {}
@@ -2310,13 +2356,6 @@ ColorPickerFrame.InputBegan:Connect(function(input)
     end
 end)
 
-FlyButton.MouseButton1Click:Connect(function()
-	isFlyEnabled = not isFlyEnabled
-	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
-	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	toggleFly(isFlyEnabled)
-end)
-
 FreecamButton.MouseButton1Click:Connect(function()
 	isFreecamEnabled = not isFreecamEnabled
 	FreecamButton.Text = isFreecamEnabled and "Freecam: ON" or "Freecam: OFF"
@@ -2360,6 +2399,27 @@ SpeedhackSpeedDownButton.MouseButton1Click:Connect(function()
 		speedhackSpeed = speedhackSpeed - 5
 		SpeedhackSpeedLabel.Text = "Speed: " .. speedhackSpeed
 	end
+end)
+
+FlySpeedUpButton.MouseButton1Click:Connect(function()
+    if flySpeed < 90 then
+        flySpeed = flySpeed + 5
+        FlySpeedLabel.Text = "Fly Speed: " .. flySpeed
+    end
+end)
+
+FlySpeedDownButton.MouseButton1Click:Connect(function()
+    if flySpeed > 20 then
+        flySpeed = flySpeed - 5
+        FlySpeedLabel.Text = "Fly Speed: " .. flySpeed
+    end
+end)
+
+FlyButton.MouseButton1Click:Connect(function()
+    isFlyEnabled = not isFlyEnabled
+    FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
+    FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleFly(isFlyEnabled)
 end)
 
 DeleteWallButton.MouseButton1Click:Connect(function()
