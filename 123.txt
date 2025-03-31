@@ -873,6 +873,10 @@ local isViewModelEnabled = false
 local resetBind = nil -- Переменная для хранения бинда
 local isResetBindActive = false -- Состояние активации бинда
 local isTextureDeleteEnabled = false
+local startPos = nil
+local originalCameraCFrame = nil
+local yaw = 0
+local pitch = 0
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
