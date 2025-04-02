@@ -1,4 +1,4 @@
--- creating GUI
+-- Создаем GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ESPHeadGUI"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -39,7 +39,7 @@ TitleStroke.Thickness = 1.5
 TitleStroke.Color = Color3.fromRGB(0, 0, 0) -- Чёрная обводка для читаемости
 TitleStroke.Parent = Title
 
--- BUTTON CATEGORY'S 
+-- Кнопки категорий
 local RageButton = Instance.new("TextButton")
 RageButton.Size = UDim2.new(0, 120, 0, 40)
 RageButton.Position = UDim2.new(0, 20, 0, 60)
@@ -110,7 +110,7 @@ FPSStroke.Thickness = 2
 FPSStroke.Color = Color3.fromRGB(100, 100, 100)
 FPSStroke.Parent = FPSButton
 
---contaner category 
+-- Контейнеры для категорий
 local RageFrame = Instance.new("Frame")
 RageFrame.Size = UDim2.new(1, -40, 1, -120)
 RageFrame.Position = UDim2.new(0, 20, 0, 120)
@@ -146,7 +146,7 @@ FPSFrame.BackgroundTransparency = 1
 FPSFrame.Parent = Frame
 FPSFrame.Visible = false
 
--- element rage
+-- Элементы для Rage
 local HeadButton = Instance.new("TextButton")
 HeadButton.Size = UDim2.new(0, 200, 0, 40)
 HeadButton.Position = UDim2.new(0, 0, 0, 0)
@@ -217,7 +217,7 @@ LinesStroke.Thickness = 2
 LinesStroke.Color = Color3.fromRGB(100, 100, 100)
 LinesStroke.Parent = LinesButton
 
--- button activate aimbot
+-- Кнопка активации Aimbot
 local AimbotButton = Instance.new("TextButton")
 AimbotButton.Size = UDim2.new(0, 200, 0, 40)
 AimbotButton.Position = UDim2.new(0, 0, 0, 140) -- Под BodyButton (Y=90) + отступ
@@ -232,7 +232,7 @@ AimbotStroke.Thickness = 2
 AimbotStroke.Color = Color3.fromRGB(100, 100, 100)
 AimbotStroke.Parent = AimbotButton
 
--- prioritet (head/body) aimbot
+-- Выбор приоритета (Head/Body)
 local AimbotPriorityButton = Instance.new("TextButton")
 AimbotPriorityButton.Size = UDim2.new(0, 200, 0, 40)
 AimbotPriorityButton.Position = UDim2.new(0, 0, 0, 190) -- Под AimbotButton
@@ -247,7 +247,7 @@ AimbotPriorityStroke.Thickness = 2
 AimbotPriorityStroke.Color = Color3.fromRGB(100, 100, 100)
 AimbotPriorityStroke.Parent = AimbotPriorityButton
 
--- bind to aimbot
+-- Бинд для Aimbot
 local AimbotBindButton = Instance.new("TextButton")
 AimbotBindButton.Size = UDim2.new(0, 200, 0, 40)
 AimbotBindButton.Position = UDim2.new(0, 0, 0, 240) -- Под Priority
@@ -262,7 +262,7 @@ AimbotBindStroke.Thickness = 2
 AimbotBindStroke.Color = Color3.fromRGB(100, 100, 100)
 AimbotBindStroke.Parent = AimbotBindButton
 
--- FOV for aimbot
+-- FOV для Aimbot
 local AimbotFOVLabel = Instance.new("TextLabel")
 AimbotFOVLabel.Size = UDim2.new(0, 100, 0, 30)
 AimbotFOVLabel.Position = UDim2.new(0, 0, 0, 290) -- Под Bind
@@ -305,7 +305,7 @@ AimbotFOVDownStroke.Thickness = 2
 AimbotFOVDownStroke.Color = Color3.fromRGB(100, 100, 100)
 AimbotFOVDownStroke.Parent = AimbotFOVDownButton
 
--- speed navidka
+-- Скорость наводки
 local AimbotSpeedLabel = Instance.new("TextLabel")
 AimbotSpeedLabel.Size = UDim2.new(0, 100, 0, 30)
 AimbotSpeedLabel.Position = UDim2.new(0, 0, 0, 330) -- Под FOV
@@ -390,7 +390,7 @@ FOVSizeDownStroke.Thickness = 2
 FOVSizeDownStroke.Color = Color3.fromRGB(100, 100, 100)
 FOVSizeDownStroke.Parent = FOVSizeDownButton
 
--- elements render
+-- Элементы для Render
 local ESPButton = Instance.new("TextButton")
 ESPButton.Size = UDim2.new(0, 200, 0, 40)
 ESPButton.Position = UDim2.new(0, 0, 0, 0)
@@ -517,7 +517,7 @@ DayVisualStroke.Thickness = 2
 DayVisualStroke.Color = Color3.fromRGB(100, 100, 100)
 DayVisualStroke.Parent = DayVisualButton
 
--- element visuals 
+-- Элементы для Visuals
 local SkyboxButton = Instance.new("TextButton")
 SkyboxButton.Size = UDim2.new(0, 200, 0, 40)
 SkyboxButton.Position = UDim2.new(0, 0, 0, 0)
@@ -555,7 +555,7 @@ CrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 CrosshairButton.TextSize = 18
 CrosshairButton.Parent = VisualsFrame
 
--- button Spin Crosshair
+-- Кнопка Spin Crosshair
 local SpinCrosshairButton = Instance.new("TextButton")
 SpinCrosshairButton.Size = UDim2.new(0, 200, 0, 40)
 SpinCrosshairButton.Position = UDim2.new(0, 0, 0, 140) -- Под CrosshairButton (Y=90) + отступ
@@ -570,7 +570,7 @@ SpinCrosshairStroke.Thickness = 2
 SpinCrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
 SpinCrosshairStroke.Parent = SpinCrosshairButton
 
--- button Color Crosshair
+-- Кнопка Color Crosshair
 local ColorCrosshairButton = Instance.new("TextButton")
 ColorCrosshairButton.Size = UDim2.new(0, 200, 0, 40)
 ColorCrosshairButton.Position = UDim2.new(0, 0, 0, 190) -- Под SpinCrosshairButton
@@ -585,7 +585,7 @@ ColorCrosshairStroke.Thickness = 2
 ColorCrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
 ColorCrosshairStroke.Parent = ColorCrosshairButton
 
--- palitra dla vibora color crosshair 
+-- Палитра для выбора цвета (скрыта по умолчанию)
 local ColorPickerFrame = Instance.new("Frame")
 ColorPickerFrame.Size = UDim2.new(0, 100, 0, 100)
 ColorPickerFrame.Position = UDim2.new(0, 210, 0, 190) -- Справа от ColorCrosshairButton
@@ -614,7 +614,21 @@ CrosshairStroke.Thickness = 2
 CrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
 CrosshairStroke.Parent = CrosshairButton
 
--- elements for Misc
+-- Элементы для Misc
+local FlyButton = Instance.new("TextButton")
+FlyButton.Size = UDim2.new(0, 200, 0, 40)
+FlyButton.Position = UDim2.new(0, 0, 0, 0)
+FlyButton.Text = "Fly: OFF"
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlyButton.TextSize = 18
+FlyButton.Parent = MiscFrame
+
+local FlyStroke = Instance.new("UIStroke")
+FlyStroke.Thickness = 2
+FlyStroke.Color = Color3.fromRGB(100, 100, 100)
+FlyStroke.Parent = FlyButton
+
 local FreecamButton = Instance.new("TextButton")
 FreecamButton.Size = UDim2.new(0, 200, 0, 40)
 FreecamButton.Position = UDim2.new(0, 0, 0, 50)
@@ -755,67 +769,7 @@ ExitStroke.Thickness = 2
 ExitStroke.Color = Color3.fromRGB(100, 100, 100)
 ExitStroke.Parent = ExitButton
 
--- button Fly (smeshena vpravo)
-local FlyButton = Instance.new("TextButton")
-FlyButton.Size = UDim2.new(0, 200, 0, 40)
-FlyButton.Position = UDim2.new(0, 220, 0, 0) -- Сдвинуто вправо от других функций
-FlyButton.Text = "Fly: OFF"
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlyButton.TextSize = 18
-FlyButton.Parent = MiscFrame
-
-local FlyStroke = Instance.new("UIStroke")
-FlyStroke.Thickness = 2
-FlyStroke.Color = Color3.fromRGB(100, 100, 100)
-FlyStroke.Parent = FlyButton
-
--- label for speeding fly
-local FlySpeedLabel = Instance.new("TextLabel")
-FlySpeedLabel.Size = UDim2.new(0, 100, 0, 30)
-FlySpeedLabel.Position = UDim2.new(0, 220, 0, 50) -- Под FlyButton
-FlySpeedLabel.Text = "Fly Speed: 20"
-FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlySpeedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlySpeedLabel.TextSize = 16
-FlySpeedLabel.Parent = MiscFrame
-
-local FlySpeedStroke = Instance.new("UIStroke")
-FlySpeedStroke.Thickness = 2
-FlySpeedStroke.Color = Color3.fromRGB(100, 100, 100)
-FlySpeedStroke.Parent = FlySpeedLabel
-
--- button dla yvelichenia speed
-local FlySpeedUpButton = Instance.new("TextButton")
-FlySpeedUpButton.Size = UDim2.new(0, 50, 0, 30)
-FlySpeedUpButton.Position = UDim2.new(0, 330, 0, 50) -- Справа от FlySpeedLabel
-FlySpeedUpButton.Text = "+"
-FlySpeedUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlySpeedUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlySpeedUpButton.TextSize = 18
-FlySpeedUpButton.Parent = MiscFrame
-
-local FlySpeedUpStroke = Instance.new("UIStroke")
-FlySpeedUpStroke.Thickness = 2
-FlySpeedUpStroke.Color = Color3.fromRGB(100, 100, 100)
-FlySpeedUpStroke.Parent = FlySpeedUpButton
-
--- button ymenshenia speed 
-local FlySpeedDownButton = Instance.new("TextButton")
-FlySpeedDownButton.Size = UDim2.new(0, 50, 0, 30)
-FlySpeedDownButton.Position = UDim2.new(0, 390, 0, 50) -- Справа от FlySpeedUpButton
-FlySpeedDownButton.Text = "-"
-FlySpeedDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlySpeedDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlySpeedDownButton.TextSize = 18
-FlySpeedDownButton.Parent = MiscFrame
-
-local FlySpeedDownStroke = Instance.new("UIStroke")
-FlySpeedDownStroke.Thickness = 2
-FlySpeedDownStroke.Color = Color3.fromRGB(100, 100, 100)
-FlySpeedDownStroke.Parent = FlySpeedDownButton
-
--- elements for FPS
+-- Элементы для FPS
 local RemoveGrassButton = Instance.new("TextButton")
 RemoveGrassButton.Size = UDim2.new(0, 200, 0, 40)
 RemoveGrassButton.Position = UDim2.new(0, 0, 0, 0)
@@ -858,7 +812,7 @@ TextureLevelStroke.Thickness = 2
 TextureLevelStroke.Color = Color3.fromRGB(100, 100, 100)
 TextureLevelStroke.Parent = TextureLevelButton
 
--- locals
+-- Переменные
 local isHeadEnabled = false
 local isBodyEnabled = false
 local isESPEnabled = false
@@ -887,7 +841,7 @@ local freecamConnection
 local noclipConnection
 local speedhackBind = nil
 local speedhackSpeed = 20
-local flySpeed = 20
+local flySpeed = 19
 local fovCircle
 local silentAimConnection
 local lines = {}
@@ -919,10 +873,10 @@ local isViewModelEnabled = false
 local resetBind = nil -- Переменная для хранения бинда
 local isResetBindActive = false -- Состояние активации бинда
 local isTextureDeleteEnabled = false
--- unitization button mouse
+-- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
--- functions update heads
+-- Функция обновления голов
 local function updateHeads(enable)
 	for _, player in pairs(game.Players:GetPlayers()) do
 		if player ~= game.Players.LocalPlayer and player.Character then
@@ -946,7 +900,7 @@ local function updateHeads(enable)
 	end
 end
 
--- function updated body
+-- Функция обновления тела
 local function updateBodies(enable)
 	for _, player in pairs(game.Players:GetPlayers()) do
 		if player ~= game.Players.LocalPlayer and player.Character then
@@ -970,7 +924,7 @@ local function updateBodies(enable)
 	end
 end
 
--- function creating visual elements for player 
+-- Функция создания визуальных элементов для игрока
 local function createPlayerVisuals(player)
 	if boxes[player] and nameLabels[player] and hpLabels[player] then return end
 
@@ -1013,7 +967,7 @@ local function createPlayerVisuals(player)
 	end
 end
 
--- update visual elements 
+-- Обновление визуальных элементов
 local function updateVisuals()
     local localPlayer = game.Players.LocalPlayer
     local localRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -1128,7 +1082,7 @@ local function updateVisuals()
     end
 end
 
--- update function FlyV2
+-- Обновлённая функция Fly
 local function toggleFly(enable)
 	local player = game.Players.LocalPlayer
 	local character = player.Character
@@ -1193,7 +1147,7 @@ local function toggleFly(enable)
 	end
 end
 
--- function Freecam
+-- Функция Freecam
 local function toggleFreecam(enable)
 	local player = game.Players.LocalPlayer
 	local camera = workspace.CurrentCamera
@@ -1278,7 +1232,7 @@ local function toggleFreecam(enable)
 	end
 end
 
--- function Noclip
+-- Функция Noclip
 local function toggleNoclip(enable)
 	local player = game.Players.LocalPlayer
 	local character = player.Character
@@ -1306,7 +1260,7 @@ local function toggleNoclip(enable)
 	end
 end
 
--- function Speedhack
+-- Функция Speedhack
 local function triggerSpeedhack()
 	local player = game.Players.LocalPlayer
 	local character = player.Character
@@ -1345,7 +1299,7 @@ local function triggerSpeedhack()
 		rootPart.CFrame = rootPart.CFrame + step
 	end)
 end
--- silent aim
+--silent aim
 local function toggleSilentAim(enable)
 	local player = game.Players.LocalPlayer
 	local mouse = player:GetMouse()
@@ -1519,7 +1473,7 @@ end
 task.spawn(function()
     while true do
         updateViewModelFOV()
-        task.wait(0.6)
+        wait(0.6) -- Обновление каждые 0.6 секунды
     end
 end)
 
@@ -2352,6 +2306,13 @@ ColorPickerFrame.InputBegan:Connect(function(input)
     end
 end)
 
+FlyButton.MouseButton1Click:Connect(function()
+	isFlyEnabled = not isFlyEnabled
+	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
+	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleFly(isFlyEnabled)
+end)
+
 FreecamButton.MouseButton1Click:Connect(function()
 	isFreecamEnabled = not isFreecamEnabled
 	FreecamButton.Text = isFreecamEnabled and "Freecam: ON" or "Freecam: OFF"
@@ -2395,27 +2356,6 @@ SpeedhackSpeedDownButton.MouseButton1Click:Connect(function()
 		speedhackSpeed = speedhackSpeed - 5
 		SpeedhackSpeedLabel.Text = "Speed: " .. speedhackSpeed
 	end
-end)
-
-FlySpeedUpButton.MouseButton1Click:Connect(function()
-    if flySpeed < 90 then
-        flySpeed = flySpeed + 5
-        FlySpeedLabel.Text = "Fly Speed: " .. flySpeed
-    end
-end)
-
-FlySpeedDownButton.MouseButton1Click:Connect(function()
-    if flySpeed > 20 then
-        flySpeed = flySpeed - 5
-        FlySpeedLabel.Text = "Fly Speed: " .. flySpeed
-    end
-end)
-
-FlyButton.MouseButton1Click:Connect(function()
-    isFlyEnabled = not isFlyEnabled
-    FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
-    FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleFly(isFlyEnabled)
 end)
 
 DeleteWallButton.MouseButton1Click:Connect(function()
@@ -2604,6 +2544,19 @@ end)
 RunService.RenderStepped:Connect(function()
 	if isESPEnabled or isStudsEnabled or isNamesEnabled or isHealthEnabled then
 		updateVisuals()
+	end
+end)
+
+Frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+		local delta = input.Position - dragStart
+		Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+Frame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
 	end
 end)
 
