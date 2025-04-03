@@ -1,0 +1,2228 @@
+-- Создаем GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ESPHeadGUI"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 800, 0, 700)
+Frame.Position = UDim2.new(0.5, -300, 0.5, -350)
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Базовый цвет (не виден из-за градиента)
+Frame.Parent = ScreenGui
+
+local Gradient = Instance.new("UIGradient")
+Gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 102, 204)), -- Полу-синий
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 51, 102))  -- Полу-тёмно-голубой
+})
+Gradient.Rotation = 90 -- Вертикальный градиент для разделения
+Gradient.Parent = Frame
+
+local CategoryFrame = Instance.new("Frame")
+CategoryFrame.Size = UDim2.new(1, -40, 0, 60) -- Ширина как у основного фрейма минус отступы, высота для кнопок
+CategoryFrame.Position = UDim2.new(0, 20, 0, 50) -- Отступы слева и под заголовком
+CategoryFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80) -- Серый цвет
+CategoryFrame.Parent = Frame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 300, 0, 50)
+Title.Position = UDim2.new(0, 20, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "SIMFONIA HUB v9.9"
+Title.TextColor3 = Color3.fromRGB(255, 255, 153) -- Мягкий жёлтый для контраста
+Title.TextSize = 34
+Title.Font = Enum.Font.SourceSansBold -- Жирный современный шрифт
+Title.Parent = Frame
+
+local TitleStroke = Instance.new("UIStroke")
+TitleStroke.Thickness = 1.5
+TitleStroke.Color = Color3.fromRGB(0, 0, 0) -- Чёрная обводка для читаемости
+TitleStroke.Parent = Title
+
+-- Кнопки категорий
+local RageButton = Instance.new("TextButton")
+RageButton.Size = UDim2.new(0, 120, 0, 40)
+RageButton.Position = UDim2.new(0, 20, 0, 60)
+RageButton.Text = "Rage"
+RageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RageButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+RageButton.TextSize = 18
+RageButton.Parent = Frame
+
+local RageStroke = Instance.new("UIStroke")
+RageStroke.Thickness = 2
+RageStroke.Color = Color3.fromRGB(100, 100, 100)
+RageStroke.Parent = RageButton
+
+local RenderButton = Instance.new("TextButton")
+RenderButton.Size = UDim2.new(0, 120, 0, 40)
+RenderButton.Position = UDim2.new(0, 150, 0, 60)
+RenderButton.Text = "Render"
+RenderButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RenderButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+RenderButton.TextSize = 18
+RenderButton.Parent = Frame
+
+local RenderStroke = Instance.new("UIStroke")
+RenderStroke.Thickness = 2
+RenderStroke.Color = Color3.fromRGB(100, 100, 100)
+RenderStroke.Parent = RenderButton
+
+local VisualsButton = Instance.new("TextButton")
+VisualsButton.Size = UDim2.new(0, 120, 0, 40)
+VisualsButton.Position = UDim2.new(0, 280, 0, 60)
+VisualsButton.Text = "Visuals"
+VisualsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+VisualsButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+VisualsButton.TextSize = 18
+VisualsButton.Parent = Frame
+
+local VisualsStroke = Instance.new("UIStroke")
+VisualsStroke.Thickness = 2
+VisualsStroke.Color = Color3.fromRGB(100, 100, 100)
+VisualsStroke.Parent = VisualsButton
+
+local MiscButton = Instance.new("TextButton")
+MiscButton.Size = UDim2.new(0, 120, 0, 40)
+MiscButton.Position = UDim2.new(0, 410, 0, 60)
+MiscButton.Text = "Misc"
+MiscButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MiscButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MiscButton.TextSize = 18
+MiscButton.Parent = Frame
+
+local MiscStroke = Instance.new("UIStroke")
+MiscStroke.Thickness = 2
+MiscStroke.Color = Color3.fromRGB(100, 100, 100)
+MiscStroke.Parent = MiscButton
+
+local FPSButton = Instance.new("TextButton")
+FPSButton.Size = UDim2.new(0, 120, 0, 40)
+FPSButton.Position = UDim2.new(0, 540, 0, 60)
+FPSButton.Text = "FPS"
+FPSButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FPSButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FPSButton.TextSize = 18
+FPSButton.Parent = Frame
+
+local FPSStroke = Instance.new("UIStroke")
+FPSStroke.Thickness = 2
+FPSStroke.Color = Color3.fromRGB(100, 100, 100)
+FPSStroke.Parent = FPSButton
+
+-- Контейнеры для категорий
+local RageFrame = Instance.new("Frame")
+RageFrame.Size = UDim2.new(1, -40, 1, -120)
+RageFrame.Position = UDim2.new(0, 20, 0, 120)
+RageFrame.BackgroundTransparency = 1
+RageFrame.Parent = Frame
+RageFrame.Visible = true
+
+local RenderFrame = Instance.new("Frame")
+RenderFrame.Size = UDim2.new(1, -40, 1, -120)
+RenderFrame.Position = UDim2.new(0, 20, 0, 120)
+RenderFrame.BackgroundTransparency = 1
+RenderFrame.Parent = Frame
+RenderFrame.Visible = false
+
+local VisualsFrame = Instance.new("Frame")
+VisualsFrame.Size = UDim2.new(1, -40, 1, -120)
+VisualsFrame.Position = UDim2.new(0, 20, 0, 120)
+VisualsFrame.BackgroundTransparency = 1
+VisualsFrame.Parent = Frame
+VisualsFrame.Visible = false
+
+local MiscFrame = Instance.new("Frame")
+MiscFrame.Size = UDim2.new(1, -40, 1, -120)
+MiscFrame.Position = UDim2.new(0, 20, 0, 120)
+MiscFrame.BackgroundTransparency = 1
+MiscFrame.Parent = Frame
+MiscFrame.Visible = false
+
+local FPSFrame = Instance.new("Frame")
+FPSFrame.Size = UDim2.new(1, -40, 1, -120)
+FPSFrame.Position = UDim2.new(0, 20, 0, 120)
+FPSFrame.BackgroundTransparency = 1
+FPSFrame.Parent = Frame
+FPSFrame.Visible = false
+
+-- Элементы для Rage
+local SilentAimButton = Instance.new("TextButton")
+SilentAimButton.Size = UDim2.new(0, 200, 0, 40)
+SilentAimButton.Position = UDim2.new(0, 220, 0, 0)
+SilentAimButton.Text = "Silent Aim: OFF"
+SilentAimButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+SilentAimButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SilentAimButton.TextSize = 18
+SilentAimButton.Parent = RageFrame
+
+local SilentAimStroke = Instance.new("UIStroke")
+SilentAimStroke.Thickness = 2
+SilentAimStroke.Color = Color3.fromRGB(100, 100, 100)
+SilentAimStroke.Parent = SilentAimButton
+
+local LinesButton = Instance.new("TextButton")
+LinesButton.Size = UDim2.new(0, 200, 0, 40)
+LinesButton.Position = UDim2.new(0, 220, 0, 50)
+LinesButton.Text = "Lines: OFF"
+LinesButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+LinesButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+LinesButton.TextSize = 18
+LinesButton.Parent = RageFrame
+
+local LinesStroke = Instance.new("UIStroke")
+LinesStroke.Thickness = 2
+LinesStroke.Color = Color3.fromRGB(100, 100, 100)
+LinesStroke.Parent = LinesButton
+
+-- Кнопка активации Aimbot
+local AimbotButton = Instance.new("TextButton")
+AimbotButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotButton.Position = UDim2.new(0, 0, 0, 140) -- Под BodyButton (Y=90) + отступ
+AimbotButton.Text = "Aimbot: OFF"
+AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+AimbotButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotButton.TextSize = 18
+AimbotButton.Parent = RageFrame
+
+local AimbotStroke = Instance.new("UIStroke")
+AimbotStroke.Thickness = 2
+AimbotStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotStroke.Parent = AimbotButton
+
+-- Выбор приоритета (Head/Body)
+local AimbotPriorityButton = Instance.new("TextButton")
+AimbotPriorityButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotPriorityButton.Position = UDim2.new(0, 0, 0, 190) -- Под AimbotButton
+AimbotPriorityButton.Text = "Priority: Head"
+AimbotPriorityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotPriorityButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotPriorityButton.TextSize = 18
+AimbotPriorityButton.Parent = RageFrame
+
+local AimbotPriorityStroke = Instance.new("UIStroke")
+AimbotPriorityStroke.Thickness = 2
+AimbotPriorityStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotPriorityStroke.Parent = AimbotPriorityButton
+
+-- Бинд для Aimbot
+local AimbotBindButton = Instance.new("TextButton")
+AimbotBindButton.Size = UDim2.new(0, 200, 0, 40)
+AimbotBindButton.Position = UDim2.new(0, 0, 0, 240) -- Под Priority
+AimbotBindButton.Text = "Aimbot Bind: None"
+AimbotBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotBindButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotBindButton.TextSize = 18
+AimbotBindButton.Parent = RageFrame
+
+local AimbotBindStroke = Instance.new("UIStroke")
+AimbotBindStroke.Thickness = 2
+AimbotBindStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotBindStroke.Parent = AimbotBindButton
+
+-- FOV для Aimbot
+local AimbotFOVLabel = Instance.new("TextLabel")
+AimbotFOVLabel.Size = UDim2.new(0, 100, 0, 30)
+AimbotFOVLabel.Position = UDim2.new(0, 0, 0, 290) -- Под Bind
+AimbotFOVLabel.Text = "Aimbot FOV: 100"
+AimbotFOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVLabel.TextSize = 16
+AimbotFOVLabel.Parent = RageFrame
+
+local AimbotFOVStroke = Instance.new("UIStroke")
+AimbotFOVStroke.Thickness = 2
+AimbotFOVStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVStroke.Parent = AimbotFOVLabel
+
+local AimbotFOVUpButton = Instance.new("TextButton")
+AimbotFOVUpButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotFOVUpButton.Position = UDim2.new(0, 110, 0, 290)
+AimbotFOVUpButton.Text = "+"
+AimbotFOVUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVUpButton.TextSize = 18
+AimbotFOVUpButton.Parent = RageFrame
+
+local AimbotFOVUpStroke = Instance.new("UIStroke")
+AimbotFOVUpStroke.Thickness = 2
+AimbotFOVUpStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVUpStroke.Parent = AimbotFOVUpButton
+
+local AimbotFOVDownButton = Instance.new("TextButton")
+AimbotFOVDownButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotFOVDownButton.Position = UDim2.new(0, 170, 0, 290)
+AimbotFOVDownButton.Text = "-"
+AimbotFOVDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotFOVDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotFOVDownButton.TextSize = 18
+AimbotFOVDownButton.Parent = RageFrame
+
+local AimbotFOVDownStroke = Instance.new("UIStroke")
+AimbotFOVDownStroke.Thickness = 2
+AimbotFOVDownStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotFOVDownStroke.Parent = AimbotFOVDownButton
+
+-- Скорость наводки
+local AimbotSpeedLabel = Instance.new("TextLabel")
+AimbotSpeedLabel.Size = UDim2.new(0, 100, 0, 30)
+AimbotSpeedLabel.Position = UDim2.new(0, 0, 0, 330) -- Под FOV
+AimbotSpeedLabel.Text = "Speed: 50%"
+AimbotSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedLabel.TextSize = 16
+AimbotSpeedLabel.Parent = RageFrame
+
+local AimbotSpeedStroke = Instance.new("UIStroke")
+AimbotSpeedStroke.Thickness = 2
+AimbotSpeedStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedStroke.Parent = AimbotSpeedLabel
+
+local AimbotSpeedUpButton = Instance.new("TextButton")
+AimbotSpeedUpButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotSpeedUpButton.Position = UDim2.new(0, 110, 0, 330)
+AimbotSpeedUpButton.Text = "+"
+AimbotSpeedUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedUpButton.TextSize = 18
+AimbotSpeedUpButton.Parent = RageFrame
+
+local AimbotSpeedUpStroke = Instance.new("UIStroke")
+AimbotSpeedUpStroke.Thickness = 2
+AimbotSpeedUpStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedUpStroke.Parent = AimbotSpeedUpButton
+
+local AimbotSpeedDownButton = Instance.new("TextButton")
+AimbotSpeedDownButton.Size = UDim2.new(0, 50, 0, 30)
+AimbotSpeedDownButton.Position = UDim2.new(0, 170, 0, 330)
+AimbotSpeedDownButton.Text = "-"
+AimbotSpeedDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotSpeedDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotSpeedDownButton.TextSize = 18
+AimbotSpeedDownButton.Parent = RageFrame
+
+local AimbotSpeedDownStroke = Instance.new("UIStroke")
+AimbotSpeedDownStroke.Thickness = 2
+AimbotSpeedDownStroke.Color = Color3.fromRGB(100, 100, 100)
+AimbotSpeedDownStroke.Parent = AimbotSpeedDownButton
+
+local FOVSizeLabel = Instance.new("TextLabel")
+FOVSizeLabel.Size = UDim2.new(0, 100, 0, 30)
+FOVSizeLabel.Position = UDim2.new(0, 220, 0, 200) -- Сдвинули вниз до Y = 200
+FOVSizeLabel.Text = "FOV: 100"
+FOVSizeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVSizeLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FOVSizeLabel.TextSize = 16
+FOVSizeLabel.Parent = RageFrame
+
+local FOVSizeStroke = Instance.new("UIStroke")
+FOVSizeStroke.Thickness = 2
+FOVSizeStroke.Color = Color3.fromRGB(100, 100, 100)
+FOVSizeStroke.Parent = FOVSizeLabel
+
+local FOVSizeUpButton = Instance.new("TextButton")
+FOVSizeUpButton.Size = UDim2.new(0, 50, 0, 30)
+FOVSizeUpButton.Position = UDim2.new(0, 330, 0, 200) -- Сдвинули вниз до Y = 200
+FOVSizeUpButton.Text = "+"
+FOVSizeUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVSizeUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FOVSizeUpButton.TextSize = 18
+FOVSizeUpButton.Parent = RageFrame
+
+local FOVSizeUpStroke = Instance.new("UIStroke")
+FOVSizeUpStroke.Thickness = 2
+FOVSizeUpStroke.Color = Color3.fromRGB(100, 100, 100)
+FOVSizeUpStroke.Parent = FOVSizeUpButton
+
+local FOVSizeDownButton = Instance.new("TextButton")
+FOVSizeDownButton.Size = UDim2.new(0, 50, 0, 30)
+FOVSizeDownButton.Position = UDim2.new(0, 390, 0, 200) -- Сдвинули вниз до Y = 200
+FOVSizeDownButton.Text = "-"
+FOVSizeDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVSizeDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FOVSizeDownButton.TextSize = 18
+FOVSizeDownButton.Parent = RageFrame
+
+local FOVSizeDownStroke = Instance.new("UIStroke")
+FOVSizeDownStroke.Thickness = 2
+FOVSizeDownStroke.Color = Color3.fromRGB(100, 100, 100)
+FOVSizeDownStroke.Parent = FOVSizeDownButton
+
+-- Элементы для Render
+local ESPButton = Instance.new("TextButton")
+ESPButton.Size = UDim2.new(0, 200, 0, 40)
+ESPButton.Position = UDim2.new(0, 0, 0, 0)
+ESPButton.Text = "ESP: OFF"
+ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ESPButton.TextSize = 18
+ESPButton.Parent = RenderFrame
+
+local ESPStroke = Instance.new("UIStroke")
+ESPStroke.Thickness = 2
+ESPStroke.Color = Color3.fromRGB(100, 100, 100)
+ESPStroke.Parent = ESPButton
+
+local StudsButton = Instance.new("TextButton")
+StudsButton.Size = UDim2.new(0, 200, 0, 40)
+StudsButton.Position = UDim2.new(0, 0, 0, 50)
+StudsButton.Text = "Studs: OFF"
+StudsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StudsButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+StudsButton.TextSize = 18
+StudsButton.Parent = RenderFrame
+
+local StudsStroke = Instance.new("UIStroke")
+StudsStroke.Thickness = 2
+StudsStroke.Color = Color3.fromRGB(100, 100, 100)
+StudsStroke.Parent = StudsButton
+
+local NamesButton = Instance.new("TextButton")
+NamesButton.Size = UDim2.new(0, 200, 0, 40)
+NamesButton.Position = UDim2.new(0, 0, 0, 90)
+NamesButton.Text = "Names: OFF"
+NamesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+NamesButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+NamesButton.TextSize = 18
+NamesButton.Parent = RenderFrame
+
+local NamesStroke = Instance.new("UIStroke")
+NamesStroke.Thickness = 2
+NamesStroke.Color = Color3.fromRGB(100, 100, 100)
+NamesStroke.Parent = NamesButton
+
+local HealthButton = Instance.new("TextButton")
+HealthButton.Size = UDim2.new(0, 200, 0, 40)
+HealthButton.Position = UDim2.new(0, 0, 0, 130)
+HealthButton.Text = "Health: OFF"
+HealthButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HealthButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+HealthButton.TextSize = 18
+HealthButton.Parent = RenderFrame
+
+local HealthStroke = Instance.new("UIStroke")
+HealthStroke.Thickness = 2
+HealthStroke.Color = Color3.fromRGB(100, 100, 100)
+HealthStroke.Parent = HealthButton
+
+local DayVisualButton = Instance.new("TextButton")
+DayVisualButton.Size = UDim2.new(0, 200, 0, 40)
+DayVisualButton.Position = UDim2.new(0, 0, 0, 590)
+DayVisualButton.Text = "Day Visual: OFF"
+DayVisualButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DayVisualButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+DayVisualButton.TextSize = 18
+DayVisualButton.Parent = RenderFrame
+
+local OresESPButton = Instance.new("TextButton")
+OresESPButton.Size = UDim2.new(0, 200, 0, 40)
+OresESPButton.Position = UDim2.new(0, 20, 0, 160) -- Располагаем ниже Day Visual
+OresESPButton.Text = "Ores ESP: OFF"
+OresESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OresESPButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+OresESPButton.TextSize = 18
+OresESPButton.Parent = RenderFrame
+
+local OresESPStroke = Instance.new("UIStroke")
+OresESPStroke.Thickness = 2
+OresESPStroke.Color = Color3.fromRGB(100, 100, 100)
+OresESPStroke.Parent = OresESPButton
+
+local DayVisualStroke = Instance.new("UIStroke")
+DayVisualStroke.Thickness = 2
+DayVisualStroke.Color = Color3.fromRGB(100, 100, 100)
+DayVisualStroke.Parent = DayVisualButton
+
+-- Элементы для Visuals
+local SkyboxButton = Instance.new("TextButton")
+SkyboxButton.Size = UDim2.new(0, 200, 0, 40)
+SkyboxButton.Position = UDim2.new(0, 0, 0, 0)
+SkyboxButton.Text = "Custom Skybox: Default"
+SkyboxButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SkyboxButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SkyboxButton.TextSize = 18
+SkyboxButton.Parent = VisualsFrame
+
+local SkyboxStroke = Instance.new("UIStroke")
+SkyboxStroke.Thickness = 2
+SkyboxStroke.Color = Color3.fromRGB(100, 100, 100)
+SkyboxStroke.Parent = SkyboxButton
+
+local ArmMaterialButton = Instance.new("TextButton")
+ArmMaterialButton.Size = UDim2.new(0, 200, 0, 40)
+ArmMaterialButton.Position = UDim2.new(0, 0, 0, 50)
+ArmMaterialButton.Text = "Arm Material: Default"
+ArmMaterialButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ArmMaterialButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ArmMaterialButton.TextSize = 18
+ArmMaterialButton.Parent = VisualsFrame
+
+local ArmMaterialStroke = Instance.new("UIStroke")
+ArmMaterialStroke.Thickness = 2
+ArmMaterialStroke.Color = Color3.fromRGB(100, 100, 100)
+ArmMaterialStroke.Parent = ArmMaterialButton
+
+local CrosshairButton = Instance.new("TextButton")
+CrosshairButton.Size = UDim2.new(0, 200, 0, 40)
+CrosshairButton.Position = UDim2.new(0, 0, 0, 100) -- Располагаем ниже Arm Material
+CrosshairButton.Text = "Crosshair: OFF"
+CrosshairButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+CrosshairButton.TextSize = 18
+CrosshairButton.Parent = VisualsFrame
+
+-- Кнопка Color Crosshair
+local ColorCrosshairButton = Instance.new("TextButton")
+ColorCrosshairButton.Size = UDim2.new(0, 200, 0, 40)
+ColorCrosshairButton.Position = UDim2.new(0, 0, 0, 190) -- Под SpinCrosshairButton
+ColorCrosshairButton.Text = "Color Crosshair"
+ColorCrosshairButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ColorCrosshairButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ColorCrosshairButton.TextSize = 18
+ColorCrosshairButton.Parent = VisualsFrame
+
+local ColorCrosshairStroke = Instance.new("UIStroke")
+ColorCrosshairStroke.Thickness = 2
+ColorCrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
+ColorCrosshairStroke.Parent = ColorCrosshairButton
+
+-- Палитра для выбора цвета (скрыта по умолчанию)
+local ColorPickerFrame = Instance.new("Frame")
+ColorPickerFrame.Size = UDim2.new(0, 100, 0, 100)
+ColorPickerFrame.Position = UDim2.new(0, 210, 0, 190) -- Справа от ColorCrosshairButton
+ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ColorPickerFrame.Visible = false
+ColorPickerFrame.Parent = VisualsFrame
+
+local ColorPickerStroke = Instance.new("UIStroke")
+ColorPickerStroke.Thickness = 1
+ColorPickerStroke.Color = Color3.fromRGB(150, 150, 150)
+ColorPickerStroke.Parent = ColorPickerFrame
+
+local ColorPickerGradient = Instance.new("UIGradient")
+ColorPickerGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),    -- Красный
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 0)), -- Жёлтый
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),   -- Зелёный
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 0, 255)),  -- Синий
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))    -- Фиолетовый
+})
+ColorPickerGradient.Rotation = 45 -- Диагональный градиент для палитры
+ColorPickerGradient.Parent = ColorPickerFrame
+
+local CrosshairStroke = Instance.new("UIStroke")
+CrosshairStroke.Thickness = 2
+CrosshairStroke.Color = Color3.fromRGB(100, 100, 100)
+CrosshairStroke.Parent = CrosshairButton
+
+-- Элементы для Misc
+local FlyButton = Instance.new("TextButton")
+FlyButton.Size = UDim2.new(0, 200, 0, 40)
+FlyButton.Position = UDim2.new(0, 0, 0, 0)
+FlyButton.Text = "Fly: OFF"
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlyButton.TextSize = 18
+FlyButton.Parent = MiscFrame
+
+local FlyStroke = Instance.new("UIStroke")
+FlyStroke.Thickness = 2
+FlyStroke.Color = Color3.fromRGB(100, 100, 100)
+FlyStroke.Parent = FlyButton
+
+local NoclipButton = Instance.new("TextButton")
+NoclipButton.Size = UDim2.new(0, 200, 0, 40)
+NoclipButton.Position = UDim2.new(0, 0, 0, 90)
+NoclipButton.Text = "Noclip: OFF"
+NoclipButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+NoclipButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+NoclipButton.TextSize = 18
+NoclipButton.Parent = MiscFrame
+
+local NoclipStroke = Instance.new("UIStroke")
+NoclipStroke.Thickness = 2
+NoclipStroke.Color = Color3.fromRGB(100, 100, 100)
+NoclipStroke.Parent = NoclipButton
+
+local SpeedhackToggleButton = Instance.new("TextButton")
+SpeedhackToggleButton.Size = UDim2.new(0, 200, 0, 40)
+SpeedhackToggleButton.Position = UDim2.new(0, 0, 0, 130)
+SpeedhackToggleButton.Text = "Speedhack: OFF"
+SpeedhackToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedhackToggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedhackToggleButton.TextSize = 18
+SpeedhackToggleButton.Parent = MiscFrame
+
+local SpeedhackToggleStroke = Instance.new("UIStroke")
+SpeedhackToggleStroke.Thickness = 2
+SpeedhackToggleStroke.Color = Color3.fromRGB(100, 100, 100)
+SpeedhackToggleStroke.Parent = SpeedhackToggleButton
+
+local SpeedhackBindButton = Instance.new("TextButton")
+SpeedhackBindButton.Size = UDim2.new(0, 200, 0, 40)
+SpeedhackBindButton.Position = UDim2.new(0, 0, 0, 180)
+SpeedhackBindButton.Text = "Speedhack Bind: None"
+SpeedhackBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedhackBindButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedhackBindButton.TextSize = 18
+SpeedhackBindButton.Parent = MiscFrame
+
+local SpeedhackBindStroke = Instance.new("UIStroke")
+SpeedhackBindStroke.Thickness = 2
+SpeedhackBindStroke.Color = Color3.fromRGB(100, 100, 100)
+SpeedhackBindStroke.Parent = SpeedhackBindButton
+
+local SpeedhackSpeedLabel = Instance.new("TextLabel")
+SpeedhackSpeedLabel.Size = UDim2.new(0, 100, 0, 30)
+SpeedhackSpeedLabel.Position = UDim2.new(0, 0, 0, 230)
+SpeedhackSpeedLabel.Text = "Speed: 20"
+SpeedhackSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedhackSpeedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedhackSpeedLabel.TextSize = 16
+SpeedhackSpeedLabel.Parent = MiscFrame
+
+local SpeedhackSpeedStroke = Instance.new("UIStroke")
+SpeedhackSpeedStroke.Thickness = 2
+SpeedhackSpeedStroke.Color = Color3.fromRGB(100, 100, 100)
+SpeedhackSpeedStroke.Parent = SpeedhackSpeedLabel
+
+local SpeedhackSpeedUpButton = Instance.new("TextButton")
+SpeedhackSpeedUpButton.Size = UDim2.new(0, 50, 0, 30)
+SpeedhackSpeedUpButton.Position = UDim2.new(0, 110, 0, 230)
+SpeedhackSpeedUpButton.Text = "+"
+SpeedhackSpeedUpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedhackSpeedUpButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedhackSpeedUpButton.TextSize = 18
+SpeedhackSpeedUpButton.Parent = MiscFrame
+
+local SpeedhackSpeedUpStroke = Instance.new("UIStroke")
+SpeedhackSpeedUpStroke.Thickness = 2
+SpeedhackSpeedUpStroke.Color = Color3.fromRGB(100, 100, 100)
+SpeedhackSpeedUpStroke.Parent = SpeedhackSpeedUpButton
+
+local SpeedhackSpeedDownButton = Instance.new("TextButton")
+SpeedhackSpeedDownButton.Size = UDim2.new(0, 50, 0, 30)
+SpeedhackSpeedDownButton.Position = UDim2.new(0, 170, 0, 230)
+SpeedhackSpeedDownButton.Text = "-"
+SpeedhackSpeedDownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedhackSpeedDownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedhackSpeedDownButton.TextSize = 18
+SpeedhackSpeedDownButton.Parent = MiscFrame
+
+local SpeedhackSpeedDownStroke = Instance.new("UIStroke")
+SpeedhackSpeedDownStroke.Thickness = 2
+SpeedhackSpeedDownStroke.Color = Color3.fromRGB(100, 100, 100)
+SpeedhackSpeedDownStroke.Parent = SpeedhackSpeedDownButton
+
+local DeleteWallButton = Instance.new("TextButton")
+DeleteWallButton.Size = UDim2.new(0, 200, 0, 40)
+DeleteWallButton.Position = UDim2.new(0, 220, 0, 0)
+DeleteWallButton.Text = "Delete Wall Beta: OFF"
+DeleteWallButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+DeleteWallButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+DeleteWallButton.TextSize = 18
+DeleteWallButton.Parent = MiscFrame
+
+local BindResetButton = Instance.new("TextButton")
+BindResetButton.Size = UDim2.new(0, 200, 0, 40)
+BindResetButton.Position = UDim2.new(0, 0, 0, 360) -- Слева внизу
+BindResetButton.Text = "Bind Reset: None"
+BindResetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BindResetButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+BindResetButton.TextSize = 18
+BindResetButton.Parent = MiscFrame
+
+local BindResetStroke = Instance.new("UIStroke")
+BindResetStroke.Thickness = 2
+BindResetStroke.Color = Color3.fromRGB(100, 100, 100)
+BindResetStroke.Parent = BindResetButton
+
+local DeleteWallStroke = Instance.new("UIStroke")
+DeleteWallStroke.Thickness = 2
+DeleteWallStroke.Color = Color3.fromRGB(100, 100, 100)
+DeleteWallStroke.Parent = DeleteWallButton
+
+local ExitButton = Instance.new("TextButton")
+ExitButton.Size = UDim2.new(0, 200, 0, 40)
+ExitButton.Position = UDim2.new(0, 0, 0, 540)
+ExitButton.Text = "Exit"
+ExitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExitButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ExitButton.TextSize = 18
+ExitButton.Parent = MiscFrame
+
+local ExitStroke = Instance.new("UIStroke")
+ExitStroke.Thickness = 2
+ExitStroke.Color = Color3.fromRGB(100, 100, 100)
+ExitStroke.Parent = ExitButton
+
+-- Элементы для FPS
+local RemoveGrassButton = Instance.new("TextButton")
+RemoveGrassButton.Size = UDim2.new(0, 200, 0, 40)
+RemoveGrassButton.Position = UDim2.new(0, 0, 0, 0)
+RemoveGrassButton.Text = "Remove Grass: OFF"
+RemoveGrassButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RemoveGrassButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+RemoveGrassButton.TextSize = 18
+RemoveGrassButton.Parent = FPSFrame
+
+local RemoveGrassStroke = Instance.new("UIStroke")
+RemoveGrassStroke.Thickness = 2
+RemoveGrassStroke.Color = Color3.fromRGB(100, 100, 100)
+RemoveGrassStroke.Parent = RemoveGrassButton
+
+local TextureLevelButton = Instance.new("TextButton")
+TextureLevelButton.Size = UDim2.new(0, 200, 0, 40)
+TextureLevelButton.Position = UDim2.new(0, 0, 0, 50)
+TextureLevelButton.Text = "Texture LVL: Default"
+TextureLevelButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextureLevelButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TextureLevelButton.TextSize = 18
+TextureLevelButton.Parent = FPSFrame
+
+local TextureDeleteButton = Instance.new("TextButton")
+TextureDeleteButton.Size = UDim2.new(0, 200, 0, 40)
+TextureDeleteButton.Position = UDim2.new(0, 0, 0, 90)
+TextureDeleteButton.Text = "Texture Delete (BETA): OFF"
+TextureDeleteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextureDeleteButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TextureDeleteButton.TextSize = 18
+TextureDeleteButton.Parent = FPSFrame
+
+local TextureDeleteStroke = Instance.new("UIStroke")
+TextureDeleteStroke.Thickness = 2
+TextureDeleteStroke.Color = Color3.fromRGB(100, 100, 100)
+TextureDeleteStroke.Parent = TextureDeleteButton
+
+local TextureLevelStroke = Instance.new("UIStroke")
+TextureLevelStroke.Thickness = 2
+TextureLevelStroke.Color = Color3.fromRGB(100, 100, 100)
+TextureLevelStroke.Parent = TextureLevelButton
+
+-- Переменные
+local isESPEnabled = false
+local isNamesEnabled = false
+local isHealthEnabled = false
+local isFlyEnabled = false
+local isStudsEnabled = false
+local isNoclipEnabled = false
+local isSpeedhackEnabled = false
+local isDeleteWallEnabled = false
+local isSilentAimEnabled = false
+local isLinesEnabled = false
+local isDayVisualEnabled = false
+local isRemoveGrassEnabled = false
+local textureLevel = 0
+local currentSize = 10
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local boxes = {}
+local studsLabels = {}
+local nameLabels = {}
+local hpLabels = {}
+local flyConnection
+local noclipConnection
+local speedhackBind = nil
+local speedhackSpeed = 20
+local flySpeed = 19
+local fovCircle
+local silentAimConnection
+local lines = {}
+local fovSize = 100
+local dayVisualConnection
+local originalGrassState = {}
+local currentSkybox = 0
+local currentArmMaterial = 0
+local originalSkybox = {}
+local crosshairMode = 0 -- 0 = OFF, 1 = Cross, 2 = Sun
+local crosshairLines = {} -- Таблица для хранения линий прицела
+local oresESPMode = 0 -- 0 = OFF, 1 = Iron, 2 = Stone, 3 = Sulfur
+local oreLabels = {} -- Таблица для хранения текстовых меток руд
+local activeOres = {} -- Таблица для хранения до 10 активных объектов руд
+local oresESPConnection -- Для обновления меток
+local isAimbotEnabled = false
+local aimbotPriority = "Head" -- "Head" или "Body"
+local aimbotBind = nil
+local aimbotFOVSize = 100
+local aimbotSpeed = 50 -- В процентах (0-100)
+local aimbotFOVCircle
+local aimbotConnection
+local crosshairColor = Color3.fromRGB(255, 255, 255) -- Начальный цвет прицела (белый)
+local resetBind = nil -- Переменная для хранения бинда
+local isResetBindActive = false -- Состояние активации бинда
+local isTextureDeleteEnabled = false
+-- Инициализация поведения мыши
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+
+-- Функция создания визуальных элементов для игрока
+local function createPlayerVisuals(player)
+	if boxes[player] and nameLabels[player] and hpLabels[player] then return end
+
+	if not boxes[player] then
+		local box = Drawing.new("Square")
+		box.Thickness = 2
+		box.Color = Color3.fromRGB(0, 255, 0)
+		box.Filled = false
+		box.Transparency = 1
+		box.Visible = false
+		boxes[player] = box
+	end
+
+	if not studsLabels[player] then
+		local studsLabel = Drawing.new("Text")
+		studsLabel.Size = 16
+		studsLabel.Color = Color3.fromRGB(255, 255, 255)
+		studsLabel.Transparency = 1
+		studsLabel.Visible = false
+		studsLabels[player] = studsLabel
+	end
+
+	if not nameLabels[player] then
+		local nameLabel = Drawing.new("Text")
+		nameLabel.Size = 16
+		nameLabel.Color = Color3.fromRGB(255, 255, 255)
+		nameLabel.Transparency = 1
+		nameLabel.Text = player.Name
+		nameLabel.Visible = false
+		nameLabels[player] = nameLabel
+	end
+
+	if not hpLabels[player] then
+		local hpLabel = Drawing.new("Text")
+		hpLabel.Size = 16
+		hpLabel.Color = Color3.fromRGB(0, 255, 0)
+		hpLabel.Transparency = 1
+		hpLabel.Visible = false
+		hpLabels[player] = hpLabel
+	end
+end
+
+-- Обновление визуальных элементов
+local function updateVisuals()
+    local localPlayer = game.Players.LocalPlayer
+    local localRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+    for player, box in pairs(boxes) do
+        if player.Character and player ~= localPlayer then
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if rootPart then
+                local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
+                if onScreen then
+                    -- Собираем все части тела для точного определения размеров (R6 и R15)
+                    local parts = {}
+                    for _, part in pairs(player.Character:GetChildren()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            table.insert(parts, part)
+                        end
+                    end
+
+                    -- Вычисляем границы персонажа для R15
+                    local minPos, maxPos = nil, nil
+                    for _, part in pairs(parts) do
+                        local partPos = part.Position
+                        local partSize = part.Size / 2
+                        local corners = {
+                            partPos + Vector3.new(partSize.X, partSize.Y, partSize.Z),
+                            partPos + Vector3.new(partSize.X, partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(partSize.X, -partSize.Y, partSize.Z),
+                            partPos + Vector3.new(partSize.X, -partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(-partSize.X, partSize.Y, partSize.Z),
+                            partPos + Vector3.new(-partSize.X, partSize.Y, -partSize.Z),
+                            partPos + Vector3.new(-partSize.X, -partSize.Y, partSize.Z),
+                            partPos + Vector3.new(-partSize.X, -partSize.Y, -partSize.Z)
+                        }
+                        for _, corner in pairs(corners) do
+                            local worldPos = workspace.CurrentCamera:WorldToViewportPoint(corner)
+                            if not minPos then
+                                minPos = Vector2.new(worldPos.X, worldPos.Y)
+                                maxPos = Vector2.new(worldPos.X, worldPos.Y)
+                            else
+                                minPos = Vector2.new(math.min(minPos.X, worldPos.X), math.min(minPos.Y, worldPos.Y))
+                                maxPos = Vector2.new(math.max(maxPos.X, worldPos.X), math.max(maxPos.Y, worldPos.Y))
+                            end
+                        end
+                    end
+
+                    if minPos and maxPos then
+                        local screenWidth = maxPos.X - minPos.X
+                        local screenHeight = maxPos.Y - minPos.Y
+
+                        if isESPEnabled then
+                            box.Size = Vector2.new(screenWidth, screenHeight)
+                            box.Position = minPos
+                            box.Visible = true
+                        else
+                            box.Visible = false
+                        end
+
+                        local studsLabel = studsLabels[player]
+                        if studsLabel and isStudsEnabled and localRoot then
+                            local dist = (localRoot.Position - rootPart.Position).Magnitude
+                            studsLabel.Text = string.format("%.1f studs", dist)
+                            studsLabel.Position = Vector2.new(pos.X - studsLabel.TextBounds.X / 2, minPos.Y + screenHeight + 5)
+                            studsLabel.Visible = true
+                        elseif studsLabel then
+                            studsLabel.Visible = false
+                        end
+
+                        local nameLabel = nameLabels[player]
+                        if nameLabel and isNamesEnabled then
+                            nameLabel.Position = Vector2.new(pos.X - nameLabel.TextBounds.X / 2, minPos.Y + screenHeight + (isStudsEnabled and 25 or 5))
+                            nameLabel.Visible = true
+                        elseif nameLabel then
+                            nameLabel.Visible = false
+                        end
+
+                        local hpLabel = hpLabels[player]
+                        if hpLabel and isHealthEnabled and humanoid then
+                            local health = math.floor(humanoid.Health)
+                            local maxHealth = humanoid.MaxHealth
+                            hpLabel.Text = string.format("%d/%d HP", health, maxHealth)
+                            hpLabel.Color = Color3.fromRGB(255 * (health / maxHealth), 255 * (health / maxHealth), 0)
+                            hpLabel.Position = Vector2.new(pos.X - hpLabel.TextBounds.X / 2, minPos.Y + screenHeight + (isStudsEnabled and 40 or 20))
+                            hpLabel.Visible = true
+                        elseif hpLabel then
+                            hpLabel.Visible = false
+                        end
+                    else
+                        box.Visible = false
+                        if studsLabels[player] then studsLabels[player].Visible = false end
+                        if nameLabels[player] then nameLabels[player].Visible = false end
+                        if hpLabels[player] then hpLabels[player].Visible = false end
+                    end
+                else
+                    box.Visible = false
+                    if studsLabels[player] then studsLabels[player].Visible = false end
+                    if nameLabels[player] then nameLabels[player].Visible = false end
+                    if hpLabels[player] then hpLabels[player].Visible = false end
+                end
+            else
+                box.Visible = false
+                if studsLabels[player] then studsLabels[player].Visible = false end
+                if nameLabels[player] then nameLabels[player].Visible = false end
+                if hpLabels[player] then hpLabels[player].Visible = false end
+            end
+        else
+            box.Visible = false
+            if studsLabels[player] then studsLabels[player].Visible = false end
+            if nameLabels[player] then nameLabels[player].Visible = false end
+            if hpLabels[player] then hpLabels[player].Visible = false end
+        end
+    end
+end
+
+-- Обновлённая функция Fly
+local function toggleFly(enable)
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+	local rootPart = character.HumanoidRootPart
+	local humanoid = character:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	if enable then
+		local bodyForce = Instance.new("BodyForce")
+		bodyForce.Name = "FlyForce"
+		bodyForce.Force = Vector3.new(0, workspace.Gravity * rootPart:GetMass(), 0)
+		bodyForce.Parent = rootPart
+
+		local moveDirection = Vector3.new(0, 0, 0)
+		local camera = workspace.CurrentCamera
+
+		flyConnection = RunService.Heartbeat:Connect(function(dt)
+			if not isFlyEnabled then return end
+
+			moveDirection = Vector3.new(0, 0, 0)
+			local lookDirection = camera.CFrame.LookVector
+			local rightDirection = camera.CFrame.RightVector
+
+			if UIS:IsKeyDown(Enum.KeyCode.W) then
+				moveDirection = moveDirection + lookDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.S) then
+				moveDirection = moveDirection - lookDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.D) then
+				moveDirection = moveDirection + rightDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.A) then
+				moveDirection = moveDirection - rightDirection
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.Space) then
+				moveDirection = moveDirection + Vector3.new(0, 1, 0)
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveDirection = moveDirection - Vector3.new(0, 1, 0)
+			end
+
+			if moveDirection.Magnitude > 0 then
+				moveDirection = moveDirection.Unit * flySpeed
+				rootPart.Velocity = Vector3.new(moveDirection.X, moveDirection.Y, moveDirection.Z)
+			else
+				rootPart.Velocity = Vector3.new(0, 0, 0)
+			end
+		end)
+	else
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
+		end
+		if rootPart:FindFirstChild("FlyForce") then
+			rootPart.FlyForce:Destroy()
+		end
+		humanoid.WalkSpeed = 16
+		rootPart.Velocity = Vector3.new(0, 0, 0)
+	end
+end
+
+-- Функция Freecam
+local function toggleFreecam(enable)
+	local player = game.Players.LocalPlayer
+	local camera = workspace.CurrentCamera
+
+	if enable then
+		originalCameraCFrame = camera.CFrame
+		camera.CameraType = Enum.CameraType.Scriptable
+
+		local lookVector = camera.CFrame.LookVector
+		yaw = math.atan2(lookVector.X, lookVector.Z)
+		pitch = math.asin(lookVector.Y)
+
+		local speed = 50
+		local mouseSensitivity = 0.2
+
+		if not Frame.Visible then
+			UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+		end
+
+		freecamConnection = RunService.RenderStepped:Connect(function(dt)
+			local moveDirection = Vector3.new(0, 0, 0)
+
+			if UIS:IsKeyDown(Enum.KeyCode.W) then
+				moveDirection = moveDirection + camera.CFrame.LookVector
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.S) then
+				moveDirection = moveDirection - camera.CFrame.LookVector
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.D) then
+				moveDirection = moveDirection + camera.CFrame.RightVector
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.A) then
+				moveDirection = moveDirection - camera.CFrame.RightVector
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.Space) then
+				moveDirection = moveDirection + Vector3.new(0, 1, 0)
+			end
+			if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveDirection = moveDirection - Vector3.new(0, 1, 0)
+			end
+
+			if moveDirection.Magnitude > 0 then
+				moveDirection = moveDirection.Unit * speed * dt
+				camera.CFrame = camera.CFrame + moveDirection
+			end
+		end)
+
+		local mouseConnection
+		mouseConnection = UIS.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement then
+				local delta = input.Delta
+				yaw = yaw - delta.X * mouseSensitivity * 0.01
+				pitch = math.clamp(pitch - delta.Y * mouseSensitivity * 0.01, -math.pi / 2 + 0.1, math.pi / 2 - 0.1)
+				camera.CFrame = CFrame.new(camera.CFrame.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(pitch, 0, 0)
+
+-- Функция Noclip
+local function toggleNoclip(enable)
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+	local rootPart = character.HumanoidRootPart
+	if enable then
+		noclipConnection = RunService.Stepped:Connect(function()
+			for _, part in pairs(character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+			end
+		end)
+	else
+		if noclipConnection then
+			noclipConnection:Disconnect()
+			noclipConnection = nil
+		end
+		for _, part in pairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
+	end
+end
+
+-- Функция Speedhack
+local function triggerSpeedhack()
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+	local rootPart = character.HumanoidRootPart
+	local humanoid = character:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 7, 0)
+	humanoid.WalkSpeed = 0
+
+	local camera = workspace.CurrentCamera
+	local lookDirection = camera.CFrame.LookVector
+	local distance = 50
+	local duration = distance / speedhackSpeed
+	local elapsed = 0
+
+	local connection
+	connection = RunService.Heartbeat:Connect(function(dt)
+		elapsed = elapsed + dt
+		if elapsed >= duration then
+			local ray = Ray.new(rootPart.Position, Vector3.new(0, -10, 0))
+			local hit, hitPosition = workspace:FindPartOnRayWithIgnoreList(ray, {character})
+			if hit then
+				rootPart.CFrame = CFrame.new(hitPosition + Vector3.new(0, 3, 0))
+			else
+				rootPart.CFrame = rootPart.CFrame - Vector3.new(0, 7, 0)
+			end
+			humanoid.WalkSpeed = 16
+			connection:Disconnect()
+			return
+		end
+
+		local step = lookDirection * speedhackSpeed * dt
+		rootPart.CFrame = rootPart.CFrame + step
+	end)
+end
+--silent aim
+local function toggleSilentAim(enable)
+	local player = game.Players.LocalPlayer
+	local mouse = player:GetMouse()
+
+	if enable then
+		fovCircle = Drawing.new("Circle")
+		fovCircle.Thickness = 2
+		fovCircle.Color = Color3.fromRGB(255, 255, 255)
+		fovCircle.Radius = fovSize
+		fovCircle.Filled = false
+		fovCircle.Transparency = 1
+		fovCircle.Visible = true
+
+		silentAimConnection = RunService.RenderStepped:Connect(function()
+			if isSilentAimEnabled then
+				local mousePos = Vector2.new(mouse.X, mouse.Y)
+				fovCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 54 ) -- Смещаем круг на 20 пикселей вниз
+
+				local closestTarget = nil
+				local closestTargetPart = nil
+				local closestDistance = fovSize
+				for _, targetPlayer in pairs(game.Players:GetPlayers()) do
+					if targetPlayer ~= player and targetPlayer.Character then
+						local head = targetPlayer.Character:FindFirstChild("Head")
+						local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
+						local rootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+						local upperTorso = targetPlayer.Character:FindFirstChild("UpperTorso")
+						if humanoid and humanoid.Health > 0 then
+							local targetPart = head or rootPart or upperTorso
+							if targetPart then
+								local targetPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(targetPart.Position)
+								if onScreen then
+									local distance = (Vector2.new(targetPos.X, targetPos.Y) - mousePos).Magnitude
+									if distance <= fovSize and distance < closestDistance then
+										closestTarget = targetPlayer
+										closestTargetPart = targetPart
+										closestDistance = distance
+									end
+								end
+							end
+						end
+					end
+				end
+
+				if isLinesEnabled and closestTarget then
+					for target, line in pairs(lines) do
+						line:Remove()
+						lines[target] = nil
+					end
+					local line = Drawing.new("Line")
+					line.Thickness = 2
+					line.Color = Color3.fromRGB(255, 0, 0)
+					line.Transparency = 1
+					local targetPos = workspace.CurrentCamera:WorldToViewportPoint(closestTargetPart.Position)
+					line.From = Vector2.new(mousePos.X, mousePos.Y + 54)
+					line.To = Vector2.new(targetPos.X, targetPos.Y)
+					line.Visible = true
+					lines[closestTarget] = line
+				elseif isLinesEnabled then
+					for _, line in pairs(lines) do
+						line.Visible = false
+					end
+				end
+
+				if closestTarget and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+					local camera = workspace.CurrentCamera
+					local ray = camera:ViewportPointToRay(mousePos.X, mousePos.Y, 0)
+					local teleportDistance = 15
+					local teleportPosition = camera.CFrame.Position + ray.Direction * teleportDistance
+
+					local raycastResult = workspace:Raycast(camera.CFrame.Position, ray.Direction * teleportDistance)
+					if raycastResult then
+						teleportPosition = raycastResult.Position - ray.Direction * 1
+					end
+
+					local rootPart = closestTarget.Character:FindFirstChild("HumanoidRootPart")
+					if rootPart then
+						rootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + camera.CFrame.LookVector)
+					end
+				end
+			end
+		end)
+	else
+		if fovCircle then
+			fovCircle:Remove()
+			fovCircle = nil
+		end
+		if silentAimConnection then
+			silentAimConnection:Disconnect()
+			silentAimConnection = nil
+		end
+		for _, line in pairs(lines) do
+			line:Remove()
+		end
+		lines = {}
+	end
+end
+
+local function toggleAimbot(enable)
+    local player = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+
+    if enable then
+        aimbotFOVCircle = Drawing.new("Circle")
+        aimbotFOVCircle.Thickness = 2
+        aimbotFOVCircle.Color = Color3.fromRGB(255, 0, 255) -- Отличается от Silent Aim
+        aimbotFOVCircle.Radius = aimbotFOVSize
+        aimbotFOVCircle.Filled = false
+        aimbotFOVCircle.Transparency = 1
+        aimbotFOVCircle.Visible = true
+
+        aimbotConnection = RunService.RenderStepped:Connect(function()
+            local mouse = player:GetMouse()
+            local mousePos = Vector2.new(mouse.X, mouse.Y)
+            aimbotFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y + 54)
+
+            if isAimbotEnabled and (aimbotBind == nil or 
+    (typeof(aimbotBind) == "EnumItem" and aimbotBind.EnumType == Enum.KeyCode and UIS:IsKeyDown(aimbotBind)) or 
+    (typeof(aimbotBind) == "EnumItem" and aimbotBind.EnumType == Enum.UserInputType and UIS:IsMouseButtonPressed(aimbotBind))) then
+                local closestTarget = nil
+                local closestDistance = aimbotFOVSize
+                for _, target in pairs(game.Players:GetPlayers()) do
+                    if target ~= player and target.Character then
+                        local targetPart = (aimbotPriority == "Head" and target.Character:FindFirstChild("Head")) or target.Character:FindFirstChild("HumanoidRootPart")
+                        local humanoid = target.Character:FindFirstChild("Humanoid")
+                        if targetPart and humanoid and humanoid.Health > 0 then
+                            local screenPos, onScreen = camera:WorldToViewportPoint(targetPart.Position)
+                            if onScreen then
+                                local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                                if distance <= aimbotFOVSize and distance < closestDistance then
+                                    closestTarget = targetPart
+                                    closestDistance = distance
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if closestTarget then
+                    local targetPos = closestTarget.Position
+                    local currentLook = camera.CFrame.LookVector
+                    local targetDir = (targetPos - camera.CFrame.Position).Unit
+                    local speedFactor = aimbotSpeed / 100 -- Преобразуем процент в коэффициент (0-1)
+                    local newLook = currentLook:Lerp(targetDir, speedFactor) -- Плавный поворот
+                    camera.CFrame = CFrame.new(camera.CFrame.Position, camera.CFrame.Position + newLook)
+                end
+            end
+        end)
+    else
+        if aimbotFOVCircle then
+            aimbotFOVCircle:Remove()
+            aimbotFOVCircle = nil
+        end
+        if aimbotConnection then
+            aimbotConnection:Disconnect()
+            aimbotConnection = nil
+        end
+    end
+end
+
+-- Функция View Model
+
+local function resetCharacter()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    if humanoid then
+        -- Легитный способ: временно ломает персонажа, чтобы Roblox сам его перезагрузил
+        humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+        -- Альтернатива: player:LoadCharacter() — но это менее "легитно" и может быть заблокировано
+    end
+end
+
+local function toggleTextureDelete(enable)
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Texture") or obj:IsA("Decal") then
+            if enable then
+                obj.Transparency = 1 -- Убираем текстуру, оставляя цвет и материал
+            else
+                obj.Transparency = 0 -- Восстанавливаем текстуру
+            end
+        end
+    end
+end
+
+-- Функция Day Visual
+local function toggleDayVisual(enable)
+	local lighting = game:GetService("Lighting")
+	if enable then
+		dayVisualConnection = RunService.RenderStepped:Connect(function()
+			lighting.ClockTime = 12
+			lighting.Brightness = 2
+			lighting.FogEnd = 10000
+			lighting.GlobalShadows = true
+			lighting.Ambient = Color3.fromRGB(255, 255, 255)
+		end)
+	else
+		if dayVisualConnection then
+			dayVisualConnection:Disconnect()
+			dayVisualConnection = nil
+		end
+		lighting.ClockTime = 14
+		lighting.Brightness = 1
+		lighting.FogEnd = 100000
+		lighting.GlobalShadows = true
+		lighting.Ambient = Color3.fromRGB(127, 127, 127)
+	end
+end
+
+-- Функция Delete Wall Beta
+local function toggleDeleteWall(enable)
+	if enable then
+		UIS.InputBegan:Connect(function(input)
+			if isDeleteWallEnabled and UIS:IsKeyDown(Enum.KeyCode.LeftAlt) and input.UserInputType == Enum.UserInputType.MouseButton1 then
+				local mouse = game.Players.LocalPlayer:GetMouse()
+				local target = mouse.Target
+				if target and target:IsA("BasePart") and not target:IsDescendantOf(game.Players.LocalPlayer.Character) then
+					target:Destroy()
+				end
+			end
+		end)
+	end
+end
+
+-- Функция Remove Grass
+local function toggleRemoveGrass(enable)
+	local terrain = workspace:FindFirstChildOfClass("Terrain")
+	if not terrain then return end
+
+	if enable then
+		originalGrassState["GrassLength"] = terrain.GrassLength
+		originalGrassState["GrassDensity"] = terrain.GrassDensity
+		originalGrassState["Decoration"] = terrain.Decoration
+
+		terrain.GrassLength = 0
+		terrain.GrassDensity = 0
+		terrain.Decoration = false
+	else
+		terrain.GrassLength = originalGrassState["GrassLength"] or 0.1
+		terrain.GrassDensity = originalGrassState["GrassDensity"] or 0.5
+		terrain.Decoration = originalGrassState["Decoration"] or true
+	end
+end
+
+-- Функция Texture Level
+local function setTextureLevel(level)
+	for _, part in pairs(workspace:GetDescendants()) do
+		if part:IsA("BasePart") or part:IsA("MeshPart") then
+			if part:FindFirstChild("SurfaceAppearance") then
+				local surface = part.SurfaceAppearance
+				if level == 1 then
+					surface.Color = Color3.fromRGB(100, 100, 100)
+					surface.Metalness = 0
+					surface.Roughness = 1
+					surface.Transparency = 0.2
+				elseif level == 2 then
+					surface.Color = Color3.fromRGB(80, 80, 80)
+					surface.Metalness = 0
+					surface.Roughness = 1
+					surface.Transparency = 0.4
+				elseif level == 3 then
+					surface.Color = Color3.fromRGB(150, 150, 150)
+					surface.Metalness = 0
+					surface.Roughness = 1
+					surface.Transparency = 0
+				elseif level == 4 then
+					surface.Color = part.Color
+					surface.Metalness = 0.3
+					surface.Roughness = 0.7
+					surface.Transparency = 0
+				elseif level == 5 then
+					surface.Color = part.Color
+					surface.Metalness = 0.5
+					surface.Roughness = 0.5
+					surface.Transparency = 0
+				end
+			else
+				if level == 1 then
+					part.Material = Enum.Material.Plastic
+					part.Color = Color3.fromRGB(100, 100, 100)
+					part.Transparency = 0.2
+				elseif level == 2 then
+					part.Material = Enum.Material.Plastic
+					part.Color = Color3.fromRGB(80, 80, 80)
+					part.Transparency = 0.4
+				elseif level == 3 then
+					part.Material = Enum.Material.Plastic
+					part.Color = Color3.fromRGB(150, 150, 150)
+					part.Transparency = 0
+				elseif level == 4 then
+					part.Material = Enum.Material.SmoothPlastic
+					part.Color = part.Color
+					part.Transparency = 0
+				elseif level == 5 then
+					part.Material = Enum.Material.Concrete
+					part.Color = part.Color
+					part.Transparency = 0
+				end
+			end
+		end
+	end
+end
+
+-- Функция Custom Skybox
+local function toggleSkybox(level)
+	local lighting = game:GetService("Lighting")
+	local sky = lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky", lighting)
+
+	if level == 0 then
+		if originalSkybox.SkyboxBk then
+			sky.SkyboxBk = originalSkybox.SkyboxBk
+			sky.SkyboxDn = originalSkybox.SkyboxDn
+			sky.SkyboxFt = originalSkybox.SkyboxFt
+			sky.SkyboxLf = originalSkybox.SkyboxLf
+			sky.SkyboxRt = originalSkybox.SkyboxRt
+			sky.SkyboxUp = originalSkybox.SkyboxUp
+		else
+			sky:Destroy()
+		end
+	else
+		if not originalSkybox.SkyboxBk and sky.SkyboxBk then
+			originalSkybox.SkyboxBk = sky.SkyboxBk
+			originalSkybox.SkyboxDn = sky.SkyboxDn
+			originalSkybox.SkyboxFt = sky.SkyboxFt
+			originalSkybox.SkyboxLf = sky.SkyboxLf
+			originalSkybox.SkyboxRt = sky.SkyboxRt
+			originalSkybox.SkyboxUp = sky.SkyboxUp
+		end
+
+		local skyboxAssets = {
+			"rbxassetid://159248188", -- Back
+			"rbxassetid://159248183", -- Down
+			"rbxassetid://159248187", -- Front
+			"rbxassetid://159248173", -- Left
+			"rbxassetid://159248192", -- Right
+			"rbxassetid://159248176"  -- Up
+		}
+		sky.SkyboxBk = skyboxAssets[1]
+		sky.SkyboxDn = skyboxAssets[2]
+		sky.SkyboxFt = skyboxAssets[3]
+		sky.SkyboxLf = skyboxAssets[4]
+		sky.SkyboxRt = skyboxAssets[5]
+		sky.SkyboxUp = skyboxAssets[6]
+	end
+end
+
+-- Функция Arm Material
+local function toggleArmMaterial(level)
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
+
+    -- Ищем руки с учётом возможных названий (зависит от R6/R15)
+    local arms = {
+        character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm"),
+        character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+    }
+
+    for _, arm in pairs(arms) do
+        if arm and arm:IsA("BasePart") then -- Проверяем, что рука существует и это часть
+            if level == 0 then -- Default
+                arm.Material = Enum.Material.Plastic
+                arm.Color = Color3.fromRGB(255, 204, 153) -- Стандартный цвет кожи Roblox
+                arm.Transparency = 0
+            elseif level == 1 then -- Neon Transparent
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(255, 255, 255)
+                arm.Transparency = 0.5
+            elseif level == 2 then -- Purple Neon
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(128, 0, 128)
+                arm.Transparency = 0
+            elseif level == 3 then -- Dark Blue Neon
+                arm.Material = Enum.Material.Neon
+                arm.Color = Color3.fromRGB(0, 0, 139)
+                arm.Transparency = 0.5
+            elseif level == 4 then -- Dark Purple
+                arm.Material = Enum.Material.Plastic
+                arm.Color = Color3.fromRGB(75, 0, 130)
+                arm.Transparency = 0
+            end
+        end
+    end
+end
+
+local function toggleCrosshair(mode)
+    if crosshairLines then
+        for _, line in pairs(crosshairLines) do
+            line:Remove()
+        end
+        crosshairLines = nil
+    end
+
+    if mode == 0 then
+        crosshairMode = 0
+        return
+    end
+
+    crosshairMode = mode
+    crosshairLines = {}
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local centerX, centerY = screenSize.X / 2, screenSize.Y / 2
+
+    if mode == 1 then
+        -- Cross: обычный крестик
+        for i = 1, 4 do
+            local line = Drawing.new("Line")
+            line.Thickness = 2
+            line.Color = crosshairColor
+            line.Transparency = 1
+            line.Visible = true
+            table.insert(crosshairLines, line)
+        end
+        crosshairLines[1].From = Vector2.new(centerX, centerY - 20)
+        crosshairLines[1].To = Vector2.new(centerX, centerY - 5)
+        crosshairLines[2].From = Vector2.new(centerX, centerY + 5)
+        crosshairLines[2].To = Vector2.new(centerX, centerY + 20)
+        crosshairLines[3].From = Vector2.new(centerX - 20, centerY)
+        crosshairLines[3].To = Vector2.new(centerX - 5, centerY)
+        crosshairLines[4].From = Vector2.new(centerX + 5, centerY)
+        crosshairLines[4].To = Vector2.new(centerX + 20, centerY)
+    elseif mode == 2 then
+        -- Sun: обратная свастика (знак солнца)
+        local size = 15 -- Размер свастики
+
+        -- Вертикальная линия
+        local line1 = Drawing.new("Line")
+        line1.Thickness = 2
+        line1.Color = crosshairColor
+        line1.From = Vector2.new(centerX, centerY - size)
+        line1.To = Vector2.new(centerX, centerY + size)
+        line1.Visible = true
+        table.insert(crosshairLines, line1)
+
+        -- Горизонтальная линия
+        local line2 = Drawing.new("Line")
+        line2.Thickness = 2
+        line2.Color = crosshairColor
+        line2.From = Vector2.new(centerX - size, centerY)
+        line2.To = Vector2.new(centerX + size, centerY)
+        line2.Visible = true
+        table.insert(crosshairLines, line2)
+
+        -- Крюки обратной свастики (по часовой стрелке)
+        local hook1 = Drawing.new("Line") -- Верх -> вправо
+        hook1.Thickness = 2
+        hook1.Color = crosshairColor
+        hook1.From = Vector2.new(centerX, centerY - size)
+        hook1.To = Vector2.new(centerX + size / 2, centerY - size)
+        hook1.Visible = true
+        table.insert(crosshairLines, hook1)
+
+        local hook2 = Drawing.new("Line") -- Право -> вниз
+        hook2.Thickness = 2
+        hook2.Color = crosshairColor
+        hook2.From = Vector2.new(centerX + size, centerY)
+        hook2.To = Vector2.new(centerX + size, centerY + size / 2)
+        hook2.Visible = true
+        table.insert(crosshairLines, hook2)
+
+        local hook3 = Drawing.new("Line") -- Низ -> влево
+        hook3.Thickness = 2
+        hook3.Color = crosshairColor
+        hook3.From = Vector2.new(centerX, centerY + size)
+        hook3.To = Vector2.new(centerX - size / 2, centerY + size)
+        hook3.Visible = true
+        table.insert(crosshairLines, hook3)
+
+        local hook4 = Drawing.new("Line") -- Лево -> вверх
+        hook4.Thickness = 2
+        hook4.Color = crosshairColor
+        hook4.From = Vector2.new(centerX - size, centerY)
+        hook4.To = Vector2.new(centerX - size, centerY - size / 2)
+        hook4.Visible = true
+        table.insert(crosshairLines, hook4)
+    end
+end
+
+local function toggleOresESP(mode)
+    -- Удаляем существующие метки и очищаем списки
+    for _, label in pairs(oreLabels) do
+        label:Remove()
+    end
+    oreLabels = {}
+    activeOres = {}
+
+    -- Отключаем предыдущее обновление
+    if oresESPConnection then
+        oresESPConnection:Disconnect()
+        oresESPConnection = nil
+    end
+
+    if mode == 0 then
+        return -- OFF: ничего не делаем
+    end
+
+    -- Определяем, какую руду искать
+    local oreName
+    if mode == 1 then
+        oreName = "iron"
+    elseif mode == 2 then
+        oreName = "stone"
+    elseif mode == 3 then
+        oreName = "sulfur"
+    end
+
+    -- Функция для поиска ближайших руд
+    local function findNearestOres()
+        activeOres = {}
+        local playerPos = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character.PrimaryPart.Position or Vector3.new(0, 0, 0)
+        local oreCandidates = {}
+
+        -- Собираем все подходящие объекты
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and string.lower(obj.Name) == oreName then
+                local distance = (obj.Position - playerPos).Magnitude
+                table.insert(oreCandidates, {obj = obj, distance = distance})
+            end
+        end
+
+        -- Сортируем по расстоянию
+        table.sort(oreCandidates, function(a, b) return a.distance < b.distance end)
+
+        -- Берем до 10 ближайших
+        for i = 1, math.min(10, #oreCandidates) do
+            table.insert(activeOres, oreCandidates[i].obj)
+        end
+
+        -- Создаем метки для активных объектов
+        for _, ore in pairs(activeOres) do
+            local label = Drawing.new("Text")
+            label.Text = oreName
+            label.Size = 16
+            label.Color = Color3.fromRGB(255, 255, 255)
+            label.Center = true
+            label.Outline = true
+            label.OutlineColor = Color3.fromRGB(0, 0, 0)
+            label.Visible = true
+            oreLabels[ore] = label
+        end
+    end
+
+    -- Первоначальный поиск ближайших руд
+    findNearestOres()
+
+    -- Обновляем позиции меток в реальном времени
+    oresESPConnection = RunService.RenderStepped:Connect(function()
+        local playerPos = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character.PrimaryPart.Position or Vector3.new(0, 0, 0)
+        local needsUpdate = false
+
+        -- Проверяем активные руды и обновляем метки
+        for i = #activeOres, 1, -1 do
+            local ore = activeOres[i]
+            if ore and ore.Parent then
+                local headPos = ore.Position + Vector3.new(0, 2, 0)
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(headPos)
+                local label = oreLabels[ore]
+                if onScreen and label then
+                    label.Position = Vector2.new(screenPos.X, screenPos.Y)
+                    label.Visible = true
+                else
+                    label.Visible = false
+                end
+            else
+                -- Если объект исчез, удаляем его из списка и метку
+                if oreLabels[ore] then
+                    oreLabels[ore]:Remove()
+                    oreLabels[ore] = nil
+                end
+                table.remove(activeOres, i)
+                needsUpdate = true
+            end
+        end
+
+        -- Если количество руд меньше 10, ищем новые
+        if needsUpdate and #activeOres < 10 then
+            findNearestOres()
+        end
+    end)
+end
+
+-- Логика переключения категорий
+RageButton.MouseButton1Click:Connect(function()
+	RageFrame.Visible = true
+	RenderFrame.Visible = false
+	VisualsFrame.Visible = false
+	MiscFrame.Visible = false
+	FPSFrame.Visible = false
+end)
+
+RenderButton.MouseButton1Click:Connect(function()
+	RageFrame.Visible = false
+	RenderFrame.Visible = true
+	VisualsFrame.Visible = false
+	MiscFrame.Visible = false
+	FPSFrame.Visible = false
+end)
+
+VisualsButton.MouseButton1Click:Connect(function()
+	RageFrame.Visible = false
+	RenderFrame.Visible = false
+	VisualsFrame.Visible = true
+	MiscFrame.Visible = false
+	FPSFrame.Visible = false
+end)
+
+MiscButton.MouseButton1Click:Connect(function()
+	RageFrame.Visible = false
+	RenderFrame.Visible = false
+	VisualsFrame.Visible = false
+	MiscFrame.Visible = true
+	FPSFrame.Visible = false
+end)
+
+FPSButton.MouseButton1Click:Connect(function()
+	RageFrame.Visible = false
+	RenderFrame.Visible = false
+	VisualsFrame.Visible = false
+	MiscFrame.Visible = false
+	FPSFrame.Visible = true
+end)
+
+-- Логика кнопок
+
+AimbotButton.MouseButton1Click:Connect(function()
+    isAimbotEnabled = not isAimbotEnabled
+    AimbotButton.Text = isAimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
+    AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+    toggleAimbot(isAimbotEnabled)
+end)
+
+AimbotPriorityButton.MouseButton1Click:Connect(function()
+    aimbotPriority = (aimbotPriority == "Head") and "Body" or "Head"
+    AimbotPriorityButton.Text = "Priority: " .. aimbotPriority
+end)
+
+AimbotBindButton.MouseButton1Click:Connect(function()
+    AimbotBindButton.Text = "Press a key or mouse button..."
+    local bindConnection
+    bindConnection = UIS.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            aimbotBind = input.KeyCode
+            AimbotBindButton.Text = "Aimbot Bind: " .. input.KeyCode.Name
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+            aimbotBind = Enum.UserInputType.MouseButton1
+            AimbotBindButton.Text = "Aimbot Bind: LMB"
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            aimbotBind = Enum.UserInputType.MouseButton2
+            AimbotBindButton.Text = "Aimbot Bind: RMB"
+            bindConnection:Disconnect()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
+            aimbotBind = Enum.UserInputType.MouseButton3
+            AimbotBindButton.Text = "Aimbot Bind: MMB"
+            bindConnection:Disconnect()
+        end
+    end)
+end)
+
+AimbotFOVUpButton.MouseButton1Click:Connect(function()
+    if aimbotFOVSize < 200 then
+        aimbotFOVSize = aimbotFOVSize + 10
+        AimbotFOVLabel.Text = "Aimbot FOV: " .. aimbotFOVSize
+        if aimbotFOVCircle then
+            aimbotFOVCircle.Radius = aimbotFOVSize
+        end
+    end
+end)
+
+AimbotFOVDownButton.MouseButton1Click:Connect(function()
+    if aimbotFOVSize > 50 then
+        aimbotFOVSize = aimbotFOVSize - 10
+        AimbotFOVLabel.Text = "Aimbot FOV: " .. aimbotFOVSize
+        if aimbotFOVCircle then
+            aimbotFOVCircle.Radius = aimbotFOVSize
+        end
+    end
+end)
+
+AimbotSpeedUpButton.MouseButton1Click:Connect(function()
+    if aimbotSpeed < 100 then
+        aimbotSpeed = aimbotSpeed + 10
+        AimbotSpeedLabel.Text = "Speed: " .. aimbotSpeed .. "%"
+    end
+end)
+
+AimbotSpeedDownButton.MouseButton1Click:Connect(function()
+    if aimbotSpeed > 10 then
+        aimbotSpeed = aimbotSpeed - 10
+        AimbotSpeedLabel.Text = "Speed: " .. aimbotSpeed .. "%"
+    end
+end)
+
+SilentAimButton.MouseButton1Click:Connect(function()
+	isSilentAimEnabled = not isSilentAimEnabled
+	SilentAimButton.Text = isSilentAimEnabled and "Silent Aim: ON" or "Silent Aim: OFF"
+	SilentAimButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+	toggleSilentAim(isSilentAimEnabled)
+end)
+
+LinesButton.MouseButton1Click:Connect(function()
+	isLinesEnabled = not isLinesEnabled
+	LinesButton.Text = isLinesEnabled and "Lines: ON" or "Lines: OFF"
+	LinesButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+	if not isLinesEnabled then
+		for _, line in pairs(lines) do
+			line.Visible = false 
+     end
+	end
+end)
+
+FOVSizeUpButton.MouseButton1Click:Connect(function()
+	if fovSize < 200 then
+		fovSize = fovSize + 10
+		FOVSizeLabel.Text = "FOV: " .. fovSize
+		if fovCircle then -- Проверяем, существует ли круг
+			fovCircle.Radius = fovSize -- Обновляем радиус круга
+		end
+	end
+end)
+
+FOVSizeDownButton.MouseButton1Click:Connect(function()
+	if fovSize > 50 then
+		fovSize = fovSize - 10
+		FOVSizeLabel.Text = "FOV: " .. fovSize
+		if fovCircle then -- Проверяем, существует ли круг
+			fovCircle.Radius = fovSize -- Обновляем радиус круга
+		end
+	end
+end)
+
+ESPButton.MouseButton1Click:Connect(function()
+	isESPEnabled = not isESPEnabled
+	ESPButton.Text = isESPEnabled and "ESP: ON" or "ESP: OFF"
+	ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			createPlayerVisuals(player)
+		end
+	end
+end)
+
+StudsButton.MouseButton1Click:Connect(function()
+	isStudsEnabled = not isStudsEnabled
+	StudsButton.Text = isStudsEnabled and "Studs: ON" or "Studs: OFF"
+	StudsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			createPlayerVisuals(player)
+		end
+	end
+end)
+
+NamesButton.MouseButton1Click:Connect(function()
+	isNamesEnabled = not isNamesEnabled
+	NamesButton.Text = isNamesEnabled and "Names: ON" or "Names: OFF"
+	NamesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			createPlayerVisuals(player)
+		end
+	end
+end)
+
+HealthButton.MouseButton1Click:Connect(function()
+	isHealthEnabled = not isHealthEnabled
+	HealthButton.Text = isHealthEnabled and "Health: ON" or "Health: OFF"
+	HealthButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			createPlayerVisuals(player)
+		end
+	end
+end)
+
+BindResetButton.MouseButton1Click:Connect(function()
+    BindResetButton.Text = "Bind Reset: Press a key..."
+    local connection
+    connection = UIS.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            resetBind = input.KeyCode
+            BindResetButton.Text = "Bind Reset: " .. input.KeyCode.Name
+            isResetBindActive = true
+        elseif input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               input.UserInputType == Enum.UserInputType.MouseButton2 or 
+               input.UserInputType == Enum.UserInputType.MouseButton3 then
+            resetBind = input.UserInputType
+            BindResetButton.Text = "Bind Reset: " .. input.UserInputType.Name
+            isResetBindActive = true
+        end
+        connection:Disconnect()
+    end)
+end)
+
+-- Обработка нажатия бинда
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and isResetBindActive then
+        if (input.KeyCode == resetBind and resetBind ~= nil) or 
+           (input.UserInputType == resetBind and resetBind ~= nil) then
+            resetCharacter()
+        end
+    end
+end)
+
+TextureDeleteButton.MouseButton1Click:Connect(function()
+    isTextureDeleteEnabled = not isTextureDeleteEnabled
+    TextureDeleteButton.Text = isTextureDeleteEnabled and "Texture Delete (BETA): ON" or "Texture Delete (BETA): OFF"
+    toggleTextureDelete(isTextureDeleteEnabled)
+end)
+
+DayVisualButton.MouseButton1Click:Connect(function()
+	isDayVisualEnabled = not isDayVisualEnabled
+	DayVisualButton.Text = isDayVisualEnabled and "Day Visual: ON" or "Day Visual: OFF"
+	DayVisualButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleDayVisual(isDayVisualEnabled)
+end)
+
+OresESPButton.MouseButton1Click:Connect(function()
+	oresESPMode = (oresESPMode + 1) % 4 -- Переключаем: 0 (OFF), 1 (Iron), 2 (Stone), 3 (Sulfur)
+	if oresESPMode == 0 then
+		OresESPButton.Text = "Ores ESP: OFF"
+	elseif oresESPMode == 1 then
+		OresESPButton.Text = "Ores ESP: Iron"
+	elseif oresESPMode == 2 then
+		OresESPButton.Text = "Ores ESP: Stone"
+	elseif oresESPMode == 3 then
+		OresESPButton.Text = "Ores ESP: Sulfur"
+	end
+	toggleOresESP(oresESPMode)
+end)
+
+SkyboxButton.MouseButton1Click:Connect(function()
+	currentSkybox = (currentSkybox + 1) % 2
+	if currentSkybox == 0 then
+		SkyboxButton.Text = "Custom Skybox: Default"
+	elseif currentSkybox == 1 then
+		SkyboxButton.Text = "Custom Skybox: Universe"
+	end
+	toggleSkybox(currentSkybox)
+end)
+
+ArmMaterialButton.MouseButton1Click:Connect(function()
+	currentArmMaterial = (currentArmMaterial + 1) % 5
+	if currentArmMaterial == 0 then
+		ArmMaterialButton.Text = "Arm Material: Default"
+	elseif currentArmMaterial == 1 then
+		ArmMaterialButton.Text = "Arm Material: Neon Transparent"
+	elseif currentArmMaterial == 2 then
+		ArmMaterialButton.Text = "Arm Material: Purple Neon"
+	elseif currentArmMaterial == 3 then
+		ArmMaterialButton.Text = "Arm Material: Dark Blue Neon"
+	elseif currentArmMaterial == 4 then
+		ArmMaterialButton.Text = "Arm Material: Dark Purple"
+	end
+	toggleArmMaterial(currentArmMaterial)
+end)
+
+CrosshairButton.MouseButton1Click:Connect(function()
+	crosshairMode = (crosshairMode + 1) % 3 -- Переключаем: 0 (OFF), 1 (Cross), 2 (Sun)
+	if crosshairMode == 0 then
+		CrosshairButton.Text = "Crosshair: OFF"
+	elseif crosshairMode == 1 then
+		CrosshairButton.Text = "Crosshair: Cross"
+	elseif crosshairMode == 2 then
+		CrosshairButton.Text = "Crosshair: Sun"
+	end
+	toggleCrosshair(crosshairMode)
+end)
+
+SpinCrosshairButton.MouseButton1Click:Connect(function()
+    isSpinCrosshairEnabled = not isSpinCrosshairEnabled
+    SpinCrosshairButton.Text = isSpinCrosshairEnabled and "Spin Crosshair: ON" or "Spin Crosshair: OFF"
+    SpinCrosshairButton.TextColor3 = isSpinCrosshairEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    toggleSpinCrosshair(isSpinCrosshairEnabled)
+end)
+
+ColorCrosshairButton.MouseButton1Click:Connect(function()
+    ColorPickerFrame.Visible = not ColorPickerFrame.Visible -- Показываем/скрываем палитру
+end)
+
+ColorPickerFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and ColorPickerFrame.Visible then
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        local framePos = ColorPickerFrame.AbsolutePosition
+        local frameSize = ColorPickerFrame.AbsoluteSize
+        local relativeX = (mouse.X - framePos.X) / frameSize.X
+        local relativeY = (mouse.Y - framePos.Y) / frameSize.Y
+
+        -- Преобразуем позицию клика в цвет из градиента
+        local hue = relativeX -- Оттенок от 0 до 1
+        local saturation = 1 - relativeY -- Насыщенность от 1 до 0
+        local value = 1 -- Яркость фиксирована
+        crosshairColor = Color3.fromHSV(hue, saturation, value)
+
+        -- Обновляем цвет прицела
+        if crosshairLines then
+            for _, line in pairs(crosshairLines) do
+                line.Color = crosshairColor
+            end
+        end
+    end
+end)
+
+FlyButton.MouseButton1Click:Connect(function()
+	isFlyEnabled = not isFlyEnabled
+	FlyButton.Text = isFlyEnabled and "Fly: ON" or "Fly: OFF"
+	FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleFly(isFlyEnabled)
+end)
+
+NoclipButton.MouseButton1Click:Connect(function()
+	isNoclipEnabled = not isNoclipEnabled
+	NoclipButton.Text = isNoclipEnabled and "Noclip: ON" or "Noclip: OFF"
+	NoclipButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+	toggleNoclip(isNoclipEnabled)
+end)
+
+SpeedhackToggleButton.MouseButton1Click:Connect(function()
+	isSpeedhackEnabled = not isSpeedhackEnabled
+	SpeedhackToggleButton.Text = isSpeedhackEnabled and "Speedhack: ON" or "Speedhack: OFF"
+end)
+
+SpeedhackBindButton.MouseButton1Click:Connect(function()
+	SpeedhackBindButton.Text = "Press a key to bind..."
+	local bindConnection
+	bindConnection = UIS.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			speedhackBind = input.KeyCode
+			SpeedhackBindButton.Text = "Speedhack Bind: " .. input.KeyCode.Name
+			bindConnection:Disconnect()
+		end
+	end)
+end)
+
+SpeedhackSpeedUpButton.MouseButton1Click:Connect(function()
+	if speedhackSpeed < 40 then
+		speedhackSpeed = speedhackSpeed + 5
+		SpeedhackSpeedLabel.Text = "Speed: " .. speedhackSpeed
+	end
+end)
+
+SpeedhackSpeedDownButton.MouseButton1Click:Connect(function()
+	if speedhackSpeed > 20 then
+		speedhackSpeed = speedhackSpeed - 5
+		SpeedhackSpeedLabel.Text = "Speed: " .. speedhackSpeed
+	end
+end)
+
+DeleteWallButton.MouseButton1Click:Connect(function()
+	isDeleteWallEnabled = not isDeleteWallEnabled
+	DeleteWallButton.Text = isDeleteWallEnabled and "Delete Wall Beta: ON" or "Delete Wall Beta: OFF"
+	DeleteWallButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+	toggleDeleteWall(isDeleteWallEnabled)
+end)
+
+RemoveGrassButton.MouseButton1Click:Connect(function()
+	isRemoveGrassEnabled = not isRemoveGrassEnabled
+	RemoveGrassButton.Text = isRemoveGrassEnabled and "Remove Grass: ON" or "Remove Grass: OFF"
+	RemoveGrassButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleRemoveGrass(isRemoveGrassEnabled)
+end)
+
+TextureLevelButton.MouseButton1Click:Connect(function()
+	textureLevel = (textureLevel + 1) % 6
+	if textureLevel == 0 then
+		TextureLevelButton.Text = "Texture LVL: Default"
+	elseif textureLevel == 1 then
+		TextureLevelButton.Text = "Texture LVL: Very Low"
+	elseif textureLevel == 2 then
+		TextureLevelButton.Text = "Texture LVL: Potato"
+	elseif textureLevel == 3 then
+		TextureLevelButton.Text = "Texture LVL: Low"
+	elseif textureLevel == 4 then
+		TextureLevelButton.Text = "Texture LVL: Medium"
+	elseif textureLevel == 5 then
+		TextureLevelButton.Text = "Texture LVL: High"
+	end
+	setTextureLevel(textureLevel)
+end)
+
+-- Активация Speedhack по бинду
+UIS.InputBegan:Connect(function(input)
+	if isSpeedhackEnabled and speedhackBind and input.KeyCode == speedhackBind then
+		triggerSpeedhack()
+	end
+end)
+
+ExitButton.MouseButton1Click:Connect(function()
+	if isESPEnabled or isNamesEnabled or isHealthEnabled then
+		isESPEnabled = false
+		isNamesEnabled = false
+		isHealthEnabled = false
+		for player, box in pairs(boxes) do
+			box:Remove()
+			boxes[player] = nil
+			if studsLabels[player] then studsLabels[player]:Remove(); studsLabels[player] = nil end
+			if nameLabels[player] then nameLabels[player]:Remove(); nameLabels[player] = nil end
+			if hpLabels[player] then hpLabels[player]:Remove(); hpLabels[player] = nil end
+		end
+	end
+	if isFlyEnabled then
+		isFlyEnabled = false
+		toggleFly(false)
+	end
+	if isFreecamEnabled then
+		isFreecamEnabled = false
+		toggleFreecam(false)
+	end
+	if isNoclipEnabled then
+		isNoclipEnabled = false
+		toggleNoclip(false)
+	end
+	if isSilentAimEnabled then
+		isSilentAimEnabled = false
+		toggleSilentAim(false)
+	end
+	if isDayVisualEnabled then
+		isDayVisualEnabled = false
+		toggleDayVisual(false)
+	end
+	if isRemoveGrassEnabled then
+		isRemoveGrassEnaled = false
+		toggleRemoveGrass(false)
+	end
+	if currentSkybox ~= 0 then
+		currentSkybox = 0
+		toggleSkybox(0)
+	end
+	if currentArmMaterial ~= 0 then
+		currentArmMaterial = 0
+		toggleArmMaterial(0)
+	end
+	if crosshairMode ~= 0 then
+		crosshairMode = 0
+		toggleCrosshair(0)
+		UIS.MouseIconEnabled = defaultMouseIcon
+	end
+	if oresESPMode ~= 0 then
+		oresESPMode = 0
+		toggleOresESP(0)
+	end
+	textureLevel = 0
+	setTextureLevel(0)
+	viewModelFOV = defaultFOV
+	updateViewModelFOV()
+	ScreenGui:Destroy()
+end)
+
+-- Обработка появления персонажа локального игрока
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    if currentArmMaterial ~= 0 then
+        -- Ждём, пока руки загрузятся (для R15 может потребоваться время)
+        task.wait(0.1) -- Небольшая задержка для надёжности
+        toggleArmMaterial(currentArmMaterial)
+    end
+end)
+
+-- Удаление визуальных элементов при выходе игрока
+game.Players.PlayerRemoving:Connect(function(player)
+	if boxes[player] then
+		boxes[player]:Remove()
+		boxes[player] = nil
+	end
+	if studsLabels[player] then
+		studsLabels[player]:Remove()
+		studsLabels[player] = nil
+	end
+	if nameLabels[player] then
+		nameLabels[player]:Remove()
+		nameLabels[player] = nil
+	end
+	if hpLabels[player] then
+		hpLabels[player]:Remove()
+		hpLabels[player] = nil
+	end
+end)
+
+-- Обновление визуальных элементов каждый кадр
+RunService.RenderStepped:Connect(function()
+	if isESPEnabled or isStudsEnabled or isNamesEnabled or isHealthEnabled then
+		updateVisuals()
+	end
+end)
+
+Frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+		local delta = input.Position - dragStart
+		Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+Frame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+-- Открытие/закрытие GUI по N
+local isGUIOpen = false
+UIS.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.N then
+		isGUIOpen = not isGUIOpen
+		Frame.Visible = isGUIOpen
+	end
+end)
+
+-- Инициализация визуальных элементов для существующих игроков
+for _, player in pairs(game.Players:GetPlayers()) do
+	if player ~= game.Players.LocalPlayer then
+		createPlayerVisuals(player)
+	end
+end
+
+-- Инициализация текущего состояния персонажа
+local localPlayer = game.Players.LocalPlayer
+if localPlayer.Character then
+	local character = localPlayer.Character
+	if currentArmMaterial ~= 0 then
+		toggleArmMaterial(currentArmMaterial)
+	end
+end
+
+-- Установка начального FOV камеры
+updateViewModelFOV(
