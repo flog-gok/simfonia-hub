@@ -1461,21 +1461,6 @@ local function toggleAimbot(enable)
 end
 
 -- Функция View Model
-local function updateViewModelFOV()
-    local camera = workspace.CurrentCamera
-    if isViewModelEnabled then
-        camera.FieldOfView = viewModelFOV
-    else
-        camera.FieldOfView = defaultFOV
-    end
-end
--- После функции updateViewModelFOV
-task.spawn(function()
-    while true do
-        updateViewModelFOV()
-        wait(0.6) -- Обновление каждые 0.6 секунды
-    end
-end)
 
 local function resetCharacter()
     local player = game.Players.LocalPlayer
