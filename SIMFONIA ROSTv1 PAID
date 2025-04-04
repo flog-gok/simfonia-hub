@@ -92,7 +92,7 @@ VisualsFrame.BackgroundTransparency = 1
 VisualsFrame.Parent = Frame
 VisualsFrame.Visible = false
 
-local MiscFrame = Instance.new("Frame")
+local MiscFrame = Instance.ew("Frame")
 MiscFrame.Size = UDim2.new(1, -40, 1, -120)
 MiscFrame.Position = UDim2.new(0, 20, 0, 120)
 MiscFrame.BackgroundTransparency = 1
@@ -487,19 +487,7 @@ local isResetBindActive = false -- Состояние активации бин�
 -- Инициализация поведения мыши
 UIS.MouseBehavior = Enum.MouseBehavior.Default
 
---МОДУЛЬ СОЗДАНИЯ ЕСП
-local Players = game:GetService("Players")
-
-local function initializePlayers()
-    for _, player in pairs(Players:GetPlayers()) do
-        createPlayerVisuals(player)
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    createPlayerVisuals(player)
-end)
-
+-- Функция создания визуальных элементов для игрока
 local function createPlayerVisuals(player)
 	if boxes[player] and nameLabels[player] and hpLabels[player] then return end
 
@@ -542,6 +530,7 @@ local function createPlayerVisuals(player)
 	end
 end
 
+-- Обновление визуальных элементов
 local function updateVisuals()
 	local localPlayer = game.Players.LocalPlayer
 	local localRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -553,6 +542,7 @@ local function updateVisuals()
 			if rootPart then
 				local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
 				if onScreen then
+					-- Собираем все части тела для точного определения размеров (R6 и R15)
 					local parts = {}
 					for _, part in pairs(player.Character:GetChildren()) do
 						if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
@@ -560,6 +550,7 @@ local function updateVisuals()
 						end
 					end
 
+					-- Вычисляем границы персонажа для R15
 					local minPos, maxPos = nil, nil
 					for _, part in pairs(parts) do
 						local partPos = part.Position
@@ -653,8 +644,6 @@ local function updateVisuals()
 		end
 	end
 end
-
-initializePlayers() -- Инициализируем существующих игроков
 
 -- Обновлённая функция Fly
 local function toggleFly(enable)
