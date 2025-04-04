@@ -20,9 +20,9 @@ Gradient.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 300, 0, 50)
-Title.Position = UDim2.new(0, 40, 0, 0)
+Title.Position = UDim2.new(0, 50, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "+++  simfonia hub V1.5 (ROST)  +++"
+Title.Text = "simfonia hub (ROST)v1.5"
 Title.TextColor3 = Color3.fromRGB(255, 255, 153)
 Title.TextSize = 34
 Title.Font = Enum.Font.SourceSansBold
