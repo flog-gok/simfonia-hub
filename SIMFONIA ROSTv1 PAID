@@ -20,9 +20,9 @@ Gradient.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 300, 0, 50)
-Title.Position = UDim2.new(0, 20, 0, 0)
+Title.Position = UDim2.new(0, 40, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "SIMFONIA HUB v9.9"
+Title.Text = "+++  simfonia hub V1.5 (ROST)  +++"
 Title.TextColor3 = Color3.fromRGB(255, 255, 153)
 Title.TextSize = 34
 Title.Font = Enum.Font.SourceSansBold
@@ -70,15 +70,6 @@ MiscButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MiscButton.TextSize = 18
 MiscButton.Parent = Frame
 
-local FPSButton = Instance.new("TextButton")
-FPSButton.Size = UDim2.new(0, 90, 0, 40)
-FPSButton.Position = UDim2.new(0, 420, 0, 60)
-FPSButton.Text = "FPS"
-FPSButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FPSButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FPSButton.TextSize = 18
-FPSButton.Parent = Frame
-
 -- Фреймы категорий
 local RageFrame = Instance.new("Frame")
 RageFrame.Size = UDim2.new(1, -40, 1, -120)
@@ -107,13 +98,6 @@ MiscFrame.Position = UDim2.new(0, 20, 0, 120)
 MiscFrame.BackgroundTransparency = 1
 MiscFrame.Parent = Frame
 MiscFrame.Visible = false
-
-local FPSFrame = Instance.new("Frame")
-FPSFrame.Size = UDim2.new(1, -40, 1, -120)
-FPSFrame.Position = UDim2.new(0, 20, 0, 120)
-FPSFrame.BackgroundTransparency = 1
-FPSFrame.Parent = Frame
-FPSFrame.Visible = false
 
 -- Rage: Aimbot Container
 local AimbotContainer = Instance.new("Frame")
