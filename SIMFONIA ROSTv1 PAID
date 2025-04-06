@@ -30,7 +30,7 @@ local LayoutSettings = {
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundColor3 = Color3.fromRGB(0, 170, 255),
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Text = "Simfonia hub (ROST) v1.6"
+        Text = "Simfonia hub (ROST) v1.9"
     },
     CategoryButton = {
         Size = UDim2.new(0, 100, 0, 30),
@@ -129,9 +129,18 @@ local ESPState = {
     Studs = false,
     Name = false,
     HP = false,
-    Color = Color3.fromRGB(0, 255, 0)
+    Color = Color3.fromRGB(0, 255, 0),
+    WeaponEnabled = false
 }
 
+local ObjectESPState = {
+    Enabled = false,
+    SelectedObjects = {},
+    MaxObjects = 15, -- Увеличиваем до 15
+    Color = Color3.fromRGB(0, 255, 0),
+    NewObjectColor = Color3.fromRGB(0, 0, 255),
+    NewObjectDuration = 20
+}
 -- Состояние Aimbot
 local AimbotState = {
     Enabled = false,
@@ -248,118 +257,184 @@ for i, category in ipairs(categories) do
     GuiElements.CategoryFrames[category] = frame
 
     if category == "Render" then
-        local espContainer = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.Container) do
-            espContainer[prop] = value
-        end
-        espContainer.Position = UDim2.new(0, 0, 0, 0)
-        espContainer.Parent = frame
+    -- Существующий контейнер ESP
+    local espContainer = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.Container) do
+        espContainer[prop] = value
+    end
+    espContainer.Position = UDim2.new(0, 0, 0, 0)
+    espContainer.Parent = frame
 
-        local espLabel = Instance.new("TextLabel")
-        for prop, value in pairs(LayoutSettings.ContainerLabel) do
-            espLabel[prop] = value
-        end
-        espLabel.Text = "ESP Container"
-        espLabel.Parent = espContainer
+    local espLabel = Instance.new("TextLabel")
+    for prop, value in pairs(LayoutSettings.ContainerLabel) do
+        espLabel[prop] = value
+    end
+    espLabel.Text = "Player ESP"
+    espLabel.Parent = espContainer
 
-        local espToggle = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ToggleButton) do
-            espToggle[prop] = value
-        end
-        espToggle.Position = UDim2.new(0, 5, 0, 25)
-        espToggle.Text = "ESP: OFF"
-        espToggle.Parent = espContainer
+    local espToggle = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.ToggleButton) do
+        espToggle[prop] = value
+    end
+    espToggle.Position = UDim2.new(0, 5, 0, 25)
+    espToggle.Text = "ESP: OFF"
+    espToggle.Parent = espContainer
 
-        local colorPickerButton = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ColorPickerButton) do
-            colorPickerButton[prop] = value
-        end
-        colorPickerButton.Position = UDim2.new(0, 110, 0, 25)
-        colorPickerButton.Text = "Color"
-        colorPickerButton.Parent = espContainer
+    local colorPickerButton = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.ColorPickerButton) do
+        colorPickerButton[prop] = value
+    end
+    colorPickerButton.Position = UDim2.new(0, 110, 0, 25)
+    colorPickerButton.Text = "Color"
+    colorPickerButton.Parent = espContainer
 
-        local colorPickerFrame = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.ColorPickerFrame) do
-            colorPickerFrame[prop] = value
-        end
-        colorPickerFrame.Position = UDim2.new(0, 110, 0, 55)
-        colorPickerFrame.Parent = espContainer
+    local colorPickerFrame = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.ColorPickerFrame) do
+        colorPickerFrame[prop] = value
+    end
+    colorPickerFrame.Position = UDim2.new(0, 110, 0, 55)
+    colorPickerFrame.Parent = espContainer
 
-        local colors = {
-            Color3.fromRGB(255, 0, 0),
-            Color3.fromRGB(0, 255, 0),
-            Color3.fromRGB(0, 0, 255),
-            Color3.fromRGB(255, 255, 0),
-            Color3.fromRGB(255, 0, 255),
-            Color3.fromRGB(0, 255, 255),
-            Color3.fromRGB(255, 255, 255),
-            Color3.fromRGB(128, 0, 0),
-            Color3.fromRGB(0, 128, 0),
-            Color3.fromRGB(0, 0, 128)
-        }
+    local colors = {
+        Color3.fromRGB(255, 0, 0),
+        Color3.fromRGB(0, 255, 0),
+        Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(255, 255, 0),
+        Color3.fromRGB(255, 0, 255),
+        Color3.fromRGB(0, 255, 255),
+        Color3.fromRGB(255, 255, 255),
+        Color3.fromRGB(128, 0, 0),
+        Color3.fromRGB(0, 128, 0),
+        Color3.fromRGB(0, 0, 128)
+    }
 
-        for i, color in ipairs(colors) do
-            local colorButton = Instance.new("TextButton")
-            colorButton.Size = UDim2.new(0, 30, 0, 30)
-            colorButton.Position = UDim2.new(0, ((i-1) % 5) * 35, 0, math.floor((i-1) / 5) * 35)
-            colorButton.BackgroundColor3 = color
-            colorButton.BorderSizePixel = 1
-            colorButton.BorderColor3 = Color3.fromRGB(0, 170, 255)
-            colorButton.Text = ""
-            colorButton.Parent = colorPickerFrame
-            
-            colorButton.MouseButton1Click:Connect(function()
-                ESPState.Color = color
-                colorPickerFrame.Visible = false
-            end)
-        end
-
-        local studsCheck = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.CheckBox) do
-            studsCheck[prop] = value
-        end
-        studsCheck.Position = UDim2.new(0, 5, 0, 55)
-        studsCheck.Text = "Studs: OFF"
-        studsCheck.Parent = espContainer
-
-        local nameCheck = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.CheckBox) do
-            nameCheck[prop] = value
-        end
-        nameCheck.Position = UDim2.new(0, 110, 0, 55)
-        nameCheck.Text = "Name: OFF"
-        nameCheck.Parent = espContainer
-
-        local hpCheck = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.CheckBox) do
-            hpCheck[prop] = value
-        end
-        hpCheck.Position = UDim2.new(0, 215, 0, 55)
-        hpCheck.Text = "HP: OFF"
-        hpCheck.Parent = espContainer
-
-        espToggle.MouseButton1Click:Connect(function()
-            ESPState.Enabled = not ESPState.Enabled
-            espToggle.Text = "ESP: " .. (ESPState.Enabled and "ON" or "OFF")
-        end)
+    for i, color in ipairs(colors) do
+        local colorButton = Instance.new("TextButton")
+        colorButton.Size = UDim2.new(0, 30, 0, 30)
+        colorButton.Position = UDim2.new(0, ((i-1) % 5) * 35, 0, math.floor((i-1) / 5) * 35)
+        colorButton.BackgroundColor3 = color
+        colorButton.BorderSizePixel = 1
+        colorButton.BorderColor3 = Color3.fromRGB(0, 170, 255)
+        colorButton.Text = ""
+        colorButton.Parent = colorPickerFrame
         
-        colorPickerButton.MouseButton1Click:Connect(function()
-            colorPickerFrame.Visible = not colorPickerFrame.Visible
-        end)
-
-        studsCheck.MouseButton1Click:Connect(function()
-            ESPState.Studs = not ESPState.Studs
-            studsCheck.Text = "Studs: " .. (ESPState.Studs and "ON" or "OFF")
-        end)
-        nameCheck.MouseButton1Click:Connect(function()
-            ESPState.Name = not ESPState.Name
-            nameCheck.Text = "Name: " .. (ESPState.Name and "ON" or "OFF")
-        end)
-        hpCheck.MouseButton1Click:Connect(function()
-            ESPState.HP = not ESPState.HP
-            hpCheck.Text = "HP: " .. (ESPState.HP and "ON" or "OFF")
+        colorButton.MouseButton1Click:Connect(function()
+            ESPState.Color = color
+            colorPickerFrame.Visible = false
         end)
     end
+
+    local studsCheck = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.CheckBox) do
+        studsCheck[prop] = value
+    end
+    studsCheck.Position = UDim2.new(0, 5, 0, 55)
+    studsCheck.Text = "Studs: OFF"
+    studsCheck.Parent = espContainer
+
+    local nameCheck = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.CheckBox) do
+        nameCheck[prop] = value
+    end
+    nameCheck.Position = UDim2.new(0, 110, 0, 55)
+    nameCheck.Text = "Name: OFF"
+    nameCheck.Parent = espContainer
+
+    local hpCheck = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.CheckBox) do
+        hpCheck[prop] = value
+    end
+    hpCheck.Position = UDim2.new(0, 215, 0, 55)
+    hpCheck.Text = "HP: OFF"
+    hpCheck.Parent = espContainer
+
+    local weaponCheck = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.CheckBox) do
+        weaponCheck[prop] = value
+    end
+    weaponCheck.Position = UDim2.new(0, 320, 0, 55)
+    weaponCheck.Text = "Weapon: OFF"
+    weaponCheck.Parent = espContainer
+
+    espToggle.MouseButton1Click:Connect(function()
+        ESPState.Enabled = not ESPState.Enabled
+        espToggle.Text = "ESP: " .. (ESPState.Enabled and "ON" or "OFF")
+    end)
+    
+    colorPickerButton.MouseButton1Click:Connect(function()
+        colorPickerFrame.Visible = not colorPickerFrame.Visible
+    end)
+
+    studsCheck.MouseButton1Click:Connect(function()
+        ESPState.Studs = not ESPState.Studs
+        studsCheck.Text = "Studs: " .. (ESPState.Studs and "ON" or "OFF")
+    end)
+    nameCheck.MouseButton1Click:Connect(function()
+        ESPState.Name = not ESPState.Name
+        nameCheck.Text = "Name: " .. (ESPState.Name and "ON" or "OFF")
+    end)
+    hpCheck.MouseButton1Click:Connect(function()
+        ESPState.HP = not ESPState.HP
+        hpCheck.Text = "HP: " .. (ESPState.HP and "ON" or "OFF")
+    end)
+    weaponCheck.MouseButton1Click:Connect(function()
+        ESPState.WeaponEnabled = not ESPState.WeaponEnabled
+        weaponCheck.Text = "Weapon: " .. (ESPState.WeaponEnabled and "ON" or "OFF")
+    end)
+
+    -- Новый контейнер Object ESP
+    local objectESPContainer = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.Container) do
+        objectESPContainer[prop] = value
+    end
+    objectESPContainer.Position = UDim2.new(0, 0, 0, 110) -- Ниже Player ESP
+    objectESPContainer.Size = UDim2.new(0, 480, 0, 100)
+    objectESPContainer.Parent = frame
+
+    local objectESPLabel = Instance.new("TextLabel")
+    for prop, value in pairs(LayoutSettings.ContainerLabel) do
+        objectESPLabel[prop] = value
+    end
+    objectESPLabel.Text = "Object ESP"
+    objectESPLabel.Parent = objectESPContainer
+
+    local objectESPToggle = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.ToggleButton) do
+        objectESPToggle[prop] = value
+    end
+    objectESPToggle.Position = UDim2.new(0, 5, 0, 25)
+    objectESPToggle.Text = "Object ESP: OFF"
+    objectESPToggle.Parent = objectESPContainer
+
+    -- Переключатели для объектов
+    local objectOptions = {"Crate", "MilitaryCrate", "Helicopter", "Recycler"}
+    for i, objName in ipairs(objectOptions) do
+        local objCheck = Instance.new("TextButton")
+        for prop, value in pairs(LayoutSettings.CheckBox) do
+            objCheck[prop] = value
+        end
+        objCheck.Position = UDim2.new(0, 5 + (i - 1) * 105, 0, 55)
+        objCheck.Text = objName .. ": OFF"
+        objCheck.Parent = objectESPContainer
+
+        objCheck.MouseButton1Click:Connect(function()
+            if ObjectESPState.SelectedObjects[objName] then
+                ObjectESPState.SelectedObjects[objName] = nil
+                objCheck.Text = objName .. ": OFF"
+            else
+                if #ObjectESPState.SelectedObjects < ObjectESPState.MaxObjects then
+                    ObjectESPState.SelectedObjects[objName] = true
+                    objCheck.Text = objName .. ": ON"
+                end
+            end
+        end)
+    end
+
+    objectESPToggle.MouseButton1Click:Connect(function()
+        ObjectESPState.Enabled = not ObjectESPState.Enabled
+        objectESPToggle.Text = "Object ESP: " .. (ObjectESPState.Enabled and "ON" or "OFF")
+    end)
+end
 
     if category == "Visuals" then
     -- View Model Container
@@ -1443,9 +1518,25 @@ local function updateFly()
     end
 end
 
--- Логика ESP
+-- Логика ESP для игроков (без изменений)
 local ESP = {}
 local camera = workspace.CurrentCamera or workspace:WaitForChild("CurrentCamera")
+
+local weaponList = {"Ak1", "C4", "Revolver", "Rocket Launcher", "Bow"}
+
+local function getPlayerWeapon(character)
+    if not character then return "None" end
+    for _, tool in pairs(character:GetChildren()) do
+        if tool:IsA("Tool") then
+            for _, weapon in pairs(weaponList) do
+                if tool.Name == weapon then
+                    return weapon
+                end
+            end
+        end
+    end
+    return "None"
+end
 
 local function createESP(player)
     if player == LocalPlayer then return end
@@ -1519,7 +1610,11 @@ local function createESP(player)
                             textString = textString .. math.floor(distance) .. " studs\n"
                         end
                         if ESPState.HP then
-                            textString = textString .. math.floor(humanoid.Health) .. "/" .. humanoid.MaxHealth .. " HP"
+                            textString = textString .. math.floor(humanoid.Health) .. "/" .. humanoid.MaxHealth .. " HP\n"
+                        end
+                        if ESPState.WeaponEnabled then
+                            local weapon = getPlayerWeapon(character)
+                            textString = textString .. weapon
                         end
 
                         text.Text = textString
@@ -1574,6 +1669,176 @@ Players.PlayerRemoving:Connect(function(player)
         if ESP[player].Box then ESP[player].Box:Remove() end
         if ESP[player].Text then ESP[player].Text:Remove() end
         ESP[player] = nil
+    end
+end)
+
+-- Логика Object ESP
+local ObjectESP = {}
+local trackedObjects = {}
+local newObjectTimes = {}
+
+local function getDistanceToPlayer(obj)
+    local playerRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not playerRoot then return math.huge end
+    local objRoot = obj:IsA("Model") and obj.PrimaryPart or obj
+    if not objRoot then return math.huge end
+    return (playerRoot.Position - objRoot.Position).Magnitude
+end
+
+local function createObjectESP(object)
+    if ObjectESP[object] then return end
+
+    local box = Drawing.new("Square")
+    box.Thickness = 2
+    box.Filled = false
+    box.Color = ObjectESPState.Color
+    box.Visible = false
+
+    local text = Drawing.new("Text")
+    text.Size = 16
+    text.Color = Color3.fromRGB(255, 255, 255)
+    text.Visible = false
+
+    ObjectESP[object] = {Box = box, Text = text}
+    table.insert(trackedObjects, object)
+    newObjectTimes[object] = tick()
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not object.Parent or not ObjectESPState.Enabled or not ObjectESPState.SelectedObjects[object.Name] then
+            box.Visible = false
+            text.Visible = false
+            if connection then
+                connection:Disconnect()
+            end
+            if ObjectESP[object] then
+                if ObjectESP[object].Box then ObjectESP[object].Box:Remove() end
+                if ObjectESP[object].Text then ObjectESP[object].Text:Remove() end
+                ObjectESP[object] = nil
+                for i, trackedObj in ipairs(trackedObjects) do
+                    if trackedObj == object then
+                        table.remove(trackedObjects, i)
+                        break
+                    end
+                end
+                newObjectTimes[object] = nil
+            end
+            return
+        end
+
+        local rootPart = object:IsA("Model") and object.PrimaryPart or object
+        if not rootPart then return end
+
+        local rootPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)
+        if onScreen then
+            local size = (object:IsA("Model") and object:GetExtentsSize() or rootPart.Size) * 1.2
+            local topLeft = camera:WorldToViewportPoint(rootPart.Position + Vector3.new(size.X/2, size.Y/2, size.Z/2))
+            local bottomRight = camera:WorldToViewportPoint(rootPart.Position - Vector3.new(size.X/2, size.Y/2, size.Z/2))
+
+            if topLeft.Z > 0 and bottomRight.Z > 0 then
+                local width = math.abs(topLeft.X - bottomRight.X)
+                local height = math.abs(topLeft.Y - bottomRight.Y)
+                local centerX = (topLeft.X + bottomRight.X) / 2
+
+                box.Size = Vector2.new(width, height)
+                box.Position = Vector2.new(centerX - width / 2, topLeft.Y)
+
+                if newObjectTimes[object] and (tick() - newObjectTimes[object]) < ObjectESPState.NewObjectDuration then
+                    box.Color = ObjectESPState.NewObjectColor
+                else
+                    box.Color = ObjectESPState.Color
+                end
+                box.Visible = true
+
+                text.Text = object.Name
+                text.Position = Vector2.new(centerX - width / 2, topLeft.Y - 20)
+                text.Visible = true
+            else
+                box.Visible = false
+                text.Visible = false
+            end
+        else
+            box.Visible = false
+            text.Visible = false
+        end
+    end)
+end
+
+local function updateObjectESP()
+    if not ObjectESPState.Enabled then
+        for _, obj in pairs(ObjectESP) do
+            if obj.Box then obj.Box:Remove() end
+            if obj.Text then obj.Text:Remove() end
+        end
+        ObjectESP = {}
+        trackedObjects = {}
+        newObjectTimes = {}
+        return
+    end
+
+    -- Собираем все подходящие объекты
+    local allObjects = {}
+    for _, objName in pairs({"Crate", "MilitaryCrate", "Helicopter", "Recycler"}) do
+        if ObjectESPState.SelectedObjects[objName] then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == objName then
+                    table.insert(allObjects, obj)
+                end
+            end
+        end
+    end
+
+    -- Сортируем по расстоянию до игрока
+    table.sort(allObjects, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+
+    -- Очищаем старые объекты, которые больше не в топ-15
+    for obj, esp in pairs(ObjectESP) do
+        local isInTop15 = false
+        for i = 1, math.min(#allObjects, ObjectESPState.MaxObjects) do
+            if allObjects[i] == obj then
+                isInTop15 = true
+                break
+            end
+        end
+        if not isInTop15 then
+            if esp.Box then esp.Box:Remove() end
+            if esp.Text then esp.Text:Remove() end
+            ObjectESP[obj] = nil
+            for i, trackedObj in ipairs(trackedObjects) do
+                if trackedObj == obj then
+                    table.remove(trackedObjects, i)
+                    break
+                end
+            end
+            newObjectTimes[obj] = nil
+        end
+    end
+
+    -- Добавляем новые объекты из топ-15
+    for i = 1, math.min(#allObjects, ObjectESPState.MaxObjects) do
+        local obj = allObjects[i]
+        if not ObjectESP[obj] then
+            createObjectESP(obj)
+        end
+    end
+end
+
+-- Запускаем проверку каждую секунду
+task.spawn(function()
+    while true do
+        if ObjectESPState.Enabled then
+            updateObjectESP()
+        end
+        wait(1) -- Проверка каждую секунду
+    end
+end)
+
+workspace.DescendantAdded:Connect(function(obj)
+    if ObjectESPState.Enabled and ObjectESPState.SelectedObjects[obj.Name] then
+        -- Немедленная проверка при добавлении нового объекта
+        updateObjectESP()
     end
 end)
 
