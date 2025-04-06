@@ -135,12 +135,14 @@ local ESPState = {
 
 local ObjectESPState = {
     Enabled = false,
-    SelectedObjects = {},
-    MaxObjects = 15, -- Увеличиваем до 15
-    Color = Color3.fromRGB(0, 255, 0),
-    NewObjectColor = Color3.fromRGB(0, 0, 255),
-    NewObjectDuration = 20
+    SelectedObjects = {}, -- Таблица выбранных объектов
+    MaxRecyclerHelicopter = 20, -- Лимит для Recycler и Helicopter
+    MaxCupboard = 10, -- Лимит для Cupboard
+    Color = Color3.fromRGB(0, 255, 0), -- Основной цвет
+    NewObjectColor = Color3.fromRGB(0, 0, 255), -- Синий для новых
+    NewObjectDuration = 20 -- 20 секунд подсветки
 }
+
 -- Состояние Aimbot
 local AimbotState = {
     Enabled = false,
@@ -257,7 +259,7 @@ for i, category in ipairs(categories) do
     GuiElements.CategoryFrames[category] = frame
 
     if category == "Render" then
-    -- Существующий контейнер ESP
+    -- Существующий контейнер Player ESP (без изменений)
     local espContainer = Instance.new("Frame")
     for prop, value in pairs(LayoutSettings.Container) do
         espContainer[prop] = value
@@ -387,7 +389,7 @@ for i, category in ipairs(categories) do
     for prop, value in pairs(LayoutSettings.Container) do
         objectESPContainer[prop] = value
     end
-    objectESPContainer.Position = UDim2.new(0, 0, 0, 110) -- Ниже Player ESP
+    objectESPContainer.Position = UDim2.new(0, 0, 0, 110)
     objectESPContainer.Size = UDim2.new(0, 480, 0, 100)
     objectESPContainer.Parent = frame
 
@@ -407,7 +409,7 @@ for i, category in ipairs(categories) do
     objectESPToggle.Parent = objectESPContainer
 
     -- Переключатели для объектов
-    local objectOptions = {"Crate", "MilitaryCrate", "Helicopter", "Recycler"}
+    local objectOptions = {"Recycler", "Helicopter", "Cupboard"}
     for i, objName in ipairs(objectOptions) do
         local objCheck = Instance.new("TextButton")
         for prop, value in pairs(LayoutSettings.CheckBox) do
@@ -422,10 +424,8 @@ for i, category in ipairs(categories) do
                 ObjectESPState.SelectedObjects[objName] = nil
                 objCheck.Text = objName .. ": OFF"
             else
-                if #ObjectESPState.SelectedObjects < ObjectESPState.MaxObjects then
-                    ObjectESPState.SelectedObjects[objName] = true
-                    objCheck.Text = objName .. ": ON"
-                end
+                ObjectESPState.SelectedObjects[objName] = true
+                objCheck.Text = objName .. ": ON"
             end
         end)
     end
@@ -1674,7 +1674,8 @@ end)
 
 -- Логика Object ESP
 local ObjectESP = {}
-local trackedObjects = {}
+local trackedRecyclerHelicopter = {} -- Отслеживаемые Recycler и Helicopter
+local trackedCupboard = {} -- Отслеживаемые Cupboard
 local newObjectTimes = {}
 
 local function getDistanceToPlayer(obj)
@@ -1700,7 +1701,11 @@ local function createObjectESP(object)
     text.Visible = false
 
     ObjectESP[object] = {Box = box, Text = text}
-    table.insert(trackedObjects, object)
+    if object.Name == "Cupboard" then
+        table.insert(trackedCupboard, object)
+    else
+        table.insert(trackedRecyclerHelicopter, object)
+    end
     newObjectTimes[object] = tick()
 
     local connection
@@ -1715,10 +1720,19 @@ local function createObjectESP(object)
                 if ObjectESP[object].Box then ObjectESP[object].Box:Remove() end
                 if ObjectESP[object].Text then ObjectESP[object].Text:Remove() end
                 ObjectESP[object] = nil
-                for i, trackedObj in ipairs(trackedObjects) do
-                    if trackedObj == object then
-                        table.remove(trackedObjects, i)
-                        break
+                if object.Name == "Cupboard" then
+                    for i, trackedObj in ipairs(trackedCupboard) do
+                        if trackedObj == object then
+                            table.remove(trackedCupboard, i)
+                            break
+                        end
+                    end
+                else
+                    for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
+                        if trackedObj == object then
+                            table.remove(trackedRecyclerHelicopter, i)
+                            break
+                        end
                     end
                 end
                 newObjectTimes[object] = nil
@@ -1771,54 +1785,83 @@ local function updateObjectESP()
             if obj.Text then obj.Text:Remove() end
         end
         ObjectESP = {}
-        trackedObjects = {}
+        trackedRecyclerHelicopter = {}
+        trackedCupboard = {}
         newObjectTimes = {}
         return
     end
 
-    -- Собираем все подходящие объекты
-    local allObjects = {}
-    for _, objName in pairs({"Crate", "MilitaryCrate", "Helicopter", "Recycler"}) do
-        if ObjectESPState.SelectedObjects[objName] then
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj.Name == objName then
-                    table.insert(allObjects, obj)
-                end
+    -- Собираем все объекты
+    local recyclerHelicopterObjects = {}
+    local cupboardObjects = {}
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if ObjectESPState.SelectedObjects[obj.Name] then
+            if obj.Name == "Cupboard" then
+                table.insert(cupboardObjects, obj)
+            elseif obj.Name == "Recycler" or obj.Name == "Helicopter" then
+                table.insert(recyclerHelicopterObjects, obj)
             end
         end
     end
 
-    -- Сортируем по расстоянию до игрока
-    table.sort(allObjects, function(a, b)
+    -- Сортируем по расстоянию
+    table.sort(recyclerHelicopterObjects, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(cupboardObjects, function(a, b)
         return getDistanceToPlayer(a) < getDistanceToPlayer(b)
     end)
 
-    -- Очищаем старые объекты, которые больше не в топ-15
+    -- Очищаем старые объекты, которые не в лимитах
     for obj, esp in pairs(ObjectESP) do
-        local isInTop15 = false
-        for i = 1, math.min(#allObjects, ObjectESPState.MaxObjects) do
-            if allObjects[i] == obj then
-                isInTop15 = true
-                break
+        local isInLimit = false
+        if obj.Name == "Cupboard" then
+            for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
+                if cupboardObjects[i] == obj then
+                    isInLimit = true
+                    break
+                end
+            end
+        else
+            for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
+                if recyclerHelicopterObjects[i] == obj then
+                    isInLimit = true
+                    break
+                end
             end
         end
-        if not isInTop15 then
+        if not isInLimit then
             if esp.Box then esp.Box:Remove() end
             if esp.Text then esp.Text:Remove() end
             ObjectESP[obj] = nil
-            for i, trackedObj in ipairs(trackedObjects) do
-                if trackedObj == obj then
-                    table.remove(trackedObjects, i)
-                    break
+            if obj.Name == "Cupboard" then
+                for i, trackedObj in ipairs(trackedCupboard) do
+                    if trackedObj == obj then
+                        table.remove(trackedCupboard, i)
+                        break
+                    end
+                end
+            else
+                for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
+                    if trackedObj == obj then
+                        table.remove(trackedRecyclerHelicopter, i)
+                        break
+                    end
                 end
             end
             newObjectTimes[obj] = nil
         end
     end
 
-    -- Добавляем новые объекты из топ-15
-    for i = 1, math.min(#allObjects, ObjectESPState.MaxObjects) do
-        local obj = allObjects[i]
+    -- Добавляем новые объекты в лимитах
+    for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
+        local obj = recyclerHelicopterObjects[i]
+        if not ObjectESP[obj] then
+            createObjectESP(obj)
+        end
+    end
+    for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
+        local obj = cupboardObjects[i]
         if not ObjectESP[obj] then
             createObjectESP(obj)
         end
@@ -1831,13 +1874,12 @@ task.spawn(function()
         if ObjectESPState.Enabled then
             updateObjectESP()
         end
-        wait(1) -- Проверка каждую секунду
+        wait(1)
     end
 end)
 
 workspace.DescendantAdded:Connect(function(obj)
     if ObjectESPState.Enabled and ObjectESPState.SelectedObjects[obj.Name] then
-        -- Немедленная проверка при добавлении нового объекта
         updateObjectESP()
     end
 end)
