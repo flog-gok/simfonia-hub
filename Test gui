@@ -1,14 +1,5 @@
 --LIBRARY START
-getgenv().runService = game:GetService"RunService"
-getgenv().textService = game:GetService"TextService"
-getgenv().inputService = game:GetService"UserInputService"
-getgenv().tweenService = game:GetService"TweenService"
-
-if getgenv().library then
-    getgenv().library:Unload()
-end
-
-local library = {tabs = {}, draggable = true, flags = {}, title = "CheatX", open = false, instances = {}, options = {}, tabSize = 0, foldername = "cheatx_cnfgs", fileext = ".txt"}
+local library = {tabs = {}, draggable = true, title = "CheatX", open = false, instances = {}, tabSize = 0}
 getgenv().library = library
 
 function library:Create(class, properties)
@@ -214,7 +205,7 @@ library.createSlider = function(option, parent)
         TextSize = 15,
         Font = Enum.Font.Code,
         TextColor3 = Color3.fromRGB(210, 210, 210),
-        TextXAlignment = Enum.Text maledXAlignment.Left,
+        TextXAlignment = Enum.TextXAlignment.Left,
         Parent = option.main
     })
 end
@@ -389,7 +380,7 @@ function library:AddTab(title, pos)
                 self.titleText = library:Create("TextLabel", {
                     AnchorPoint = Vector2.new(0, 0.5),
                     Position = UDim2.new(0, 12, 0, 0),
-                    Size = UDim2.new(0, textService:GetTextSize(self.title, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 10, 0, 3),
+                    Size = UDim2.new(0, game:GetService("TextService"):GetTextSize(self.title, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 10, 0, 3),
                     BackgroundColor3 = Color3.fromRGB(30, 30, 30),
                     BorderSizePixel = 0,
                     Text = self.title,
@@ -443,7 +434,7 @@ function library:AddTab(title, pos)
     function tab:Init()
         if self.hasInit then return end
         self.hasInit = true
-        local size = textService:GetTextSize(self.title, 18, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 10
+        local size = game:GetService("TextService"):GetTextSize(self.title, 18, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 10
 
         self.button = library:Create("TextLabel", {
             Position = UDim2.new(0, library.tabSize, 0, 22),
@@ -469,15 +460,28 @@ function library:Init()
     if self.hasInit then return end
     self.hasInit = true
 
-    self.base = library:Create("ScreenGui", {IgnoreGuiInset = true})
-    self.base.Parent = game:GetService"CoreGui"
+    self.base = library:Create("ScreenGui", {
+        IgnoreGuiInset = true,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    })
+
+    -- Поддержка эксплойтов
+    local CoreGui = game:GetService("CoreGui")
+    if syn then
+        syn.protect_gui(self.base)
+        self.base.Parent = CoreGui
+    elseif gethui then
+        self.base.Parent = gethui()
+    else
+        self.base.Parent = CoreGui
+    end
 
     self.main = library:Create("Frame", {
         Position = UDim2.new(0, 100, 0, 46),
         Size = UDim2.new(0, 500, 0, 600),
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderColor3 = Color3.new(),
-        Visible = false,
+        Visible = true,
         Parent = self.base
     })
 
@@ -510,8 +514,6 @@ function library:Init()
     for _, tab in next, self.tabs do
         tab:Init()
     end
-
-    self.main.Visible = true
 end
 
 -- Пример использования
