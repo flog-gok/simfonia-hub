@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 local camera = workspace.CurrentCamera
+local circleColorButtons = {} -- Глобальная таблица для кнопок цвета
 
 -- Таблица для хранения GUI-элементов
 local GuiElements = {
@@ -165,6 +166,19 @@ local SilentAimState = {
     FOVSize = 200,        -- Размер FOV (1-700)
     SnaplineEnabled = false, -- Включение/выключение линии
     TargetPart = "Head"   -- Часть тела для телепортации: "Head" или "Body"
+}
+
+local VisualState = {
+    ViewModelEnabled = false,
+    FOV = 70,
+    JumpCircleEnabled = false,
+    CircleSpeed = 50, -- Скорость исчезания (1-100, 50 по умолчанию ~5 секунд)
+    CircleColor = "BlueFade", -- Цвет по умолчанию
+    AvailableColors = {
+        "BlueFade",    -- Переливающийся синий (светло-синий до тёмно-синего)
+        "RGBBlue",     -- RGB только в синей гамме
+        "RGB"          -- Полный RGB
+    }
 }
 
 -- Состояние View Model
@@ -436,37 +450,38 @@ for i, category in ipairs(categories) do
     end)
 end
 
-    if category == "Visuals" then
-    -- View Model Container
-    local viewModelContainer = Instance.new("Frame")
+
+if category == "Visuals" then
+    local visualContainer = Instance.new("Frame")
     for prop, value in pairs(LayoutSettings.Container) do
-        viewModelContainer[prop] = value
+        visualContainer[prop] = value
     end
-    viewModelContainer.Size = UDim2.new(0, 480, 0, 100)
-    viewModelContainer.Position = UDim2.new(0, 0, 0, 0)
-    viewModelContainer.Parent = frame
+    visualContainer.Size = UDim2.new(0, 480, 0, 160)
+    visualContainer.Position = UDim2.new(0, 0, 0, 0)
+    visualContainer.Parent = frame
 
-    local viewModelLabel = Instance.new("TextLabel")
+    local visualLabel = Instance.new("TextLabel")
     for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        viewModelLabel[prop] = value
+        visualLabel[prop] = value
     end
-    viewModelLabel.Text = "View Model"
-    viewModelLabel.Parent = viewModelContainer
+    visualLabel.Text = "Visual"
+    visualLabel.Parent = visualContainer
 
+    -- View Model Toggle
     local viewModelToggle = Instance.new("TextButton")
     for prop, value in pairs(LayoutSettings.ToggleButton) do
         viewModelToggle[prop] = value
     end
     viewModelToggle.Position = UDim2.new(0, 5, 0, 25)
     viewModelToggle.Text = "View Model: OFF"
-    viewModelToggle.Parent = viewModelContainer
+    viewModelToggle.Parent = visualContainer
 
     local viewModelFovSliderFrame = Instance.new("Frame")
     for prop, value in pairs(LayoutSettings.SliderFrame) do
         viewModelFovSliderFrame[prop] = value
     end
     viewModelFovSliderFrame.Position = UDim2.new(0, 5, 0, 55)
-    viewModelFovSliderFrame.Parent = viewModelContainer
+    viewModelFovSliderFrame.Parent = visualContainer
 
     local viewModelFovSliderBar = Instance.new("Frame")
     for prop, value in pairs(LayoutSettings.SliderBar) do
@@ -478,7 +493,7 @@ end
     for prop, value in pairs(LayoutSettings.SliderKnob) do
         viewModelFovSliderKnob[prop] = value
     end
-    viewModelFovSliderKnob.Position = UDim2.new(0, ((ViewModelState.FOV - 70) / (120 - 70)) * 150 - 5, 0, 0)
+    viewModelFovSliderKnob.Position = UDim2.new(0, ((VisualState.FOV - 70) / (120 - 70)) * 150 - 5, 0, 0)
     viewModelFovSliderKnob.Parent = viewModelFovSliderFrame
 
     local viewModelFovValueLabel = Instance.new("TextLabel")
@@ -487,8 +502,89 @@ end
     viewModelFovValueLabel.BackgroundTransparency = 1
     viewModelFovValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     viewModelFovValueLabel.TextScaled = true
-    viewModelFovValueLabel.Text = tostring(ViewModelState.FOV)
-    viewModelFovValueLabel.Parent = viewModelContainer
+    viewModelFovValueLabel.Text = tostring(VisualState.FOV)
+    viewModelFovValueLabel.Parent = visualContainer
+
+    -- Jump Circle Toggle
+    local jumpCircleToggle = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.ToggleButton) do
+        jumpCircleToggle[prop] = value
+    end
+    jumpCircleToggle.Position = UDim2.new(0, 5, 0, 85)
+    jumpCircleToggle.Text = "Jump Circle: OFF"
+    jumpCircleToggle.Parent = visualContainer
+
+    -- Кнопки выбора цвета
+    for i, color in ipairs(VisualState.AvailableColors) do
+        local button = Instance.new("TextButton")
+        for prop, value in pairs(LayoutSettings.ToggleButton) do
+            button[prop] = value
+        end
+        button.Size = UDim2.new(0, 80, 0, 20)
+        button.Position = UDim2.new(0, 110 + (i - 1) * 85, 0, 85) -- Все кнопки в ряд
+        button.Text = color
+        button.Parent = visualContainer
+        circleColorButtons[color] = button
+
+        local function updateButtonColor()
+            if VisualState.CircleColor == color then
+                if color == "BlueFade" then
+                    button.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
+                elseif color == "RGBBlue" then
+                    local b = math.sin(tick() * 2) * 127 + 128
+                    button.BackgroundColor3 = Color3.fromRGB(0, 0, b)
+                elseif color == "RGB" then
+                    local r = math.sin(tick() * 2) * 127 + 128
+                    local g = math.sin(tick() * 2 + 2) * 127 + 128
+                    local b = math.sin(tick() * 2 + 4) * 127 + 128
+                    button.BackgroundColor3 = Color3.fromRGB(r, g, b)
+                end
+            else
+                button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            end
+        end
+
+        button.MouseButton1Click:Connect(function()
+            VisualState.CircleColor = color
+            for _, btn in pairs(circleColorButtons) do
+                btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            end
+            updateButtonColor()
+        end)
+
+        updateButtonColor()
+    end
+
+    -- Слайдер скорости исчезания
+    local circleSpeedSliderFrame = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.SliderFrame) do
+        circleSpeedSliderFrame[prop] = value
+    end
+    circleSpeedSliderFrame.Position = UDim2.new(0, 5, 0, 115)
+    circleSpeedSliderFrame.Parent = visualContainer
+
+    local circleSpeedSliderBar = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.SliderBar) do
+        circleSpeedSliderBar[prop] = value
+    end
+    circleSpeedSliderBar.Size = UDim2.new((VisualState.CircleSpeed - 1) / 99, 0, 1, 0)
+    circleSpeedSliderBar.Parent = circleSpeedSliderFrame
+
+    local circleSpeedSliderKnob = Instance.new("Frame")
+    for prop, value in pairs(LayoutSettings.SliderKnob) do
+        circleSpeedSliderKnob[prop] = value
+    end
+    circleSpeedSliderKnob.Position = UDim2.new((VisualState.CircleSpeed - 1) / 99, -5, 0, 0)
+    circleSpeedSliderKnob.Parent = circleSpeedSliderFrame
+
+    local circleSpeedValueLabel = Instance.new("TextLabel")
+    circleSpeedValueLabel.Size = UDim2.new(0, 50, 0, 20)
+    circleSpeedValueLabel.Position = UDim2.new(0, 160, 0, 115)
+    circleSpeedValueLabel.BackgroundTransparency = 1
+    circleSpeedValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    circleSpeedValueLabel.TextScaled = true
+    circleSpeedValueLabel.Text = tostring(VisualState.CircleSpeed)
+    circleSpeedValueLabel.Parent = visualContainer
 
     -- Titles Container
     local titlesContainer = Instance.new("Frame")
@@ -496,7 +592,7 @@ end
         titlesContainer[prop] = value
     end
     titlesContainer.Size = UDim2.new(0, 480, 0, 60)
-    titlesContainer.Position = UDim2.new(0, 0, 0, 110)
+    titlesContainer.Position = UDim2.new(0, 0, 0, 170)
     titlesContainer.Parent = frame
 
     local titlesLabel = Instance.new("TextLabel")
@@ -528,7 +624,7 @@ end
         helperContainer[prop] = value
     end
     helperContainer.Size = UDim2.new(0, 480, 0, 60)
-    helperContainer.Position = UDim2.new(0, 0, 0, 180) -- После Titles
+    helperContainer.Position = UDim2.new(0, 0, 0, 240)
     helperContainer.Parent = frame
 
     local helperLabel = Instance.new("TextLabel")
@@ -567,17 +663,51 @@ end
                 local sliderWidth = viewModelFovSliderFrame.AbsoluteSize.X
                 local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
                 local newFov = 70 + math.floor((relativeX * (120 - 70)) / 5) * 5
-                ViewModelState.FOV = newFov
+                VisualState.FOV = newFov
                 viewModelFovSliderKnob.Position = UDim2.new((newFov - 70) / (120 - 70), -5, 0, 0)
                 viewModelFovSliderBar.Size = UDim2.new((newFov - 70) / (120 - 70), 0, 1, 0)
-                viewModelFovValueLabel.Text = tostring(ViewModelState.FOV)
+                viewModelFovValueLabel.Text = tostring(VisualState.FOV)
             end
         end
     end)
 
     viewModelToggle.MouseButton1Click:Connect(function()
-        ViewModelState.Enabled = not ViewModelState.Enabled
-        viewModelToggle.Text = "View Model: " .. (ViewModelState.Enabled and "ON" or "OFF")
+        VisualState.ViewModelEnabled = not VisualState.ViewModelEnabled
+        viewModelToggle.Text = "View Model: " .. (VisualState.ViewModelEnabled and "ON" or "OFF")
+    end)
+
+    -- Обработчики для Jump Circle
+    jumpCircleToggle.MouseButton1Click:Connect(function()
+        VisualState.JumpCircleEnabled = not VisualState.JumpCircleEnabled
+        jumpCircleToggle.Text = "Jump Circle: " .. (VisualState.JumpCircleEnabled and "ON" or "OFF")
+    end)
+
+    local circleSpeedDragging = false
+    circleSpeedSliderKnob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            circleSpeedDragging = true
+        end
+    end)
+    circleSpeedSliderKnob.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            circleSpeedDragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            if circleSpeedDragging then
+                local mouseX = input.Position.X
+                local sliderX = circleSpeedSliderFrame.AbsolutePosition.X
+                local sliderWidth = circleSpeedSliderFrame.AbsoluteSize.X
+                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
+                local newSpeed = math.floor(relativeX * 99) + 1 -- От 1 до 100
+                VisualState.CircleSpeed = newSpeed
+                circleSpeedSliderKnob.Position = UDim2.new((newSpeed - 1) / 99, -5, 0, 0)
+                circleSpeedSliderBar.Size = UDim2.new((newSpeed - 1) / 99, 0, 1, 0)
+                circleSpeedValueLabel.Text = tostring(VisualState.CircleSpeed)
+            end
+        end
     end)
 
     -- Обработчики тогглов (Titles)
@@ -1917,16 +2047,15 @@ local teleportedPlayer = nil
 local originalHitboxData = {}
 local defaultFOV = 70
 
--- Переменные для Titles
+local defaultFOV = 70
 local titles = {}
 local menuVisible = false
 local rgbTime = 0
-
--- Переменные для Staff Online
 local staffFrame = nil
 local staffLabels = {}
 local dragging = false
 local dragOffset = Vector2.new(0, 0)
+local lastState = Enum.HumanoidStateType.Running -- Для отслеживания состояния
 
 -- Функции для Aimbot
 local function isInAimbotFOV(targetPos)
@@ -2134,12 +2263,169 @@ local function updateHitboxExpander()
     end
 end
 
--- Функции для View Model
+-- Функция создания круга при приземлении
+local function createJumpCircle(character)
+    if not VisualState.JumpCircleEnabled or not character then return end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    -- Создаём круг
+    local circle = Instance.new("Part")
+    circle.Shape = Enum.PartType.Cylinder
+    circle.Size = Vector3.new(0.1, 5, 5) -- Тонкий цилиндр
+    circle.Position = Vector3.new(rootPart.Position.X, rootPart.Position.Y - rootPart.Size.Y / 2, rootPart.Position.Z)
+    circle.CFrame = circle.CFrame * CFrame.Angles(math.rad(90), 0, 0) -- Поворот на 90 градусов по X для горизонтального положения
+    circle.Anchored = true
+    circle.CanCollide = false
+    circle.Material = Enum.Material.Neon
+    circle.Transparency = 0.3
+    circle.Parent = workspace
+
+    -- Текст в центре
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 1, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = circle
+    billboard.Parent = circle
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "simfoniaHUB"
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = true
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Parent = billboard
+
+    -- Анимация уменьшения и исчезания
+    local duration = VisualState.CircleSpeed * 0.1
+    local startTime = tick()
+    local initialSize = circle.Size
+
+    RunService.Heartbeat:Connect(function()
+        local elapsed = tick() - startTime
+        local progress = elapsed / duration
+        if progress >= 1 then
+            circle:Destroy()
+            return
+        end
+
+        circle.Size = Vector3.new(0.1, initialSize.Y * (1 - progress), initialSize.Z * (1 - progress))
+
+        if VisualState.CircleColor == "BlueFade" then
+            local b = math.sin(tick() * 2) * 127 + 128
+            circle.Color = Color3.fromRGB(0, 191, b)
+        elseif VisualState.CircleColor == "RGBBlue" then
+            local b = math.sin(tick() * 2) * 127 + 128
+            circle.Color = Color3.fromRGB(0, 0, b)
+        elseif VisualState.CircleColor == "RGB" then
+            local r = math.sin(tick() * 2) * 127 + 128
+            local g = math.sin(tick() * 2 + 2) * 127 + 128
+            local b = math.sin(tick() * 2 + 4) * 127 + 128
+            circle.Color = Color3.fromRGB(r, g, b)
+        end
+    end)
+end
+
+-- Функция обновления View Model
 local function updateViewModel()
-    if ViewModelState.Enabled then
-        camera.FieldOfView = ViewModelState.FOV
+    if VisualState.ViewModelEnabled then
+        camera.FieldOfView = VisualState.FOV
     else
         camera.FieldOfView = defaultFOV
+    end
+end
+
+-- Функция обновления Jump Circle
+local function updateJumpCircle()
+    local character = LocalPlayer.Character
+    if not character or not VisualState.JumpCircleEnabled then return end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    local currentState = humanoid:GetState()
+    if lastState == Enum.HumanoidStateType.Freefall and currentState == Enum.HumanoidStateType.Landed then
+        createJumpCircle(character)
+    end
+    lastState = currentState
+
+    for color, button in pairs(circleColorButtons) do
+        if VisualState.CircleColor == color then
+            if color == "BlueFade" then
+                button.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
+            elseif color == "RGBBlue" then
+                local b = math.sin(tick() * 2) * 127 + 128
+                button.BackgroundColor3 = Color3.fromRGB(0, 0, b)
+            elseif color == "RGB" then
+                local r = math.sin(tick() * 2) * 127 + 128
+                local g = math.sin(tick() * 2 + 2) * 127 + 128
+                local b = math.sin(tick() * 2 + 4) * 127 + 128
+                button.BackgroundColor3 = Color3.fromRGB(r, g, b)
+            end
+        else
+            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        end
+    end
+end
+
+-- Обновление Titles
+local function createTitle()
+    local title = Drawing.new("Text")
+    title.Text = "simfoniaHUB"
+    title.Color = Color3.fromRGB(255, 255, 255)
+    title.Size = math.random(20, 40)
+    title.Position = Vector2.new(math.random(0, camera.ViewportSize.X), math.random(0, camera.ViewportSize.Y))
+    title.Transparency = 0.7
+    title.Visible = false
+    local velocity = Vector2.new(math.random(-50, 50) / 10, math.random(-50, 50) / 10)
+    return { Object = title, Velocity = velocity }
+end
+
+local function updateTitles(deltaTime)
+    if not TitlesState.Enabled or not menuVisible then
+        for _, title in pairs(titles) do
+            title.Object.Visible = false
+        end
+        return
+    end
+
+    while #titles < 10 do
+        table.insert(titles, createTitle())
+    end
+
+    if TitlesState.RGBEnabled then
+        rgbTime = rgbTime + deltaTime
+        local r = math.sin(rgbTime * 2) * 127 + 128
+        local g = math.sin(rgbTime * 2 + 2) * 127 + 128
+        local b = math.sin(rgbTime * 2 + 4) * 127 + 128
+        local rgbColor = Color3.fromRGB(r, g, b)
+        for _, title in pairs(titles) do
+            title.Object.Color = rgbColor
+        end
+    else
+        for _, title in pairs(titles) do
+            title.Object.Color = Color3.fromRGB(255, 255, 255)
+        end
+    end
+
+    for _, title in pairs(titles) do
+        title.Object.Visible = true
+        local newPos = title.Object.Position + title.Velocity
+        local screenWidth = camera.ViewportSize.X
+        local screenHeight = camera.ViewportSize.Y
+
+        if newPos.X < 0 or newPos.X > screenWidth then
+            title.Velocity = Vector2.new(-title.Velocity.X, title.Velocity.Y)
+            newPos = Vector2.new(math.clamp(newPos.X, 0, screenWidth), newPos.Y)
+        end
+        if newPos.Y < 0 or newPos.Y > screenHeight then
+            title.Velocity = Vector2.new(title.Velocity.X, -title.Velocity.Y)
+            newPos = Vector2.new(newPos.X, math.clamp(newPos.Y, 0, screenHeight))
+        end
+        title.Object.Position = newPos
     end
 end
 
@@ -2285,12 +2571,21 @@ local function updateStaffMenu()
     end
 end
 
+-- Обновление при появлении персонажа
+LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    lastState = humanoid:GetState()
+    updateJumpCircle()
+end)
+
+-- Основной цикл обновления
 RunService.RenderStepped:Connect(function(deltaTime)
     updateFly()
     updateAimbot()
     updateSilentAim()
     updateHitboxExpander()
     updateViewModel()
+    updateJumpCircle()
     updateTitles(deltaTime)
     updateStaffMenu()
 end)
