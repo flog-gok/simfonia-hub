@@ -19,30 +19,30 @@ local GuiElements = {
 -- Таблица для хранения настроек макета
 local LayoutSettings = {
     MainFrame = {
-        Size = UDim2.new(0, 500, 0, 600),
-        Position = UDim2.new(0.5, -250, 0.5, -300),
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BorderColor3 = Color3.fromRGB(0, 170, 255),
+        Size = UDim2.new(0, 900, 0, 700),
+        Position = UDim2.new(0.5, -400, 0.5, -330),
+        BackgroundColor3 = Color3.fromRGB(0, 5, 0),
+        BorderColor3 = Color3.fromRGB(0, 0, 0),
         BorderSizePixel = 2,
         Visible = true
     },
     TitleLabel = {
         Size = UDim2.new(1, 0, 0, 30),
         Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(0, 170, 255),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Text = "Simfonia hub (ROST) v1.9"
+        Text = "Simfonia hub (ROST) v2.1"
     },
     CategoryButton = {
-        Size = UDim2.new(0, 100, 0, 30),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        TextColor3 = Color3.fromRGB(0, 170, 255),
+        Size = UDim2.new(0, 215, 0, 20),
+        BackgroundColor3 = Color3.fromRGB(127, 127, 127),
+        TextColor3 = Color3.fromRGB(10, 10, 10),
         TextScaled = true,
         BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
+        BorderColor3 = Color3.fromRGB(255, 255, 255)
     },
     CategoryFrame = {
-        Size = UDim2.new(1, -10, 0, 510),
+        Size = UDim2.new(1, -20, 0, 610),
         Position = UDim2.new(0, 5, 0, 80),
         BackgroundColor3 = Color3.fromRGB(50, 50, 50),
         BorderSizePixel = 1,
@@ -50,15 +50,15 @@ local LayoutSettings = {
         Visible = false
     },
     Container = {
-        Size = UDim2.new(0, 480, 0, 100),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
+        Size = UDim2.new(0, 480, 0, 200),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BorderSizePixel = 0,
+        BorderColor3 = Color3.fromRGB(0, 0, 0)
     },
     ContainerLabel = {
         Size = UDim2.new(1, 0, 0, 20),
-        BackgroundColor3 = Color3.fromRGB(0, 100, 200),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundColor3 = Color3.fromRGB(150, 150, 150),
+        TextColor3 = Color3.fromRGB(229, 255, 229),
         TextScaled = true
     },
     ToggleButton = {
@@ -71,18 +71,18 @@ local LayoutSettings = {
     },
     CheckBox = {
         Size = UDim2.new(0, 100, 0, 20),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        TextColor3 = Color3.fromRGB(0, 170, 255),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 30),
+        TextColor3 = Color3.fromRGB(0, 0, 255),
         TextScaled = true,
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(0, 170, 255)
     },
     UnhookButton = {
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(0, 390, 0, 560),
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+        Size = UDim2.new(0, 130, 0, 30),
+        Position = UDim2.new(0, 1000, 0, -200),
+        BackgroundColor3 = Color3.fromRGB(70, 0, 5),
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Text = "UNHOOK",
+        Text = "X",
         TextScaled = true,
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(255, 255, 255)
@@ -254,7 +254,7 @@ GuiElements.MainFrame.Parent = GuiElements.ScreenGui
 
 -- Добавление градиента
 GuiElements.Gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 50, 100)),
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 50, 0)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
 })
 GuiElements.Gradient.Parent = GuiElements.MainFrame
@@ -275,7 +275,7 @@ for i, category in ipairs(categories) do
         button[prop] = value
     end
     button.Position = UDim2.new((i - 1) * 0.25, 5, 0, 40)
-    button.Text = "[" .. category:upper() .. "]"
+    button.Text = "" .. category:upper() .. ""
     button.Parent = GuiElements.MainFrame
     GuiElements.CategoryButtons[category] = button
 
