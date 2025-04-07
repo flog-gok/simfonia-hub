@@ -144,6 +144,21 @@ local ObjectESPState = {
     NewObjectDuration = 20 -- 20 секунд подсветки
 }
 
+local ObjectESPState = {
+    Enabled = false,
+    SelectedObjects = {},
+    MaxRecyclerHelicopter = 20,
+    MaxCupboard = 10,
+    Color = Color3.fromRGB(0, 255, 0)
+}
+
+local OreESPState = {
+    Enabled = false,
+    SelectedOres = {},
+    MaxPerOre = 10,
+    Color = Color3.fromRGB(0, 255, 0)
+}
+
 -- Состояние Aimbot
 local AimbotState = {
     Enabled = false,
@@ -398,13 +413,13 @@ for i, category in ipairs(categories) do
         weaponCheck.Text = "Weapon: " .. (ESPState.WeaponEnabled and "ON" or "OFF")
     end)
 
-    -- Новый контейнер Object ESP
+    -- Контейнер Object ESP
     local objectESPContainer = Instance.new("Frame")
     for prop, value in pairs(LayoutSettings.Container) do
         objectESPContainer[prop] = value
     end
     objectESPContainer.Position = UDim2.new(0, 0, 0, 110)
-    objectESPContainer.Size = UDim2.new(0, 480, 0, 100)
+    objectESPContainer.Size = UDim2.new(0, 480, 0, 140) -- Увеличиваем высоту для Ore ESP
     objectESPContainer.Parent = frame
 
     local objectESPLabel = Instance.new("TextLabel")
@@ -422,7 +437,6 @@ for i, category in ipairs(categories) do
     objectESPToggle.Text = "Object ESP: OFF"
     objectESPToggle.Parent = objectESPContainer
 
-    -- Переключатели для объектов
     local objectOptions = {"Recycler", "Helicopter", "Cupboard"}
     for i, objName in ipairs(objectOptions) do
         local objCheck = Instance.new("TextButton")
@@ -447,6 +461,41 @@ for i, category in ipairs(categories) do
     objectESPToggle.MouseButton1Click:Connect(function()
         ObjectESPState.Enabled = not ObjectESPState.Enabled
         objectESPToggle.Text = "Object ESP: " .. (ObjectESPState.Enabled and "ON" or "OFF")
+    end)
+
+    -- Ore ESP
+    local oreESPToggle = Instance.new("TextButton")
+    for prop, value in pairs(LayoutSettings.ToggleButton) do
+        oreESPToggle[prop] = value
+    end
+    oreESPToggle.Position = UDim2.new(0, 5, 0, 85)
+    oreESPToggle.Text = "Ore ESP: OFF"
+    oreESPToggle.Parent = objectESPContainer
+
+    local oreOptions = {"Iron", "Stone", "Sulfur"}
+    for i, oreName in ipairs(oreOptions) do
+        local oreCheck = Instance.new("TextButton")
+        for prop, value in pairs(LayoutSettings.CheckBox) do
+            oreCheck[prop] = value
+        end
+        oreCheck.Position = UDim2.new(0, 110 + (i - 1) * 105, 0, 85)
+        oreCheck.Text = oreName .. ": OFF"
+        oreCheck.Parent = objectESPContainer
+
+        oreCheck.MouseButton1Click:Connect(function()
+            if OreESPState.SelectedOres[oreName] then
+                OreESPState.SelectedOres[oreName] = nil
+                oreCheck.Text = oreName .. ": OFF"
+            else
+                OreESPState.SelectedOres[oreName] = true
+                oreCheck.Text = oreName .. ": ON"
+            end
+        end)
+    end
+
+    oreESPToggle.MouseButton1Click:Connect(function()
+        OreESPState.Enabled = not OreESPState.Enabled
+        oreESPToggle.Text = "Ore ESP: " .. (OreESPState.Enabled and "ON" or "OFF")
     end)
 end
 
@@ -1804,9 +1853,8 @@ end)
 
 -- Логика Object ESP
 local ObjectESP = {}
-local trackedRecyclerHelicopter = {} -- Отслеживаемые Recycler и Helicopter
-local trackedCupboard = {} -- Отслеживаемые Cupboard
-local newObjectTimes = {}
+local trackedRecyclerHelicopter = {}
+local trackedCupboard = {}
 
 local function getDistanceToPlayer(obj)
     local playerRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -1819,36 +1867,41 @@ end
 local function createObjectESP(object)
     if ObjectESP[object] then return end
 
-    local box = Drawing.new("Square")
-    box.Thickness = 2
-    box.Filled = false
-    box.Color = ObjectESPState.Color
-    box.Visible = false
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = object:IsA("Model") and object.PrimaryPart or object
+    billboard.Size = UDim2.new(0, 100, 0, 20) -- Фиксированный размер в пикселях
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = game.CoreGui
+    billboard.ExtentsOffset = Vector3.new(0, 0, 0) -- Убираем смещение границ
 
-    local text = Drawing.new("Text")
-    text.Size = 16
-    text.Color = Color3.fromRGB(255, 255, 255)
-    text.Visible = false
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = object.Name
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = false -- Отключаем масштабирование текста
+    textLabel.TextSize = 14 -- Фиксированный размер текста
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = ObjectESPState.Color
+    textLabel.Parent = billboard
 
-    ObjectESP[object] = {Box = box, Text = text}
+    ObjectESP[object] = billboard
     if object.Name == "Cupboard" then
         table.insert(trackedCupboard, object)
     else
         table.insert(trackedRecyclerHelicopter, object)
     end
-    newObjectTimes[object] = tick()
 
     local connection
     connection = RunService.RenderStepped:Connect(function()
         if not object.Parent or not ObjectESPState.Enabled or not ObjectESPState.SelectedObjects[object.Name] then
-            box.Visible = false
-            text.Visible = false
+            billboard.Enabled = false
             if connection then
                 connection:Disconnect()
             end
             if ObjectESP[object] then
-                if ObjectESP[object].Box then ObjectESP[object].Box:Remove() end
-                if ObjectESP[object].Text then ObjectESP[object].Text:Remove() end
+                ObjectESP[object]:Destroy()
                 ObjectESP[object] = nil
                 if object.Name == "Cupboard" then
                     for i, trackedObj in ipairs(trackedCupboard) do
@@ -1865,63 +1918,24 @@ local function createObjectESP(object)
                         end
                     end
                 end
-                newObjectTimes[object] = nil
             end
             return
         end
-
-        local rootPart = object:IsA("Model") and object.PrimaryPart or object
-        if not rootPart then return end
-
-        local rootPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)
-        if onScreen then
-            local size = (object:IsA("Model") and object:GetExtentsSize() or rootPart.Size) * 1.2
-            local topLeft = camera:WorldToViewportPoint(rootPart.Position + Vector3.new(size.X/2, size.Y/2, size.Z/2))
-            local bottomRight = camera:WorldToViewportPoint(rootPart.Position - Vector3.new(size.X/2, size.Y/2, size.Z/2))
-
-            if topLeft.Z > 0 and bottomRight.Z > 0 then
-                local width = math.abs(topLeft.X - bottomRight.X)
-                local height = math.abs(topLeft.Y - bottomRight.Y)
-                local centerX = (topLeft.X + bottomRight.X) / 2
-
-                box.Size = Vector2.new(width, height)
-                box.Position = Vector2.new(centerX - width / 2, topLeft.Y)
-
-                if newObjectTimes[object] and (tick() - newObjectTimes[object]) < ObjectESPState.NewObjectDuration then
-                    box.Color = ObjectESPState.NewObjectColor
-                else
-                    box.Color = ObjectESPState.Color
-                end
-                box.Visible = true
-
-                text.Text = object.Name
-                text.Position = Vector2.new(centerX - width / 2, topLeft.Y - 20)
-                text.Visible = true
-            else
-                box.Visible = false
-                text.Visible = false
-            end
-        else
-            box.Visible = false
-            text.Visible = false
-        end
+        billboard.Enabled = true
     end)
 end
 
 local function updateObjectESP()
     if not ObjectESPState.Enabled then
-        for _, obj in pairs(ObjectESP) do
-            if obj.Box then obj.Box:Remove() end
-            if obj.Text then obj.Text:Remove() end
+        for _, billboard in pairs(ObjectESP) do
+            if billboard then billboard:Destroy() end
         end
         ObjectESP = {}
         trackedRecyclerHelicopter = {}
         trackedCupboard = {}
-        newObjectTimes = {}
         return
     end
 
-    -- Собираем все объекты
     local recyclerHelicopterObjects = {}
     local cupboardObjects = {}
     for _, obj in pairs(workspace:GetDescendants()) do
@@ -1934,7 +1948,6 @@ local function updateObjectESP()
         end
     end
 
-    -- Сортируем по расстоянию
     table.sort(recyclerHelicopterObjects, function(a, b)
         return getDistanceToPlayer(a) < getDistanceToPlayer(b)
     end)
@@ -1942,8 +1955,7 @@ local function updateObjectESP()
         return getDistanceToPlayer(a) < getDistanceToPlayer(b)
     end)
 
-    -- Очищаем старые объекты, которые не в лимитах
-    for obj, esp in pairs(ObjectESP) do
+    for obj, billboard in pairs(ObjectESP) do
         local isInLimit = false
         if obj.Name == "Cupboard" then
             for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
@@ -1961,8 +1973,7 @@ local function updateObjectESP()
             end
         end
         if not isInLimit then
-            if esp.Box then esp.Box:Remove() end
-            if esp.Text then esp.Text:Remove() end
+            if billboard then billboard:Destroy() end
             ObjectESP[obj] = nil
             if obj.Name == "Cupboard" then
                 for i, trackedObj in ipairs(trackedCupboard) do
@@ -1979,11 +1990,9 @@ local function updateObjectESP()
                     end
                 end
             end
-            newObjectTimes[obj] = nil
         end
     end
 
-    -- Добавляем новые объекты в лимитах
     for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
         local obj = recyclerHelicopterObjects[i]
         if not ObjectESP[obj] then
@@ -1998,7 +2007,6 @@ local function updateObjectESP()
     end
 end
 
--- Запускаем проверку каждую секунду
 task.spawn(function()
     while true do
         if ObjectESPState.Enabled then
@@ -2013,6 +2021,180 @@ workspace.DescendantAdded:Connect(function(obj)
         updateObjectESP()
     end
 end)
+
+-- Логика Ore ESP
+local OreESP = {}
+local trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
+
+local function createOreESP(ore)
+    if OreESP[ore] then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = ore:IsA("Model") and ore.PrimaryPart or ore
+    billboard.Size = UDim2.new(0, 100, 0, 20) -- Фиксированный размер в пикселях
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = game.CoreGui
+    billboard.ExtentsOffset = Vector3.new(0, 0, 0) -- Убираем смещение границ
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = ore.Name
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = false -- Отключаем масштабирование текста
+    textLabel.TextSize = 14 -- Фиксированный размер текста
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = OreESPState.Color
+    textLabel.Parent = billboard
+
+    OreESP[ore] = billboard
+    local oreType = ore.Name:lower() == "iron" and "Iron" or
+                    ore.Name:lower() == "stone" and "Stone" or
+                    ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+    table.insert(trackedOres[oreType], ore)
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not ore.Parent or not OreESPState.Enabled or not OreESPState.SelectedOres[oreType] then
+            billboard.Enabled = false
+            if connection then
+                connection:Disconnect()
+            end
+            if OreESP[ore] then
+                OreESP[ore]:Destroy()
+                OreESP[ore] = nil
+                for i, trackedOre in ipairs(trackedOres[oreType]) do
+                    if trackedOre == ore then
+                        table.remove(trackedOres[oreType], i)
+                        break
+                    end
+                end
+            end
+            return
+        end
+        billboard.Enabled = true
+    end)
+end
+
+local function updateOreESP()
+    if not OreESPState.Enabled then
+        for _, billboard in pairs(OreESP) do
+            if billboard then billboard:Destroy() end
+        end
+        OreESP = {}
+        trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
+        return
+    end
+
+    local oreFolder = workspace:FindFirstChild("ores")
+    if not oreFolder then return end
+
+    local ironOres = {}
+    local stoneOres = {}
+    local sulfurOres = {}
+    for _, ore in pairs(oreFolder:GetChildren()) do
+        local oreNameLower = ore.Name:lower()
+        if OreESPState.SelectedOres["Iron"] and (oreNameLower == "iron" or ore.Name == "Iron") then
+            table.insert(ironOres, ore)
+        elseif OreESPState.SelectedOres["Stone"] and (oreNameLower == "stone" or ore.Name == "Stone") then
+            table.insert(stoneOres, ore)
+        elseif OreESPState.SelectedOres["Sulfur"] and (oreNameLower == "sulfur" or ore.Name == "Sulfur") then
+            table.insert(sulfurOres, ore)
+        end
+    end
+
+    table.sort(ironOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(stoneOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(sulfurOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+
+    for ore, billboard in pairs(OreESP) do
+        local oreType = ore.Name:lower() == "iron" and "Iron" or
+                        ore.Name:lower() == "stone" and "Stone" or
+                        ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+        local isInLimit = false
+        if oreType == "Iron" then
+            for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
+                if ironOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        elseif oreType == "Stone" then
+            for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
+                if stoneOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        elseif oreType == "Sulfur" then
+            for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
+                if sulfurOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        end
+        if not isInLimit then
+            if billboard then billboard:Destroy() end
+            OreESP[ore] = nil
+            for i, trackedOre in ipairs(trackedOres[oreType]) do
+                if trackedOre == ore then
+                    table.remove(trackedOres[oreType], i)
+                    break
+                end
+            end
+        end
+    end
+
+    for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
+        local ore = ironOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+    for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
+        local ore = stoneOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+    for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
+        local ore = sulfurOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        if OreESPState.Enabled then
+            updateOreESP()
+        end
+        wait(0.5)
+    end
+end)
+
+local oreFolder = workspace:FindFirstChild("ores")
+if oreFolder then
+    oreFolder.ChildAdded:Connect(function(ore)
+        local oreNameLower = ore.Name:lower()
+        if OreESPState.Enabled and (
+            (OreESPState.SelectedOres["Iron"] and (oreNameLower == "iron" or ore.Name == "Iron")) or
+            (OreESPState.SelectedOres["Stone"] and (oreNameLower == "stone" or ore.Name == "Stone")) or
+            (OreESPState.SelectedOres["Sulfur"] and (oreNameLower == "sulfur" or ore.Name == "Sulfur"))
+        ) then
+            updateOreESP()
+        end
+    end)
+end
 
 -- Логика Aimbot
 local aimbotSnapline = Drawing.new("Line")
