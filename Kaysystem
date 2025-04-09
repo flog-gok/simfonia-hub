@@ -1,0 +1,63 @@
+local TweenService = game:GetService("TweenService")
+
+local gui = {
+    ScreenGui = Instance.new("ScreenGui"),
+    Frame = Instance.new("Frame"),
+    TextBox = Instance.new("TextBox"),
+    TextButton = Instance.new("TextButton"),
+    TitleLabel = Instance.new("TextLabel"),
+    Key = ""
+}
+
+gui.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+gui.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+gui.Frame.Parent = gui.ScreenGui
+gui.Frame.Size = UDim2.new(0, 300, 0, 200)
+gui.Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+gui.Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+gui.Frame.BorderSizePixel = 0
+gui.Frame.Visible = false
+
+gui.TitleLabel.Parent = gui.Frame
+gui.TitleLabel.Size = UDim2.new(0, 250, 0, 30)
+gui.TitleLabel.Position = UDim2.new(0.5, -125, 0, 0)
+gui.TitleLabel.Text = "Введите ключ"
+gui.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+gui.TitleLabel.TextSize = 18
+gui.TitleLabel.BackgroundTransparency = 1
+
+gui.TextBox.Parent = gui.Frame
+gui.TextBox.Size = UDim2.new(0, 250, 0, 50)
+gui.TextBox.Position = UDim2.new(0.5, -125, 0.3, 0)
+gui.TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+gui.TextBox.PlaceholderText = "Введите ключ"
+gui.TextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+
+gui.TextButton.Parent = gui.Frame
+gui.TextButton.Size = UDim2.new(0, 150, 0, 50)
+gui.TextButton.Position = UDim2.new(0.5, -75, 0.7, 0)
+gui.TextButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+gui.TextButton.Text = "Подтвердить"
+
+local goal = {Position = UDim2.new(0.5, -150, 0.5, -100), Visible = true}
+local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+local tween = TweenService:Create(gui.Frame, tweenInfo, goal)
+tween:Play()
+
+gui.TextButton.MouseButton1Click:Connect(function()
+    local KeyInput = gui.TextBox.Text
+    local response = game:HttpGet("https://keysystemv4.kesug.com/validate.php?key=" .. KeyInput)
+    
+    if response == "true" then
+        print("Ключ верный! Доступ разрешён.")
+        local goal2 = {Position = UDim2.new(0.5, -150, 0.5, -100), Visible = false}
+        local tween2 = TweenService:Create(gui.Frame, tweenInfo, goal2)
+        tween2:Play()
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/SIMFONIA%20ROSTv1%20PAID"))()
+    else
+        print("Неверный ключ! Кикаем игрока.")
+        game.Players.LocalPlayer:Kick("Неверный ключ. Попробуйте снова.")
+    end
+end)
