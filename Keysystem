@@ -55,7 +55,7 @@ gui.TextButton.MouseButton1Click:Connect(function()
         local tween2 = TweenService:Create(gui.Frame, tweenInfo, goal2)
         tween2:Play()
         
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/SIMFONIA%20ROSTv1%20PAID"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/Simfonia.hub%20(paid)%20ROST"))()
     else
         print("Неверный ключ! Кикаем игрока.")
         game.Players.LocalPlayer:Kick("Неверный ключ. Попробуйте снова.")
