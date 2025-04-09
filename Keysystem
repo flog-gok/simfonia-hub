@@ -9,6 +9,41 @@ local gui = {
     Key = ""
 }
 
+-- Список валидных ключей
+local validKeys = {
+    "GFFFFF800",
+    "11777771h",
+    "HWIDSFXG",
+    "s10726662",
+    "KSOAPAPQ",
+    "dkdkddkdk",
+    "LAVRLAVTD",
+    "HDHHDHTTP",
+    "SIMFONIAFREE",
+    "EZZCHEACJER",
+    "SIMFKKAL6",
+    "XF72KS91",
+    "QLD9X8WR",
+    "SMMK33PT",
+    "GVXP8W47",
+    "MN39FDJK",
+    "LAVR204A",
+    "VKKZ17FD",
+    "JJSWPL88",
+    "ZOPPMS32",
+    "BDH99WST",
+    "KKEYB0FF",
+    "XFREE117",
+    "DK7SKADL",
+    "9HTWPLLK",
+    "SX9022FL",
+    "A7LDDK55",
+    "HFHF9KDP",
+    "SIMFNEW1",
+    "FZ7XMKOQ",
+    "KKEY117F"
+}
+
 gui.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 gui.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -47,9 +82,17 @@ tween:Play()
 
 gui.TextButton.MouseButton1Click:Connect(function()
     local KeyInput = gui.TextBox.Text
-    local response = game:HttpGet("https://keysystemv4.kesug.com/validate.php?key=" .. KeyInput)
     
-    if response == "true" then
+    -- Проверка ключа в локальном списке
+    local isValidKey = false
+    for _, key in pairs(validKeys) do
+        if KeyInput == key then
+            isValidKey = true
+            break
+        end
+    end
+    
+    if isValidKey then
         print("Ключ верный! Доступ разрешён.")
         local goal2 = {Position = UDim2.new(0.5, -150, 0.5, -100), Visible = false}
         local tween2 = TweenService:Create(gui.Frame, tweenInfo, goal2)
