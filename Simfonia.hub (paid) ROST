@@ -1,130 +1,36 @@
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-local camera = workspace.CurrentCamera
-local circleColorButtons = {} -- Глобальная таблица для кнопок цвета
+local camera = workspace.CurrentCamera or workspace:WaitForChild("CurrentCamera")
+local defaultFOV = camera.FieldOfView -- Сохраняем стандартный FOV
+local lastState = nil -- Для отслеживания состояния прыжка
+local titles = {} -- Список титулов
+local rgbTime = 0 -- Для RGB-анимации
+local staffFrame = nil -- Фрейм для Staff Online
+local staffLabels = {} -- Метки для игроков из белого списка
+local dragging = false -- Для перетаскивания Staff Online
+local dragOffset = Vector2.new(0, 0) -- Смещение при перетаскивании
 
--- Таблица для хранения GUI-элементов
-local GuiElements = {
-    ScreenGui = Instance.new("ScreenGui"),
-    MainFrame = Instance.new("Frame"),
-    TitleLabel = Instance.new("TextLabel"),
-    CategoryButtons = {},
-    CategoryFrames = {},
-    UnhookButton = nil,
-    Gradient = Instance.new("UIGradient")
+-- Создаём окно "Simfonia HUB"
+local Window = Library:CreateWindow({
+    Title = "Simfonia.HUB v2.3",
+    Center = true,
+    AutoShow = true
+})
+
+-- Создаём вкладки
+local Tabs = {
+    Legit = Window:AddTab("Legit"),
+    Render = Window:AddTab("Render"),
+    Visual = Window:AddTab("Visual"),
+    Hacks = Window:AddTab("Hacks"),
+    Settings = Window:AddTab("Settings")
 }
 
--- Таблица для хранения настроек макета
-local LayoutSettings = {
-    MainFrame = {
-        Size = UDim2.new(0, 900, 0, 700),
-        Position = UDim2.new(0.5, -400, 0.5, -330),
-        BackgroundColor3 = Color3.fromRGB(0, 5, 0),
-        BorderColor3 = Color3.fromRGB(0, 0, 0),
-        BorderSizePixel = 2,
-        Visible = true
-    },
-    TitleLabel = {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Text = "Simfonia hub (ROST) v2.1"
-    },
-    CategoryButton = {
-        Size = UDim2.new(0, 215, 0, 20),
-        BackgroundColor3 = Color3.fromRGB(127, 127, 127),
-        TextColor3 = Color3.fromRGB(10, 10, 10),
-        TextScaled = true,
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(255, 255, 255)
-    },
-    CategoryFrame = {
-        Size = UDim2.new(1, -20, 0, 610),
-        Position = UDim2.new(0, 5, 0, 80),
-        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255),
-        Visible = false
-    },
-    Container = {
-        Size = UDim2.new(0, 480, 0, 200),
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BorderSizePixel = 0,
-        BorderColor3 = Color3.fromRGB(0, 0, 0)
-    },
-    ContainerLabel = {
-        Size = UDim2.new(1, 0, 0, 20),
-        BackgroundColor3 = Color3.fromRGB(150, 150, 150),
-        TextColor3 = Color3.fromRGB(229, 255, 229),
-        TextScaled = true
-    },
-    ToggleButton = {
-        Size = UDim2.new(0, 100, 0, 25),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextScaled = true,
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
-    },
-    CheckBox = {
-        Size = UDim2.new(0, 100, 0, 20),
-        BackgroundColor3 = Color3.fromRGB(0, 0, 30),
-        TextColor3 = Color3.fromRGB(0, 0, 255),
-        TextScaled = true,
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
-    },
-    UnhookButton = {
-        Size = UDim2.new(0, 130, 0, 30),
-        Position = UDim2.new(0, 1000, 0, -200),
-        BackgroundColor3 = Color3.fromRGB(70, 0, 5),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Text = "X",
-        TextScaled = true,
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(255, 255, 255)
-    },
-    ColorPickerButton = {
-        Size = UDim2.new(0, 100, 0, 25),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextScaled = true,
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
-    },
-    ColorPickerFrame = {
-        Size = UDim2.new(0, 150, 0, 150),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255),
-        Visible = false
-    },
-    SliderFrame = {
-        Size = UDim2.new(0, 150, 0, 25),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
-    },
-    SliderBar = {
-        Size = UDim2.new(0, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-    },
-    SliderKnob = {
-        Size = UDim2.new(0, 10, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 170, 255)
-    }
-}
-
--- Таблица для хранения состояния
-local CategoryState = {
-    SelectedCategory = nil
-}
-
+-- Состояние ESP
 local ESPState = {
     Enabled = false,
     Studs = false,
@@ -134,22 +40,15 @@ local ESPState = {
     WeaponEnabled = false
 }
 
-local ObjectESPState = {
-    Enabled = false,
-    SelectedObjects = {}, -- Таблица выбранных объектов
-    MaxRecyclerHelicopter = 20, -- Лимит для Recycler и Helicopter
-    MaxCupboard = 10, -- Лимит для Cupboard
-    Color = Color3.fromRGB(0, 255, 0), -- Основной цвет
-    NewObjectColor = Color3.fromRGB(0, 0, 255), -- Синий для новых
-    NewObjectDuration = 20 -- 20 секунд подсветки
-}
-
+-- Состояние Object ESP
 local ObjectESPState = {
     Enabled = false,
     SelectedObjects = {},
     MaxRecyclerHelicopter = 20,
     MaxCupboard = 10,
-    Color = Color3.fromRGB(0, 255, 0)
+    Color = Color3.fromRGB(0, 255, 0),
+    NewObjectColor = Color3.fromRGB(0, 0, 255),
+    NewObjectDuration = 20
 }
 
 local OreESPState = {
@@ -159,7 +58,98 @@ local OreESPState = {
     Color = Color3.fromRGB(0, 255, 0)
 }
 
--- Состояние Aimbot
+local VisualState = {
+    ViewModelEnabled = false,
+    FOV = 70,
+    JumpCircleEnabled = false,
+    CircleSpeed = 50, -- Скорость исчезания (1-100, 50 по умолчанию ~5 секунд)
+    CircleColor = "BlueFade", -- Цвет по умолчанию
+    AvailableColors = {"BlueFade", "RGBBlue", "RGB"}
+}
+
+local TitlesState = {
+    Enabled = false,
+    RGBEnabled = false
+}
+
+local StaffOnlineState = {
+    Enabled = false,
+    Whitelist = {"igarokmax", "33jeii2", "leon_vent4", "Alex_BossGr", ""}
+}
+
+local FullbrightState = {
+    Enabled = false
+}
+
+local NoFogState = {
+    Enabled = false
+}
+
+local NoSkyState = {
+    Enabled = false
+}
+
+local SpeedhackState = {
+    Enabled = false,
+    Speed = 20, -- Скорость по умолчанию
+    Bind = nil -- По умолчанию нет бинда
+}
+
+local BunnyHopState = {
+    Enabled = false
+}
+
+local ForceSpeedState = {
+    Enabled = false,
+    Speed = 26 -- Фиксированная скорость
+}
+
+local FlyState = {
+    Enabled = false,
+    Mode = "FreeFly", -- Режим по умолчанию
+    AvailableModes = {"FreeFly", "JumpFly", "ClockFly"},
+    Speed = 20 -- Скорость для FreeFly и JumpFly
+}
+
+local SpiderState = {
+    Enabled = false,
+    Speed = 10 -- Скорость по умолчанию (10-40)
+}
+
+local FreeCamState = {
+    Enabled = false,
+    Mode = "Middle", -- Режим по умолчанию
+    AvailableModes = {"Middle", "Button"},
+    Speed = 50 -- Скорость по умолчанию для Button (20-100)
+}
+
+-- Обновляем SkyState, добавляя Enabled
+local SkyState = {
+    Enabled = false, -- Добавляем тоггл для включения/выключения
+    CycleMode = "Realistic",
+    AvailableCycles = {"Realistic", "Light", "DeepNight"}
+}
+
+local CrosshairState = {
+    Enabled = false,
+    Type = "DotCircle", -- По умолчанию круг с точкой
+    AvailableTypes = {"DotCircle", "Cross"},
+    RGBEnabled = false,
+    SpinEnabled = false,
+    SpinSpeed = 1 -- Скорость вращения (1-10)
+}
+
+local VisualToolState = {
+    SelectedTool = "Ak1", -- Предмет по умолчанию
+    AvailableTools = {"Ak1", "Revolver", "Bow", "Thompson", "5.56 Rifle ammo"},
+    Amount = 1 -- Количество по умолчанию
+}
+
+local ShowBackpackState = {
+    WindowVisible = false,
+    SelectedBackpack = nil
+}
+
 local AimbotState = {
     Enabled = false,
     Radius = 50,          -- Радиус действия (20-100)
@@ -170,1487 +160,1403 @@ local AimbotState = {
     SnaplineEnabled = false, -- Включение/выключение линии
     BindType = "Mouse",   -- Тип бинда: "Mouse" или "Key"
     MouseBind = Enum.UserInputType.MouseButton2, -- Правая кнопка мыши по умолчанию
-    KeyBind = Enum.KeyCode.F,            -- Клавиша F по умолчанию
-    TargetPart = "Head"   -- Часть тела для наводки: "Head" или "Body"
+    KeyBind = nil,        -- Нет клавиши по умолчанию
+    TargetPart = "Head"   -- Часть тела: "Head" или "Body"
 }
 
--- Состояние Silent Aim
 local SilentAimState = {
     Enabled = false,
     FOVEnabled = false,   -- Включение/выключение FOV
     FOVSize = 200,        -- Размер FOV (1-700)
     SnaplineEnabled = false, -- Включение/выключение линии
-    TargetPart = "Head"   -- Часть тела для телепортации: "Head" или "Body"
+    TargetPart = "Head"   -- Часть тела: "Head" или "Body"
 }
 
-local VisualState = {
-    ViewModelEnabled = false,
-    FOV = 70,
-    JumpCircleEnabled = false,
-    CircleSpeed = 50, -- Скорость исчезания (1-100, 50 по умолчанию ~5 секунд)
-    CircleColor = "BlueFade", -- Цвет по умолчанию
-    AvailableColors = {
-        "BlueFade",    -- Переливающийся синий (светло-синий до тёмно-синего)
-        "RGBBlue",     -- RGB только в синей гамме
-        "RGB"          -- Полный RGB
-    }
-}
-
--- Состояние View Model
-local ViewModelState = {
-    Enabled = false,
-    FOV = 70              -- FOV от 70 (дефолт) до 120 с шагом 5
-}
-
--- Состояние Titles
-local TitlesState = {
-    Enabled = false,
-    RGBEnabled = false -- Добавлено для управления RGB
-}
-
--- Состояние Staff Online
-local StaffOnlineState = {
-    Enabled = false,
-    Whitelist = { -- Белый список игроков (добавляйте ники сюда)
-        "igarokmax",
-        "33jeii2",
-        "leon_vent4",
-        "Alex_BossGr",
-        ""
-    }
-}
-
--- Состояние Hitbox Expander
 local HitboxExpanderState = {
     Enabled = false,
     Size = 1,             -- Размер хитбокса (1-8 studs)
     Transparency = 0.5    -- Прозрачность (0-1)
 }
 
-local SpeedState = {
-    Enabled = false,
-    Value = 20,
-    DefaultSpeed = 16
-}
+local originalHitboxData = {} -- Для хранения оригинальных данных хитбоксов
 
-local FlyState = {
-    Enabled = false,
-    WalkSpeed = 20,      -- Скорость ходьбы по воздуху (20-60)
-    VerticalSpeed = 50,  -- Скорость вверх/вниз (20-100)
-    Mode = "FreeFly",    -- "Platform" или "FreeFly"
-    PlatformActive = false
-}
+-- UI для Legit
+local LegitGroup = Tabs.Legit:AddLeftGroupbox("Legit Hacks")
 
--- Настройка ScreenGui
-GuiElements.ScreenGui.Name = "CheatMenu"
-GuiElements.ScreenGui.Parent = game:GetService("CoreGui")
-GuiElements.ScreenGui.ResetOnSpawn = false
-
--- Настройка MainFrame
-for prop, value in pairs(LayoutSettings.MainFrame) do
-    GuiElements.MainFrame[prop] = value
-end
-GuiElements.MainFrame.Parent = GuiElements.ScreenGui
-
--- Добавление градиента
-GuiElements.Gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 50, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+-- Aimbot
+LegitGroup:AddToggle("AimbotEnabled", {
+    Text = "Aimbot",
+    Default = AimbotState.Enabled,
+    Tooltip = "Автоматически наводит прицел на врагов"
 })
-GuiElements.Gradient.Parent = GuiElements.MainFrame
-
--- Настройка TitleLabel
-for prop, value in pairs(LayoutSettings.TitleLabel) do
-    GuiElements.TitleLabel[prop] = value
-end
-GuiElements.TitleLabel.TextScaled = true
-GuiElements.TitleLabel.Parent = GuiElements.MainFrame
-
--- Создание категорий
-local categories = {"Legit", "Render", "Visuals", "Misc"}
-for i, category in ipairs(categories) do
-    local button = Instance.new("TextButton")
-    button.Name = category
-    for prop, value in pairs(LayoutSettings.CategoryButton) do
-        button[prop] = value
-    end
-    button.Position = UDim2.new((i - 1) * 0.25, 5, 0, 40)
-    button.Text = "" .. category:upper() .. ""
-    button.Parent = GuiElements.MainFrame
-    GuiElements.CategoryButtons[category] = button
-
-    local frame = Instance.new("Frame")
-    frame.Name = category .. "Frame"
-    for prop, value in pairs(LayoutSettings.CategoryFrame) do
-        frame[prop] = value
-    end
-    frame.Parent = GuiElements.MainFrame
-    GuiElements.CategoryFrames[category] = frame
-
-    if category == "Render" then
-    -- Существующий контейнер Player ESP (без изменений)
-    local espContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        espContainer[prop] = value
-    end
-    espContainer.Position = UDim2.new(0, 0, 0, 0)
-    espContainer.Parent = frame
-
-    local espLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        espLabel[prop] = value
-    end
-    espLabel.Text = "Player ESP"
-    espLabel.Parent = espContainer
-
-    local espToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        espToggle[prop] = value
-    end
-    espToggle.Position = UDim2.new(0, 5, 0, 25)
-    espToggle.Text = "ESP: OFF"
-    espToggle.Parent = espContainer
-
-    local colorPickerButton = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ColorPickerButton) do
-        colorPickerButton[prop] = value
-    end
-    colorPickerButton.Position = UDim2.new(0, 110, 0, 25)
-    colorPickerButton.Text = "Color"
-    colorPickerButton.Parent = espContainer
-
-    local colorPickerFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.ColorPickerFrame) do
-        colorPickerFrame[prop] = value
-    end
-    colorPickerFrame.Position = UDim2.new(0, 110, 0, 55)
-    colorPickerFrame.Parent = espContainer
-
-    local colors = {
-        Color3.fromRGB(255, 0, 0),
-        Color3.fromRGB(0, 255, 0),
-        Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0),
-        Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(0, 255, 255),
-        Color3.fromRGB(255, 255, 255),
-        Color3.fromRGB(128, 0, 0),
-        Color3.fromRGB(0, 128, 0),
-        Color3.fromRGB(0, 0, 128)
-    }
-
-    for i, color in ipairs(colors) do
-        local colorButton = Instance.new("TextButton")
-        colorButton.Size = UDim2.new(0, 30, 0, 30)
-        colorButton.Position = UDim2.new(0, ((i-1) % 5) * 35, 0, math.floor((i-1) / 5) * 35)
-        colorButton.BackgroundColor3 = color
-        colorButton.BorderSizePixel = 1
-        colorButton.BorderColor3 = Color3.fromRGB(0, 170, 255)
-        colorButton.Text = ""
-        colorButton.Parent = colorPickerFrame
-        
-        colorButton.MouseButton1Click:Connect(function()
-            ESPState.Color = color
-            colorPickerFrame.Visible = false
-        end)
-    end
-
-    local studsCheck = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.CheckBox) do
-        studsCheck[prop] = value
-    end
-    studsCheck.Position = UDim2.new(0, 5, 0, 55)
-    studsCheck.Text = "Studs: OFF"
-    studsCheck.Parent = espContainer
-
-    local nameCheck = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.CheckBox) do
-        nameCheck[prop] = value
-    end
-    nameCheck.Position = UDim2.new(0, 110, 0, 55)
-    nameCheck.Text = "Name: OFF"
-    nameCheck.Parent = espContainer
-
-    local hpCheck = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.CheckBox) do
-        hpCheck[prop] = value
-    end
-    hpCheck.Position = UDim2.new(0, 215, 0, 55)
-    hpCheck.Text = "HP: OFF"
-    hpCheck.Parent = espContainer
-
-    local weaponCheck = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.CheckBox) do
-        weaponCheck[prop] = value
-    end
-    weaponCheck.Position = UDim2.new(0, 320, 0, 55)
-    weaponCheck.Text = "Weapon: OFF"
-    weaponCheck.Parent = espContainer
-
-    espToggle.MouseButton1Click:Connect(function()
-        ESPState.Enabled = not ESPState.Enabled
-        espToggle.Text = "ESP: " .. (ESPState.Enabled and "ON" or "OFF")
-    end)
-    
-    colorPickerButton.MouseButton1Click:Connect(function()
-        colorPickerFrame.Visible = not colorPickerFrame.Visible
-    end)
-
-    studsCheck.MouseButton1Click:Connect(function()
-        ESPState.Studs = not ESPState.Studs
-        studsCheck.Text = "Studs: " .. (ESPState.Studs and "ON" or "OFF")
-    end)
-    nameCheck.MouseButton1Click:Connect(function()
-        ESPState.Name = not ESPState.Name
-        nameCheck.Text = "Name: " .. (ESPState.Name and "ON" or "OFF")
-    end)
-    hpCheck.MouseButton1Click:Connect(function()
-        ESPState.HP = not ESPState.HP
-        hpCheck.Text = "HP: " .. (ESPState.HP and "ON" or "OFF")
-    end)
-    weaponCheck.MouseButton1Click:Connect(function()
-        ESPState.WeaponEnabled = not ESPState.WeaponEnabled
-        weaponCheck.Text = "Weapon: " .. (ESPState.WeaponEnabled and "ON" or "OFF")
-    end)
-
-    -- Контейнер Object ESP
-    local objectESPContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        objectESPContainer[prop] = value
-    end
-    objectESPContainer.Position = UDim2.new(0, 0, 0, 110)
-    objectESPContainer.Size = UDim2.new(0, 480, 0, 140) -- Увеличиваем высоту для Ore ESP
-    objectESPContainer.Parent = frame
-
-    local objectESPLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        objectESPLabel[prop] = value
-    end
-    objectESPLabel.Text = "Object ESP"
-    objectESPLabel.Parent = objectESPContainer
-
-    local objectESPToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        objectESPToggle[prop] = value
-    end
-    objectESPToggle.Position = UDim2.new(0, 5, 0, 25)
-    objectESPToggle.Text = "Object ESP: OFF"
-    objectESPToggle.Parent = objectESPContainer
-
-    local objectOptions = {"Recycler", "Helicopter", "Cupboard"}
-    for i, objName in ipairs(objectOptions) do
-        local objCheck = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.CheckBox) do
-            objCheck[prop] = value
-        end
-        objCheck.Position = UDim2.new(0, 5 + (i - 1) * 105, 0, 55)
-        objCheck.Text = objName .. ": OFF"
-        objCheck.Parent = objectESPContainer
-
-        objCheck.MouseButton1Click:Connect(function()
-            if ObjectESPState.SelectedObjects[objName] then
-                ObjectESPState.SelectedObjects[objName] = nil
-                objCheck.Text = objName .. ": OFF"
-            else
-                ObjectESPState.SelectedObjects[objName] = true
-                objCheck.Text = objName .. ": ON"
-            end
-        end)
-    end
-
-    objectESPToggle.MouseButton1Click:Connect(function()
-        ObjectESPState.Enabled = not ObjectESPState.Enabled
-        objectESPToggle.Text = "Object ESP: " .. (ObjectESPState.Enabled and "ON" or "OFF")
-    end)
-
-    -- Ore ESP
-    local oreESPToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        oreESPToggle[prop] = value
-    end
-    oreESPToggle.Position = UDim2.new(0, 5, 0, 85)
-    oreESPToggle.Text = "Ore ESP: OFF"
-    oreESPToggle.Parent = objectESPContainer
-
-    local oreOptions = {"Iron", "Stone", "Sulfur"}
-    for i, oreName in ipairs(oreOptions) do
-        local oreCheck = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.CheckBox) do
-            oreCheck[prop] = value
-        end
-        oreCheck.Position = UDim2.new(0, 110 + (i - 1) * 105, 0, 85)
-        oreCheck.Text = oreName .. ": OFF"
-        oreCheck.Parent = objectESPContainer
-
-        oreCheck.MouseButton1Click:Connect(function()
-            if OreESPState.SelectedOres[oreName] then
-                OreESPState.SelectedOres[oreName] = nil
-                oreCheck.Text = oreName .. ": OFF"
-            else
-                OreESPState.SelectedOres[oreName] = true
-                oreCheck.Text = oreName .. ": ON"
-            end
-        end)
-    end
-
-    oreESPToggle.MouseButton1Click:Connect(function()
-        OreESPState.Enabled = not OreESPState.Enabled
-        oreESPToggle.Text = "Ore ESP: " .. (OreESPState.Enabled and "ON" or "OFF")
-    end)
-end
-
-
-if category == "Visuals" then
-    local visualContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        visualContainer[prop] = value
-    end
-    visualContainer.Size = UDim2.new(0, 480, 0, 160)
-    visualContainer.Position = UDim2.new(0, 0, 0, 0)
-    visualContainer.Parent = frame
-
-    local visualLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        visualLabel[prop] = value
-    end
-    visualLabel.Text = "Visual"
-    visualLabel.Parent = visualContainer
-
-    -- View Model Toggle
-    local viewModelToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        viewModelToggle[prop] = value
-    end
-    viewModelToggle.Position = UDim2.new(0, 5, 0, 25)
-    viewModelToggle.Text = "View Model: OFF"
-    viewModelToggle.Parent = visualContainer
-
-    local viewModelFovSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        viewModelFovSliderFrame[prop] = value
-    end
-    viewModelFovSliderFrame.Position = UDim2.new(0, 5, 0, 55)
-    viewModelFovSliderFrame.Parent = visualContainer
-
-    local viewModelFovSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        viewModelFovSliderBar[prop] = value
-    end
-    viewModelFovSliderBar.Parent = viewModelFovSliderFrame
-
-    local viewModelFovSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        viewModelFovSliderKnob[prop] = value
-    end
-    viewModelFovSliderKnob.Position = UDim2.new(0, ((VisualState.FOV - 70) / (120 - 70)) * 150 - 5, 0, 0)
-    viewModelFovSliderKnob.Parent = viewModelFovSliderFrame
-
-    local viewModelFovValueLabel = Instance.new("TextLabel")
-    viewModelFovValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    viewModelFovValueLabel.Position = UDim2.new(0, 160, 0, 55)
-    viewModelFovValueLabel.BackgroundTransparency = 1
-    viewModelFovValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    viewModelFovValueLabel.TextScaled = true
-    viewModelFovValueLabel.Text = tostring(VisualState.FOV)
-    viewModelFovValueLabel.Parent = visualContainer
-
-    -- Jump Circle Toggle
-    local jumpCircleToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        jumpCircleToggle[prop] = value
-    end
-    jumpCircleToggle.Position = UDim2.new(0, 5, 0, 85)
-    jumpCircleToggle.Text = "Jump Circle: OFF"
-    jumpCircleToggle.Parent = visualContainer
-
-    -- Кнопки выбора цвета
-    for i, color in ipairs(VisualState.AvailableColors) do
-        local button = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ToggleButton) do
-            button[prop] = value
-        end
-        button.Size = UDim2.new(0, 80, 0, 20)
-        button.Position = UDim2.new(0, 110 + (i - 1) * 85, 0, 85) -- Все кнопки в ряд
-        button.Text = color
-        button.Parent = visualContainer
-        circleColorButtons[color] = button
-
-        local function updateButtonColor()
-            if VisualState.CircleColor == color then
-                if color == "BlueFade" then
-                    button.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
-                elseif color == "RGBBlue" then
-                    local b = math.sin(tick() * 2) * 127 + 128
-                    button.BackgroundColor3 = Color3.fromRGB(0, 0, b)
-                elseif color == "RGB" then
-                    local r = math.sin(tick() * 2) * 127 + 128
-                    local g = math.sin(tick() * 2 + 2) * 127 + 128
-                    local b = math.sin(tick() * 2 + 4) * 127 + 128
-                    button.BackgroundColor3 = Color3.fromRGB(r, g, b)
-                end
-            else
-                button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-            end
-        end
-
-        button.MouseButton1Click:Connect(function()
-            VisualState.CircleColor = color
-            for _, btn in pairs(circleColorButtons) do
-                btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-            end
-            updateButtonColor()
-        end)
-
-        updateButtonColor()
-    end
-
-    -- Слайдер скорости исчезания
-    local circleSpeedSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        circleSpeedSliderFrame[prop] = value
-    end
-    circleSpeedSliderFrame.Position = UDim2.new(0, 5, 0, 115)
-    circleSpeedSliderFrame.Parent = visualContainer
-
-    local circleSpeedSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        circleSpeedSliderBar[prop] = value
-    end
-    circleSpeedSliderBar.Size = UDim2.new((VisualState.CircleSpeed - 1) / 99, 0, 1, 0)
-    circleSpeedSliderBar.Parent = circleSpeedSliderFrame
-
-    local circleSpeedSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        circleSpeedSliderKnob[prop] = value
-    end
-    circleSpeedSliderKnob.Position = UDim2.new((VisualState.CircleSpeed - 1) / 99, -5, 0, 0)
-    circleSpeedSliderKnob.Parent = circleSpeedSliderFrame
-
-    local circleSpeedValueLabel = Instance.new("TextLabel")
-    circleSpeedValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    circleSpeedValueLabel.Position = UDim2.new(0, 160, 0, 115)
-    circleSpeedValueLabel.BackgroundTransparency = 1
-    circleSpeedValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    circleSpeedValueLabel.TextScaled = true
-    circleSpeedValueLabel.Text = tostring(VisualState.CircleSpeed)
-    circleSpeedValueLabel.Parent = visualContainer
-
-    -- Titles Container
-    local titlesContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        titlesContainer[prop] = value
-    end
-    titlesContainer.Size = UDim2.new(0, 480, 0, 60)
-    titlesContainer.Position = UDim2.new(0, 0, 0, 170)
-    titlesContainer.Parent = frame
-
-    local titlesLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        titlesLabel[prop] = value
-    end
-    titlesLabel.Text = "Titles"
-    titlesLabel.Parent = titlesContainer
-
-    local titlesToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        titlesToggle[prop] = value
-    end
-    titlesToggle.Position = UDim2.new(0, 5, 0, 25)
-    titlesToggle.Text = "Titles: OFF"
-    titlesToggle.Parent = titlesContainer
-
-    local rgbToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        rgbToggle[prop] = value
-    end
-    rgbToggle.Position = UDim2.new(0, 110, 0, 25)
-    rgbToggle.Text = "RGB: OFF"
-    rgbToggle.Parent = titlesContainer
-
-    -- Helper Container
-    local helperContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        helperContainer[prop] = value
-    end
-    helperContainer.Size = UDim2.new(0, 480, 0, 60)
-    helperContainer.Position = UDim2.new(0, 0, 0, 240)
-    helperContainer.Parent = frame
-
-    local helperLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        helperLabel[prop] = value
-    end
-    helperLabel.Text = "Helper"
-    helperLabel.Parent = helperContainer
-
-    local staffOnlineToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        staffOnlineToggle[prop] = value
-    end
-    staffOnlineToggle.Position = UDim2.new(0, 5, 0, 25)
-    staffOnlineToggle.Text = "Staff Online: OFF"
-    staffOnlineToggle.Parent = helperContainer
-
-    -- Обработчики событий для View Model
-    local viewModelFovDragging = false
-    viewModelFovSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            viewModelFovDragging = true
-        end
-    end)
-    viewModelFovSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            viewModelFovDragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            if viewModelFovDragging then
-                local mouseX = input.Position.X
-                local sliderX = viewModelFovSliderFrame.AbsolutePosition.X
-                local sliderWidth = viewModelFovSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                local newFov = 70 + math.floor((relativeX * (120 - 70)) / 5) * 5
-                VisualState.FOV = newFov
-                viewModelFovSliderKnob.Position = UDim2.new((newFov - 70) / (120 - 70), -5, 0, 0)
-                viewModelFovSliderBar.Size = UDim2.new((newFov - 70) / (120 - 70), 0, 1, 0)
-                viewModelFovValueLabel.Text = tostring(VisualState.FOV)
-            end
-        end
-    end)
-
-    viewModelToggle.MouseButton1Click:Connect(function()
-        VisualState.ViewModelEnabled = not VisualState.ViewModelEnabled
-        viewModelToggle.Text = "View Model: " .. (VisualState.ViewModelEnabled and "ON" or "OFF")
-    end)
-
-    -- Обработчики для Jump Circle
-    jumpCircleToggle.MouseButton1Click:Connect(function()
-        VisualState.JumpCircleEnabled = not VisualState.JumpCircleEnabled
-        jumpCircleToggle.Text = "Jump Circle: " .. (VisualState.JumpCircleEnabled and "ON" or "OFF")
-    end)
-
-    local circleSpeedDragging = false
-    circleSpeedSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            circleSpeedDragging = true
-        end
-    end)
-    circleSpeedSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            circleSpeedDragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            if circleSpeedDragging then
-                local mouseX = input.Position.X
-                local sliderX = circleSpeedSliderFrame.AbsolutePosition.X
-                local sliderWidth = circleSpeedSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                local newSpeed = math.floor(relativeX * 99) + 1 -- От 1 до 100
-                VisualState.CircleSpeed = newSpeed
-                circleSpeedSliderKnob.Position = UDim2.new((newSpeed - 1) / 99, -5, 0, 0)
-                circleSpeedSliderBar.Size = UDim2.new((newSpeed - 1) / 99, 0, 1, 0)
-                circleSpeedValueLabel.Text = tostring(VisualState.CircleSpeed)
-            end
-        end
-    end)
-
-    -- Обработчики тогглов (Titles)
-    titlesToggle.MouseButton1Click:Connect(function()
-        TitlesState.Enabled = not TitlesState.Enabled
-        titlesToggle.Text = "Titles: " .. (TitlesState.Enabled and "ON" or "OFF")
-    end)
-
-    rgbToggle.MouseButton1Click:Connect(function()
-        TitlesState.RGBEnabled = not TitlesState.RGBEnabled
-        rgbToggle.Text = "RGB: " .. (TitlesState.RGBEnabled and "ON" or "OFF")
-    end)
-
-    -- Обработчик тоггла Staff Online
-    staffOnlineToggle.MouseButton1Click:Connect(function()
-        StaffOnlineState.Enabled = not StaffOnlineState.Enabled
-        staffOnlineToggle.Text = "Staff Online: " .. (StaffOnlineState.Enabled and "ON" or "OFF")
-    end)
-end
-
-    if category == "Legit" then
-    -- Aimbot Container
-    local aimbotContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        aimbotContainer[prop] = value
-    end
-    aimbotContainer.Size = UDim2.new(0, 480, 0, 210)
-    aimbotContainer.Position = UDim2.new(0, 0, 0, 0)
-    aimbotContainer.Parent = frame
-
-    local aimbotLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        aimbotLabel[prop] = value
-    end
-    aimbotLabel.Text = "Aimbot"
-    aimbotLabel.Parent = aimbotContainer
-
-    local aimbotToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        aimbotToggle[prop] = value
-    end
-    aimbotToggle.Position = UDim2.new(0, 5, 0, 25)
-    aimbotToggle.Text = "Aimbot: OFF"
-    aimbotToggle.Parent = aimbotContainer
-
-    -- Smoothness Slider (1-100%)
-    local smoothnessSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        smoothnessSliderFrame[prop] = value
-    end
-    smoothnessSliderFrame.Position = UDim2.new(0, 110, 0, 25)
-    smoothnessSliderFrame.Parent = aimbotContainer
-
-    local smoothnessSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        smoothnessSliderBar[prop] = value
-    end
-    smoothnessSliderBar.Parent = smoothnessSliderFrame
-
-    local smoothnessSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        smoothnessSliderKnob[prop] = value
-    end
-    smoothnessSliderKnob.Position = UDim2.new(0, (AimbotState.Smoothness / 100) * 150 - 5, 0, 0)
-    smoothnessSliderKnob.Parent = smoothnessSliderFrame
-
-    local smoothnessValueLabel = Instance.new("TextLabel")
-    smoothnessValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    smoothnessValueLabel.Position = UDim2.new(0, 265, 0, 25)
-    smoothnessValueLabel.BackgroundTransparency = 1
-    smoothnessValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    smoothnessValueLabel.TextScaled = true
-    smoothnessValueLabel.Text = tostring(AimbotState.Smoothness) .. "%"
-    smoothnessValueLabel.Parent = aimbotContainer
-
-    -- Skip Wall Toggle
-    local skipWallToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        skipWallToggle[prop] = value
-    end
-    skipWallToggle.Position = UDim2.new(0, 5, 0, 55)
-    skipWallToggle.Text = "Skip Wall: OFF"
-    skipWallToggle.Parent = aimbotContainer
-
-    -- FOV Toggle (Aimbot)
-    local aimbotFovToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        aimbotFovToggle[prop] = value
-    end
-    aimbotFovToggle.Position = UDim2.new(0, 110, 0, 55)
-    aimbotFovToggle.Text = "FOV: OFF"
-    aimbotFovToggle.Parent = aimbotContainer
-
-    -- FOV Size Slider (Aimbot)
-    local aimbotFovSizeSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        aimbotFovSizeSliderFrame[prop] = value
-    end
-    aimbotFovSizeSliderFrame.Position = UDim2.new(0, 215, 0, 55)
-    aimbotFovSizeSliderFrame.Parent = aimbotContainer
-
-    local aimbotFovSizeSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        aimbotFovSizeSliderBar[prop] = value
-    end
-    aimbotFovSizeSliderBar.Parent = aimbotFovSizeSliderFrame
-
-    local aimbotFovSizeSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        aimbotFovSizeSliderKnob[prop] = value
-    end
-    aimbotFovSizeSliderKnob.Position = UDim2.new(0, (AimbotState.FOVSize / 700) * 150 - 5, 0, 0)
-    aimbotFovSizeSliderKnob.Parent = aimbotFovSizeSliderFrame
-
-    local aimbotFovSizeValueLabel = Instance.new("TextLabel")
-    aimbotFovSizeValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    aimbotFovSizeValueLabel.Position = UDim2.new(0, 370, 0, 55)
-    aimbotFovSizeValueLabel.BackgroundTransparency = 1
-    aimbotFovSizeValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    aimbotFovSizeValueLabel.TextScaled = true
-    aimbotFovSizeValueLabel.Text = tostring(AimbotState.FOVSize)
-    aimbotFovSizeValueLabel.Parent = aimbotContainer
-
-    -- Snapline Toggle (Aimbot)
-    local aimbotSnaplineToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        aimbotSnaplineToggle[prop] = value
-    end
-    aimbotSnaplineToggle.Position = UDim2.new(0, 5, 0, 85)
-    aimbotSnaplineToggle.Text = "Snapline: OFF"
-    aimbotSnaplineToggle.Parent = aimbotContainer
-
-    -- Radius Slider (Aimbot)
-    local radiusSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        radiusSliderFrame[prop] = value
-    end
-    radiusSliderFrame.Position = UDim2.new(0, 110, 0, 85)
-    radiusSliderFrame.Parent = aimbotContainer
-
-    local radiusSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        radiusSliderBar[prop] = value
-    end
-    radiusSliderBar.Parent = radiusSliderFrame
-
-    local radiusSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        radiusSliderKnob[prop] = value
-    end
-    radiusSliderKnob.Position = UDim2.new(0, ((AimbotState.Radius - 20) / (100 - 20)) * 150 - 5, 0, 0)
-    radiusSliderKnob.Parent = radiusSliderFrame
-
-    local radiusValueLabel = Instance.new("TextLabel")
-    radiusValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    radiusValueLabel.Position = UDim2.new(0, 265, 0, 85)
-    radiusValueLabel.BackgroundTransparency = 1
-    radiusValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    radiusValueLabel.TextScaled = true
-    radiusValueLabel.Text = tostring(AimbotState.Radius)
-    radiusValueLabel.Parent = aimbotContainer
-
-    -- Bind Type Toggle (Aimbot)
-    local bindTypeToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        bindTypeToggle[prop] = value
-    end
-    bindTypeToggle.Position = UDim2.new(0, 5, 0, 115)
-    bindTypeToggle.Text = "Bind: " .. AimbotState.BindType
-    bindTypeToggle.Parent = aimbotContainer
-
-    -- Bind Selection Button (Aimbot)
-    local bindSelectButton = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        bindSelectButton[prop] = value
-    end
-    bindSelectButton.Position = UDim2.new(0, 110, 0, 115)
-    bindSelectButton.Text = AimbotState.BindType == "Mouse" and "RMB" or AimbotState.KeyBind.Name
-    bindSelectButton.Parent = aimbotContainer
-
-    -- Target Part Toggle (Aimbot)
-    local aimbotTargetPartToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        aimbotTargetPartToggle[prop] = value
-    end
-    aimbotTargetPartToggle.Position = UDim2.new(0, 5, 0, 145)
-    aimbotTargetPartToggle.Text = "Target: " .. AimbotState.TargetPart
-    aimbotTargetPartToggle.Parent = aimbotContainer
-
-    -- Silent Aim Container
-    local silentAimContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        silentAimContainer[prop] = value
-    end
-    silentAimContainer.Size = UDim2.new(0, 480, 0, 150)
-    silentAimContainer.Position = UDim2.new(0, 0, 0, 220)
-    silentAimContainer.Parent = frame
-
-    local silentAimLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        silentAimLabel[prop] = value
-    end
-    silentAimLabel.Text = "Silent Aim"
-    silentAimLabel.Parent = silentAimContainer
-
-    local silentAimToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        silentAimToggle[prop] = value
-    end
-    silentAimToggle.Position = UDim2.new(0, 5, 0, 25)
-    silentAimToggle.Text = "Silent Aim: OFF"
-    silentAimToggle.Parent = silentAimContainer
-
-    -- FOV Toggle (Silent Aim)
-    local silentFovToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        silentFovToggle[prop] = value
-    end
-    silentFovToggle.Position = UDim2.new(0, 5, 0, 55)
-    silentFovToggle.Text = "FOV: OFF"
-    silentFovToggle.Parent = silentAimContainer
-
-    -- FOV Size Slider (Silent Aim)
-    local silentFovSizeSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        silentFovSizeSliderFrame[prop] = value
-    end
-    silentFovSizeSliderFrame.Position = UDim2.new(0, 110, 0, 55)
-    silentFovSizeSliderFrame.Parent = silentAimContainer
-
-    local silentFovSizeSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        silentFovSizeSliderBar[prop] = value
-    end
-    silentFovSizeSliderBar.Parent = silentFovSizeSliderFrame
-
-    local silentFovSizeSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        silentFovSizeSliderKnob[prop] = value
-    end
-    silentFovSizeSliderKnob.Position = UDim2.new(0, (SilentAimState.FOVSize / 700) * 150 - 5, 0, 0)
-    silentFovSizeSliderKnob.Parent = silentFovSizeSliderFrame
-
-    local silentFovSizeValueLabel = Instance.new("TextLabel")
-    silentFovSizeValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    silentFovSizeValueLabel.Position = UDim2.new(0, 265, 0, 55)
-    silentFovSizeValueLabel.BackgroundTransparency = 1
-    silentFovSizeValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    silentFovSizeValueLabel.TextScaled = true
-    silentFovSizeValueLabel.Text = tostring(SilentAimState.FOVSize)
-    silentFovSizeValueLabel.Parent = silentAimContainer
-
-    -- Snapline Toggle (Silent Aim)
-    local silentSnaplineToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        silentSnaplineToggle[prop] = value
-    end
-    silentSnaplineToggle.Position = UDim2.new(0, 5, 0, 85)
-    silentSnaplineToggle.Text = "Snapline: OFF"
-    silentSnaplineToggle.Parent = silentAimContainer
-
-    -- Target Part Toggle (Silent Aim)
-    local silentTargetPartToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        silentTargetPartToggle[prop] = value
-    end
-    silentTargetPartToggle.Position = UDim2.new(0, 110, 0, 85)
-    silentTargetPartToggle.Text = "Target: " .. SilentAimState.TargetPart
-    silentTargetPartToggle.Parent = silentAimContainer
-
-    -- Hitbox Expander Container
-    local hitboxExpanderContainer = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.Container) do
-        hitboxExpanderContainer[prop] = value
-    end
-    hitboxExpanderContainer.Size = UDim2.new(0, 480, 0, 150)
-    hitboxExpanderContainer.Position = UDim2.new(0, 0, 0, 380) -- Ниже Silent Aim
-    hitboxExpanderContainer.Parent = frame
-
-    local hitboxExpanderLabel = Instance.new("TextLabel")
-    for prop, value in pairs(LayoutSettings.ContainerLabel) do
-        hitboxExpanderLabel[prop] = value
-    end
-    hitboxExpanderLabel.Text = "Hitbox Expander"
-    hitboxExpanderLabel.Parent = hitboxExpanderContainer
-
-    local hitboxExpanderToggle = Instance.new("TextButton")
-    for prop, value in pairs(LayoutSettings.ToggleButton) do
-        hitboxExpanderToggle[prop] = value
-    end
-    hitboxExpanderToggle.Position = UDim2.new(0, 5, 0, 25)
-    hitboxExpanderToggle.Text = "Hitbox Expander: OFF"
-    hitboxExpanderToggle.Parent = hitboxExpanderContainer
-
-    -- Size Slider (1-8 studs)
-    local hitboxSizeSliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        hitboxSizeSliderFrame[prop] = value
-    end
-    hitboxSizeSliderFrame.Position = UDim2.new(0, 5, 0, 55)
-    hitboxSizeSliderFrame.Parent = hitboxExpanderContainer
-
-    local hitboxSizeSliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        hitboxSizeSliderBar[prop] = value
-    end
-    hitboxSizeSliderBar.Parent = hitboxSizeSliderFrame
-
-    local hitboxSizeSliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        hitboxSizeSliderKnob[prop] = value
-    end
-    hitboxSizeSliderKnob.Position = UDim2.new(0, ((HitboxExpanderState.Size - 1) / (8 - 1)) * 150 - 5, 0, 0)
-    hitboxSizeSliderKnob.Parent = hitboxSizeSliderFrame
-
-    local hitboxSizeValueLabel = Instance.new("TextLabel")
-    hitboxSizeValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    hitboxSizeValueLabel.Position = UDim2.new(0, 160, 0, 55)
-    hitboxSizeValueLabel.BackgroundTransparency = 1
-    hitboxSizeValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hitboxSizeValueLabel.TextScaled = true
-    hitboxSizeValueLabel.Text = tostring(HitboxExpanderState.Size) .. " studs"
-    hitboxSizeValueLabel.Parent = hitboxExpanderContainer
-
-    -- Transparency Slider (0-1)
-    local hitboxTransparencySliderFrame = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderFrame) do
-        hitboxTransparencySliderFrame[prop] = value
-    end
-    hitboxTransparencySliderFrame.Position = UDim2.new(0, 5, 0, 85)
-    hitboxTransparencySliderFrame.Parent = hitboxExpanderContainer
-
-    local hitboxTransparencySliderBar = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderBar) do
-        hitboxTransparencySliderBar[prop] = value
-    end
-    hitboxTransparencySliderBar.Parent = hitboxTransparencySliderFrame
-
-    local hitboxTransparencySliderKnob = Instance.new("Frame")
-    for prop, value in pairs(LayoutSettings.SliderKnob) do
-        hitboxTransparencySliderKnob[prop] = value
-    end
-    hitboxTransparencySliderKnob.Position = UDim2.new(0, (HitboxExpanderState.Transparency) * 150 - 5, 0, 0)
-    hitboxTransparencySliderKnob.Parent = hitboxTransparencySliderFrame
-
-    local hitboxTransparencyValueLabel = Instance.new("TextLabel")
-    hitboxTransparencyValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    hitboxTransparencyValueLabel.Position = UDim2.new(0, 160, 0, 85)
-    hitboxTransparencyValueLabel.BackgroundTransparency = 1
-    hitboxTransparencyValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hitboxTransparencyValueLabel.TextScaled = true
-    hitboxTransparencyValueLabel.Text = tostring(HitboxExpanderState.Transparency)
-    hitboxTransparencyValueLabel.Parent = hitboxExpanderContainer
-
-    -- Обработчики событий для Aimbot
-    local smoothnessDragging = false
-    smoothnessSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            smoothnessDragging = true
-        end
-    end)
-    smoothnessSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            smoothnessDragging = false
-        end
-    end)
-
-    local aimbotRadiusDragging = false
-    radiusSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            aimbotRadiusDragging = true
-        end
-    end)
-    radiusSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            aimbotRadiusDragging = false
-        end
-    end)
-
-    local aimbotFovSizeDragging = false
-    aimbotFovSizeSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            aimbotFovSizeDragging = true
-        end
-    end)
-    aimbotFovSizeSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            aimbotFovSizeDragging = false
-        end
-    end)
-
-    -- Обработчики событий для Silent Aim
-    local silentFovSizeDragging = false
-    silentFovSizeSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            silentFovSizeDragging = true
-        end
-    end)
-    silentFovSizeSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            silentFovSizeDragging = false
-        end
-    end)
-
-    -- Обработчики событий для Hitbox Expander
-    local hitboxSizeDragging = false
-    hitboxSizeSliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            hitboxSizeDragging = true
-        end
-    end)
-    hitboxSizeSliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            hitboxSizeDragging = false
-        end
-    end)
-
-    local hitboxTransparencyDragging = false
-    hitboxTransparencySliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            hitboxTransparencyDragging = true
-        end
-    end)
-    hitboxTransparencySliderKnob.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            hitboxTransparencyDragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            if smoothnessDragging then
-                local mouseX = input.Position.X
-                local sliderX = smoothnessSliderFrame.AbsolutePosition.X
-                local sliderWidth = smoothnessSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                AimbotState.Smoothness = math.floor(1 + (relativeX * (100 - 1)))
-                smoothnessSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                smoothnessSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                smoothnessValueLabel.Text = tostring(AimbotState.Smoothness) .. "%"
-            elseif aimbotRadiusDragging then
-                local mouseX = input.Position.X
-                local sliderX = radiusSliderFrame.AbsolutePosition.X
-                local sliderWidth = radiusSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                AimbotState.Radius = math.floor(20 + (relativeX * (100 - 20)))
-                radiusSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                radiusSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                radiusValueLabel.Text = tostring(AimbotState.Radius)
-            elseif aimbotFovSizeDragging then
-                local mouseX = input.Position.X
-                local sliderX = aimbotFovSizeSliderFrame.AbsolutePosition.X
-                local sliderWidth = aimbotFovSizeSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                AimbotState.FOVSize = math.floor(1 + (relativeX * (700 - 1)))
-                aimbotFovSizeSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                aimbotFovSizeSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                aimbotFovSizeValueLabel.Text = tostring(AimbotState.FOVSize)
-            elseif silentFovSizeDragging then
-                local mouseX = input.Position.X
-                local sliderX = silentFovSizeSliderFrame.AbsolutePosition.X
-                local sliderWidth = silentFovSizeSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                SilentAimState.FOVSize = math.floor(1 + (relativeX * (700 - 1)))
-                silentFovSizeSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                silentFovSizeSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                silentFovSizeValueLabel.Text = tostring(SilentAimState.FOVSize)
-            elseif hitboxSizeDragging then
-                local mouseX = input.Position.X
-                local sliderX = hitboxSizeSliderFrame.AbsolutePosition.X
-                local sliderWidth = hitboxSizeSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                HitboxExpanderState.Size = math.floor(1 + (relativeX * (8 - 1)))
-                hitboxSizeSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                hitboxSizeSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                hitboxSizeValueLabel.Text = tostring(HitboxExpanderState.Size) .. " studs"
-            elseif hitboxTransparencyDragging then
-                local mouseX = input.Position.X
-                local sliderX = hitboxTransparencySliderFrame.AbsolutePosition.X
-                local sliderWidth = hitboxTransparencySliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                HitboxExpanderState.Transparency = math.floor(relativeX * 100) / 100 -- Округление до 2 знаков
-                hitboxTransparencySliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                hitboxTransparencySliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                hitboxTransparencyValueLabel.Text = tostring(HitboxExpanderState.Transparency)
-            end
-        end
-    end)
-
-    -- Переключение типа бинда (Aimbot)
-    bindTypeToggle.MouseButton1Click:Connect(function()
-        AimbotState.BindType = AimbotState.BindType == "Mouse" and "Key" or "Mouse"
-        bindTypeToggle.Text = "Bind: " .. AimbotState.BindType
-        bindSelectButton.Text = AimbotState.BindType == "Mouse" and "RMB" or AimbotState.KeyBind.Name
-    end)
-
-    -- Выбор бинда (Aimbot)
-    local waitingForBind = false
-    bindSelectButton.MouseButton1Click:Connect(function()
-        if waitingForBind then return end
-        waitingForBind = true
-        bindSelectButton.Text = "Press a key/mouse..."
-        
-        local connection
-        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if AimbotState.BindType == "Mouse" and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.MouseButton3) then
-                AimbotState.MouseBind = input.UserInputType
-                bindSelectButton.Text = input.UserInputType == Enum.UserInputType.MouseButton1 and "LMB" or input.UserInputType == Enum.UserInputType.MouseButton2 and "RMB" or "MMB"
-            elseif AimbotState.BindType == "Key" and input.KeyCode ~= Enum.KeyCode.Unknown then
-                AimbotState.KeyBind = input.KeyCode
-                bindSelectButton.Text = input.KeyCode.Name
-            end
-            waitingForBind = false
-            connection:Disconnect()
-        end)
-    end)
-
-    -- Переключение части тела (Aimbot)
-    aimbotTargetPartToggle.MouseButton1Click:Connect(function()
-        AimbotState.TargetPart = AimbotState.TargetPart == "Head" and "Body" or "Head"
-        aimbotTargetPartToggle.Text = "Target: " .. AimbotState.TargetPart
-    end)
-
-    -- Обработчики тогглов (Aimbot)
-    aimbotToggle.MouseButton1Click:Connect(function()
-        AimbotState.Enabled = not AimbotState.Enabled
-        aimbotToggle.Text = "Aimbot: " .. (AimbotState.Enabled and "ON" or "OFF")
-    end)
-
-    skipWallToggle.MouseButton1Click:Connect(function()
-        AimbotState.SkipWall = not AimbotState.SkipWall
-        skipWallToggle.Text = "Skip Wall: " .. (AimbotState.SkipWall and "ON" or "OFF")
-    end)
-
-    aimbotFovToggle.MouseButton1Click:Connect(function()
-        AimbotState.FOVEnabled = not AimbotState.FOVEnabled
-        aimbotFovToggle.Text = "FOV: " .. (AimbotState.FOVEnabled and "ON" or "OFF")
-    end)
-
-    aimbotSnaplineToggle.MouseButton1Click:Connect(function()
-        AimbotState.SnaplineEnabled = not AimbotState.SnaplineEnabled
-        aimbotSnaplineToggle.Text = "Snapline: " .. (AimbotState.SnaplineEnabled and "ON" or "OFF")
-    end)
-
-    -- Обработчики тогглов (Silent Aim)
-    silentAimToggle.MouseButton1Click:Connect(function()
-        SilentAimState.Enabled = not SilentAimState.Enabled
-        silentAimToggle.Text = "Silent Aim: " .. (SilentAimState.Enabled and "ON" or "OFF")
-    end)
-
-    silentFovToggle.MouseButton1Click:Connect(function()
-        SilentAimState.FOVEnabled = not SilentAimState.FOVEnabled
-        silentFovToggle.Text = "FOV: " .. (SilentAimState.FOVEnabled and "ON" or "OFF")
-    end)
-
-    silentSnaplineToggle.MouseButton1Click:Connect(function()
-        SilentAimState.SnaplineEnabled = not SilentAimState.SnaplineEnabled
-        silentSnaplineToggle.Text = "Snapline: " .. (SilentAimState.SnaplineEnabled and "ON" or "OFF")
-    end)
-
-    silentTargetPartToggle.MouseButton1Click:Connect(function()
-        SilentAimState.TargetPart = SilentAimState.TargetPart == "Head" and "Body" or "Head"
-        silentTargetPartToggle.Text = "Target: " .. SilentAimState.TargetPart
-    end)
-
-    -- Обработчики тогглов (Hitbox Expander)
-    hitboxExpanderToggle.MouseButton1Click:Connect(function()
-        HitboxExpanderState.Enabled = not HitboxExpanderState.Enabled
-        hitboxExpanderToggle.Text = "Hitbox Expander: " .. (HitboxExpanderState.Enabled and "ON" or "OFF")
-    end)
-end
-
-    if category == "Misc" then
-        -- Speed Hack Container
-        local speedContainer = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.Container) do
-            speedContainer[prop] = value
-        end
-        speedContainer.Position = UDim2.new(0, 0, 0, 0)
-        speedContainer.Parent = frame
-
-        local speedLabel = Instance.new("TextLabel")
-        for prop, value in pairs(LayoutSettings.ContainerLabel) do
-            speedLabel[prop] = value
-        end
-        speedLabel.Text = "Speed Hack"
-        speedLabel.Parent = speedContainer
-
-        local speedToggle = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ToggleButton) do
-            speedToggle[prop] = value
-        end
-        speedToggle.Position = UDim2.new(0, 5, 0, 25)
-        speedToggle.Text = "Speed: OFF"
-        speedToggle.Parent = speedContainer
-
-        local speedSliderFrame = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderFrame) do
-            speedSliderFrame[prop] = value
-        end
-        speedSliderFrame.Position = UDim2.new(0, 110, 0, 25)
-        speedSliderFrame.Parent = speedContainer
-
-        local speedSliderBar = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderBar) do
-            speedSliderBar[prop] = value
-        end
-        speedSliderBar.Parent = speedSliderFrame
-
-        local speedSliderKnob = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderKnob) do
-            speedSliderKnob[prop] = value
-        end
-        speedSliderKnob.Position = UDim2.new(0, 0, 0, 0)
-        speedSliderKnob.Parent = speedSliderFrame
-
-        local speedValueLabel = Instance.new("TextLabel")
-        speedValueLabel.Size = UDim2.new(0, 50, 0, 20)
-        speedValueLabel.Position = UDim2.new(0, 265, 0, 25)
-        speedValueLabel.BackgroundTransparency = 1
-        speedValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        speedValueLabel.TextScaled = true
-        speedValueLabel.Text = tostring(SpeedState.Value)
-        speedValueLabel.Parent = speedContainer
-
-        local speedDragging = false
-        speedSliderKnob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                speedDragging = true
-            end
-        end)
-
-        speedSliderKnob.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                speedDragging = false
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if speedDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local mouseX = input.Position.X
-                local sliderX = speedSliderFrame.AbsolutePosition.X
-                local sliderWidth = speedSliderFrame.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                
-                SpeedState.Value = math.floor(20 + (relativeX * (60 - 20)))
-                speedSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                speedSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                speedValueLabel.Text = tostring(SpeedState.Value)
-                
-                if SpeedState.Enabled then
-                    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = SpeedState.Value
-                    end
-                end
-            end
-        end)
-
-        speedToggle.MouseButton1Click:Connect(function()
-            SpeedState.Enabled = not SpeedState.Enabled
-            speedToggle.Text = "Speed: " .. (SpeedState.Enabled and "ON" or "OFF")
-            
-            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = SpeedState.Enabled and SpeedState.Value or SpeedState.DefaultSpeed
-            end
-        end)
-
-        -- Fly Container
-        local flyContainer = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.Container) do
-            flyContainer[prop] = value
-        end
-        flyContainer.Position = UDim2.new(0, 0, 0, 110)
-        flyContainer.Parent = frame
-
-        local flyLabel = Instance.new("TextLabel")
-        for prop, value in pairs(LayoutSettings.ContainerLabel) do
-            flyLabel[prop] = value
-        end
-        flyLabel.Text = "Fly Hack"
-        flyLabel.Parent = flyContainer
-
-        local flyToggle = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ToggleButton) do
-            flyToggle[prop] = value
-        end
-        flyToggle.Position = UDim2.new(0, 5, 0, 25)
-        flyToggle.Text = "Fly: OFF"
-        flyToggle.Parent = flyContainer
-
-        local flyWalkSliderFrame = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderFrame) do
-            flyWalkSliderFrame[prop] = value
-        end
-        flyWalkSliderFrame.Position = UDim2.new(0, 110, 0, 25)
-        flyWalkSliderFrame.Parent = flyContainer
-
-        local flyWalkSliderBar = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderBar) do
-            flyWalkSliderBar[prop] = value
-        end
-        flyWalkSliderBar.Parent = flyWalkSliderFrame
-
-        local flyWalkSliderKnob = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderKnob) do
-            flyWalkSliderKnob[prop] = value
-        end
-        flyWalkSliderKnob.Position = UDim2.new(0, 0, 0, 0)
-        flyWalkSliderKnob.Parent = flyWalkSliderFrame
-
-        local flyWalkValueLabel = Instance.new("TextLabel")
-        flyWalkValueLabel.Size = UDim2.new(0, 50, 0, 20)
-        flyWalkValueLabel.Position = UDim2.new(0, 265, 0, 25)
-        flyWalkValueLabel.BackgroundTransparency = 1
-        flyWalkValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        flyWalkValueLabel.TextScaled = true
-        flyWalkValueLabel.Text = tostring(FlyState.WalkSpeed)
-        flyWalkValueLabel.Parent = flyContainer
-
-        local flyVerticalSliderFrame = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderFrame) do
-            flyVerticalSliderFrame[prop] = value
-        end
-        flyVerticalSliderFrame.Position = UDim2.new(0, 110, 0, 55)
-        flyVerticalSliderFrame.Parent = flyContainer
-
-        local flyVerticalSliderBar = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderBar) do
-            flyVerticalSliderBar[prop] = value
-        end
-        flyVerticalSliderBar.Parent = flyVerticalSliderFrame
-
-        local flyVerticalSliderKnob = Instance.new("Frame")
-        for prop, value in pairs(LayoutSettings.SliderKnob) do
-            flyVerticalSliderKnob[prop] = value
-        end
-        flyVerticalSliderKnob.Position = UDim2.new(0, 0, 0, 0)
-        flyVerticalSliderKnob.Parent = flyVerticalSliderFrame
-
-        local flyVerticalValueLabel = Instance.new("TextLabel")
-        flyVerticalValueLabel.Size = UDim2.new(0, 50, 0, 20)
-        flyVerticalValueLabel.Position = UDim2.new(0, 265, 0, 55)
-        flyVerticalValueLabel.BackgroundTransparency = 1
-        flyVerticalValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        flyVerticalValueLabel.TextScaled = true
-        flyVerticalValueLabel.Text = tostring(FlyState.VerticalSpeed)
-        flyVerticalValueLabel.Parent = flyContainer
-
-        local flyModeToggle = Instance.new("TextButton")
-        for prop, value in pairs(LayoutSettings.ToggleButton) do
-            flyModeToggle[prop] = value
-        end
-        flyModeToggle.Position = UDim2.new(0, 5, 0, 55)
-        flyModeToggle.Text = "Mode: " .. FlyState.Mode
-        flyModeToggle.Parent = flyContainer
-
-        local flyWalkDragging = false
-        flyWalkSliderKnob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                flyWalkDragging = true
-            end
-        end)
-
-        flyWalkSliderKnob.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                flyWalkDragging = false
-            end
-        end)
-
-        local flyVerticalDragging = false
-        flyVerticalSliderKnob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                flyVerticalDragging = true
-            end
-        end)
-
-        flyVerticalSliderKnob.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                flyVerticalDragging = false
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement then
-                if flyWalkDragging then
-                    local mouseX = input.Position.X
-                    local sliderX = flyWalkSliderFrame.AbsolutePosition.X
-                    local sliderWidth = flyWalkSliderFrame.AbsoluteSize.X
-                    local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                    
-                    FlyState.WalkSpeed = math.floor(20 + (relativeX * (60 - 20)))
-                    flyWalkSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                    flyWalkSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                    flyWalkValueLabel.Text = tostring(FlyState.WalkSpeed)
-                end
-                if flyVerticalDragging then
-                    local mouseX = input.Position.X
-                    local sliderX = flyVerticalSliderFrame.AbsolutePosition.X
-                    local sliderWidth = flyVerticalSliderFrame.AbsoluteSize.X
-                    local relativeX = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1)
-                    
-                    FlyState.VerticalSpeed = math.floor(20 + (relativeX * (100 - 20)))
-                    flyVerticalSliderKnob.Position = UDim2.new(relativeX, -5, 0, 0)
-                    flyVerticalSliderBar.Size = UDim2.new(relativeX, 0, 1, 0)
-                    flyVerticalValueLabel.Text = tostring(FlyState.VerticalSpeed)
-                end
-            end
-        end)
-
-        flyModeToggle.MouseButton1Click:Connect(function()
-            FlyState.Mode = FlyState.Mode == "FreeFly" and "Platform" or "FreeFly"
-            flyModeToggle.Text = "Mode: " .. FlyState.Mode
-        end)
-
-        flyToggle.MouseButton1Click:Connect(function()
-            FlyState.Enabled = not FlyState.Enabled
-            flyToggle.Text = "Fly: " .. (FlyState.Enabled and "ON" or "OFF")
-        end)
-
-        LocalPlayer.CharacterAdded:Connect(function(character)
-            local humanoid = character:WaitForChild("Humanoid", 5)
-            local rootPart = character:WaitForChild("HumanoidRootPart", 5)
-            if not humanoid or not rootPart then return end
-            
-            if SpeedState.Enabled then
-                humanoid.WalkSpeed = SpeedState.Value
-            end
-        end)
-    end
-
-    button.MouseButton1Click:Connect(function()
-        if CategoryState.SelectedCategory and GuiElements.CategoryButtons[CategoryState.SelectedCategory] then
-            GuiElements.CategoryButtons[CategoryState.SelectedCategory].BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        end
-        button.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
-        CategoryState.SelectedCategory = category
-        for cat, frm in pairs(GuiElements.CategoryFrames) do
-            frm.Visible = (cat == category)
-        end
-    end)
-end
-
--- Создание кнопки Unhook
-GuiElements.UnhookButton = Instance.new("TextButton")
-for prop, value in pairs(LayoutSettings.UnhookButton) do
-    GuiElements.UnhookButton[prop] = value
-end
-GuiElements.UnhookButton.Parent = GuiElements.MainFrame
-
-GuiElements.UnhookButton.MouseButton1Click:Connect(function()
-    GuiElements.ScreenGui:Destroy()
-    for k, v in pairs(GuiElements) do GuiElements[k] = nil end
-    for k, v in pairs(LayoutSettings) do LayoutSettings[k] = nil end
-    for k, v in pairs(CategoryState) do CategoryState[k] = nil end
-    for k, v in pairs(ESPState) do ESPState[k] = nil end
-    for k, v in pairs(SpeedState) do SpeedState[k] = nil end
-    for k, v in pairs(FlyState) do FlyState[k] = nil end
-    UserInputService.InputBegan:Disconnect()
-    UserInputService.InputChanged:Disconnect()
+Toggles.AimbotEnabled:OnChanged(function()
+    AimbotState.Enabled = Toggles.AimbotEnabled.Value
+    Library:Notify("Aimbot " .. (AimbotState.Enabled and "включён" or "выключен"))
 end)
 
--- Логика Fly
+LegitGroup:AddDropdown("AimbotTargetPart", {
+    Text = "Целевая часть",
+    Default = AimbotState.TargetPart,
+    Values = {"Head", "Body"},
+    Tooltip = "Выберите часть тела для прицеливания"
+})
+Options.AimbotTargetPart:OnChanged(function()
+    AimbotState.TargetPart = Options.AimbotTargetPart.Value
+end)
+
+LegitGroup:AddSlider("AimbotRadius", {
+    Text = "Радиус действия",
+    Default = AimbotState.Radius,
+    Min = 20,
+    Max = 100,
+    Rounding = 0,
+    Tooltip = "Радиус поиска цели (20-100)"
+})
+Options.AimbotRadius:OnChanged(function()
+    AimbotState.Radius = Options.AimbotRadius.Value
+end)
+
+LegitGroup:AddSlider("AimbotSmoothness", {
+    Text = "Плавность наводки",
+    Default = AimbotState.Smoothness,
+    Min = 1,
+    Max = 100,
+    Rounding = 0,
+    Tooltip = "Скорость наводки (1-100%)"
+})
+Options.AimbotSmoothness:OnChanged(function()
+    AimbotState.Smoothness = Options.AimbotSmoothness.Value
+end)
+
+LegitGroup:AddToggle("AimbotSkipWall", {
+    Text = "Пропускать стены",
+    Default = AimbotState.SkipWall,
+    Tooltip = "Игнорировать стены при наводке"
+})
+Toggles.AimbotSkipWall:OnChanged(function()
+    AimbotState.SkipWall = Toggles.AimbotSkipWall.Value
+end)
+
+LegitGroup:AddToggle("AimbotFOVEnabled", {
+    Text = "Включить FOV",
+    Default = AimbotState.FOVEnabled,
+    Tooltip = "Ограничивать зону действия FOV"
+})
+Toggles.AimbotFOVEnabled:OnChanged(function()
+    AimbotState.FOVEnabled = Toggles.AimbotFOVEnabled.Value
+end)
+
+LegitGroup:AddSlider("AimbotFOVSize", {
+    Text = "Размер FOV",
+    Default = AimbotState.FOVSize,
+    Min = 1,
+    Max = 700,
+    Rounding = 0,
+    Tooltip = "Размер поля зрения (1-700)"
+})
+Options.AimbotFOVSize:OnChanged(function()
+    AimbotState.FOVSize = Options.AimbotFOVSize.Value
+end)
+
+LegitGroup:AddToggle("AimbotSnaplineEnabled", {
+    Text = "Включить Snapline",
+    Default = AimbotState.SnaplineEnabled,
+    Tooltip = "Показывать линию к цели"
+})
+Toggles.AimbotSnaplineEnabled:OnChanged(function()
+    AimbotState.SnaplineEnabled = Toggles.AimbotSnaplineEnabled.Value
+end)
+
+LegitGroup:AddDropdown("AimbotBindType", {
+    Text = "Тип бинда",
+    Default = AimbotState.BindType,
+    Values = {"Mouse", "Key"},
+    Tooltip = "Выберите тип бинда: мышь или клавиша"
+})
+Options.AimbotBindType:OnChanged(function()
+    AimbotState.BindType = Options.AimbotBindType.Value
+end)
+
+LegitGroup:AddButton({
+    Text = "Назначить бинд Aimbot",
+    Func = function()
+        Library:Notify("Нажми клавишу или кнопку мыши чтобы забиндить Aimbot")
+        task.wait(0.1) -- Небольшая задержка для отображения уведомления
+        local binding = true
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if binding then
+                if AimbotState.BindType == "Key" and input.UserInputType == Enum.UserInputType.Keyboard then
+                    AimbotState.KeyBind = input.KeyCode
+                    Library:Notify("Бинд Aimbot установлен: " .. input.KeyCode.Name)
+                elseif AimbotState.BindType == "Mouse" and 
+                       (input.UserInputType == Enum.UserInputType.MouseButton1 or 
+                        input.UserInputType == Enum.UserInputType.MouseButton2 or 
+                        input.UserInputType == Enum.UserInputType.MouseButton3) then
+                    AimbotState.MouseBind = input.UserInputType
+                    Library:Notify("Бинд Aimbot установлен: " .. input.UserInputType.Name)
+                end
+                binding = false
+                connection:Disconnect()
+            end
+        end)
+    end,
+    Tooltip = "Назначить бинд для активации Aimbot"
+})
+
+LegitGroup:AddButton({
+    Text = "Удалить бинд Aimbot",
+    Func = function()
+        if AimbotState.BindType == "Mouse" then
+            AimbotState.MouseBind = nil
+        else
+            AimbotState.KeyBind = nil
+        end
+        Library:Notify("Бинд Aimbot удалён")
+    end,
+    Tooltip = "Удаляет текущий бинд Aimbot"
+})
+
+-- UI для Rage
+local RageGroup = Tabs.Legit:AddRightGroupbox("Rage Hacks")
+
+-- Silent Aim
+RageGroup:AddToggle("SilentAimEnabled", {
+    Text = "Silent Aim",
+    Default = SilentAimState.Enabled,
+    Tooltip = "Тихо наводит на цель при стрельбе"
+})
+Toggles.SilentAimEnabled:OnChanged(function()
+    SilentAimState.Enabled = Toggles.SilentAimEnabled.Value
+    Library:Notify("Silent Aim " .. (SilentAimState.Enabled and "включён" or "выключен"))
+end)
+
+RageGroup:AddDropdown("SilentAimTargetPart", {
+    Text = "Целевая часть",
+    Default = SilentAimState.TargetPart,
+    Values = {"Head", "Body"},
+    Tooltip = "Выберите часть тела для наводки"
+})
+Options.SilentAimTargetPart:OnChanged(function()
+    SilentAimState.TargetPart = Options.SilentAimTargetPart.Value
+end)
+
+RageGroup:AddToggle("SilentAimFOVEnabled", {
+    Text = "Включить FOV",
+    Default = SilentAimState.FOVEnabled,
+    Tooltip = "Ограничивать зону действия FOV"
+})
+Toggles.SilentAimFOVEnabled:OnChanged(function()
+    SilentAimState.FOVEnabled = Toggles.SilentAimFOVEnabled.Value
+end)
+
+RageGroup:AddSlider("SilentAimFOVSize", {
+    Text = "Размер FOV",
+    Default = SilentAimState.FOVSize,
+    Min = 1,
+    Max = 700,
+    Rounding = 0,
+    Tooltip = "Размер поля зрения (1-700)"
+})
+Options.SilentAimFOVSize:OnChanged(function()
+    SilentAimState.FOVSize = Options.SilentAimFOVSize.Value
+end)
+
+RageGroup:AddToggle("SilentAimSnaplineEnabled", {
+    Text = "Включить Snapline",
+    Default = SilentAimState.SnaplineEnabled,
+    Tooltip = "Показывать линию к цели"
+})
+Toggles.SilentAimSnaplineEnabled:OnChanged(function()
+    SilentAimState.SnaplineEnabled = Toggles.SilentAimSnaplineEnabled.Value
+end)
+
+RageGroup:AddButton({
+    Text = "Назначить бинд Silent Aim",
+    Func = function()
+        Library:Notify("Нажми клавишу или кнопку мыши чтобы забиндить Silent Aim")
+        task.wait(0.1) -- Задержка для уведомления
+        local binding = true
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if binding then
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    SilentAimState.KeyBind = input.KeyCode
+                    Library:Notify("Бинд Silent Aim установлен: " .. input.KeyCode.Name)
+                elseif input.UserInputType == Enum.UserInputType.MouseButton1 or 
+                       input.UserInputType == Enum.UserInputType.MouseButton2 or 
+                       input.UserInputType == Enum.UserInputType.MouseButton3 then
+                    SilentAimState.MouseBind = input.UserInputType
+                    Library:Notify("Бинд Silent Aim установлен: " .. input.UserInputType.Name)
+                end
+                binding = false
+                connection:Disconnect()
+            end
+        end)
+    end,
+    Tooltip = "Назначить бинд для активации Silent Aim"
+})
+
+RageGroup:AddButton({
+    Text = "Удалить бинд Silent Aim",
+    Func = function()
+        SilentAimState.KeyBind = nil
+        SilentAimState.MouseBind = nil
+        Library:Notify("Бинд Silent Aim удалён")
+    end,
+    Tooltip = "Удаляет текущий бинд Silent Aim"
+})
+
+-- UI для Hitbox Expander
+local HitboxExpanderGroup = Tabs.Legit:AddLeftGroupbox("Hitbox Expander")
+
+-- Hitbox Expander
+HitboxExpanderGroup:AddToggle("HitboxExpanderEnabled", {
+    Text = "Hitbox Expander",
+    Default = HitboxExpanderState.Enabled,
+    Tooltip = "Увеличивает хитбоксы врагов"
+})
+Toggles.HitboxExpanderEnabled:OnChanged(function()
+    HitboxExpanderState.Enabled = Toggles.HitboxExpanderEnabled.Value
+    Library:Notify("Hitbox Expander " .. (HitboxExpanderState.Enabled and "включён" or "выключен"))
+end)
+
+HitboxExpanderGroup:AddSlider("HitboxExpanderSize", {
+    Text = "Размер хитбокса",
+    Default = HitboxExpanderState.Size,
+    Min = 1,
+    Max = 8,
+    Rounding = 1,
+    Tooltip = "Размер хитбокса (1-8 studs)"
+})
+Options.HitboxExpanderSize:OnChanged(function()
+    HitboxExpanderState.Size = Options.HitboxExpanderSize.Value
+end)
+
+HitboxExpanderGroup:AddSlider("HitboxExpanderTransparency", {
+    Text = "Прозрачность",
+    Default = HitboxExpanderState.Transparency,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Прозрачность хитбокса (0-1)"
+})
+Options.HitboxExpanderTransparency:OnChanged(function()
+    HitboxExpanderState.Transparency = Options.HitboxExpanderTransparency.Value
+end)
+
+-- UI для ESP в Render (слева)
+local RenderGroupESP = Tabs.Render:AddLeftGroupbox("ESP")
+
+RenderGroupESP:AddToggle("ESPEnabled", {
+    Text = "Включить ESP",
+    Default = ESPState.Enabled,
+    Tooltip = "Включает/выключает ESP для игроков"
+})
+Toggles.ESPEnabled:OnChanged(function()
+    ESPState.Enabled = Toggles.ESPEnabled.Value
+    Library:Notify("ESP " .. (ESPState.Enabled and "включён" or "выключен"))
+end)
+
+RenderGroupESP:AddToggle("ESPStuds", {
+    Text = "Показывать расстояние (Studs)",
+    Default = ESPState.Studs,
+    Tooltip = "Отображает расстояние до игроков в studs"
+})
+Toggles.ESPStuds:OnChanged(function()
+    ESPState.Studs = Toggles.ESPStuds.Value
+end)
+
+RenderGroupESP:AddToggle("ESPName", {
+    Text = "Показывать имя",
+    Default = ESPState.Name,
+    Tooltip = "Отображает имена игроков"
+})
+Toggles.ESPName:OnChanged(function()
+    ESPState.Name = Toggles.ESPName.Value
+end)
+
+RenderGroupESP:AddToggle("ESPHP", {
+    Text = "Показывать HP",
+    Default = ESPState.HP,
+    Tooltip = "Отображает здоровье игроков"
+})
+Toggles.ESPHP:OnChanged(function()
+    ESPState.HP = Toggles.ESPHP.Value
+end)
+
+RenderGroupESP:AddToggle("ESPWeapon", {
+    Text = "Показывать оружие",
+    Default = ESPState.WeaponEnabled,
+    Tooltip = "Отображает текущее оружие игроков"
+})
+Toggles.ESPWeapon:OnChanged(function()
+    ESPState.WeaponEnabled = Toggles.ESPWeapon.Value
+end)
+
+RenderGroupESP:AddButton({
+    Text = "Сбросить настройки ESP",
+    Func = function()
+        ESPState.Enabled = false
+        ESPState.Studs = false
+        ESPState.Name = false
+        ESPState.HP = false
+        ESPState.WeaponEnabled = false
+        
+        Toggles.ESPEnabled:SetValue(false)
+        Toggles.ESPStuds:SetValue(false)
+        Toggles.ESPName:SetValue(false)
+        Toggles.ESPHP:SetValue(false)
+        Toggles.ESPWeapon:SetValue(false)
+        
+        Library:Notify("Настройки ESP сброшены!")
+    end,
+    Tooltip = "Сбрасывает все настройки ESP к стандартным"
+})
+
+-- UI для Object ESP в Render (справа)
+local RenderGroupObjectESP = Tabs.Render:AddRightGroupbox("Object ESP")
+
+RenderGroupObjectESP:AddToggle("ObjectESPEnabled", {
+    Text = "Включить Object ESP",
+    Default = ObjectESPState.Enabled,
+    Tooltip = "Включает/выключает ESP для объектов"
+})
+Toggles.ObjectESPEnabled:OnChanged(function()
+    ObjectESPState.Enabled = Toggles.ObjectESPEnabled.Value
+    Library:Notify("Object ESP " .. (ObjectESPState.Enabled and "включён" or "выключен"))
+end)
+
+RenderGroupObjectESP:AddDropdown("ObjectESPObjects", {
+    Text = "Выбрать объекты",
+    Default = {},
+    Multi = true,
+    Values = {"Recycler", "Helicopter", "Cupboard", "Crate", "Barrel"},
+    Tooltip = "Выберите объекты для отображения"
+})
+Options.ObjectESPObjects:OnChanged(function()
+    ObjectESPState.SelectedObjects = Options.ObjectESPObjects.Value
+end)
+
+RenderGroupObjectESP:AddSlider("ObjectESPMaxRecyclerHeli", {
+    Text = "Лимит Recycler/Helicopter",
+    Default = ObjectESPState.MaxRecyclerHelicopter,
+    Min = 1,
+    Max = 50,
+    Rounding = 0,
+    Tooltip = "Максимальное количество Recycler и Helicopter"
+})
+Options.ObjectESPMaxRecyclerHeli:OnChanged(function()
+    ObjectESPState.MaxRecyclerHelicopter = Options.ObjectESPMaxRecyclerHeli.Value
+end)
+
+RenderGroupObjectESP:AddSlider("ObjectESPMaxCupboard", {
+    Text = "Лимит Cupboard",
+    Default = ObjectESPState.MaxCupboard,
+    Min = 1,
+    Max = 30,
+    Rounding = 0,
+    Tooltip = "Максимальное количество Cupboard"
+})
+Options.ObjectESPMaxCupboard:OnChanged(function()
+    ObjectESPState.MaxCupboard = Options.ObjectESPMaxCupboard.Value
+end)
+
+RenderGroupObjectESP:AddSlider("ObjectESPNewDuration", {
+    Text = "Длительность подсветки (сек)",
+    Default = ObjectESPState.NewObjectDuration,
+    Min = 5,
+    Max = 60,
+    Rounding = 0,
+    Tooltip = "Как долго новые объекты подсвечиваются другим цветом"
+})
+Options.ObjectESPNewDuration:OnChanged(function()
+    ObjectESPState.NewObjectDuration = Options.ObjectESPNewDuration.Value
+end)
+
+RenderGroupObjectESP:AddToggle("OreESPEnabled", {
+    Text = "Включить Ore ESP",
+    Default = OreESPState.Enabled,
+    Tooltip = "Включает/выключает ESP для руды"
+})
+Toggles.OreESPEnabled:OnChanged(function()
+    OreESPState.Enabled = Toggles.OreESPEnabled.Value
+    Library:Notify("Ore ESP " .. (OreESPState.Enabled and "включён" or "выключен"))
+end)
+
+RenderGroupObjectESP:AddDropdown("OreESPSelected", {
+    Text = "Выбрать руду",
+    Default = {},
+    Multi = true,
+    Values = {"Iron", "Stone", "Sulfur"},
+    Tooltip = "Выберите руду для отображения"
+})
+Options.OreESPSelected:OnChanged(function()
+    OreESPState.SelectedOres = Options.OreESPSelected.Value
+end)
+
+RenderGroupObjectESP:AddSlider("OreESPMaxPerOre", {
+    Text = "Лимит на тип руды",
+    Default = OreESPState.MaxPerOre,
+    Min = 1,
+    Max = 20,
+    Rounding = 0,
+    Tooltip = "Максимальное количество руды каждого типа"
+})
+Options.OreESPMaxPerOre:OnChanged(function()
+    OreESPState.MaxPerOre = Options.OreESPMaxPerOre.Value
+end)
+
+-- UI для Hacks
+local HacksGroup = Tabs.Hacks:AddLeftGroupbox("Movement Hacks")
+
+-- Speedhack
+HacksGroup:AddToggle("SpeedhackEnabled", {
+    Text = "Speedhack",
+    Default = SpeedhackState.Enabled,
+    Tooltip = "Двигает тело игрока с заданной скоростью"
+})
+Toggles.SpeedhackEnabled:OnChanged(function()
+    SpeedhackState.Enabled = Toggles.SpeedhackEnabled.Value
+    Library:Notify("Speedhack " .. (SpeedhackState.Enabled and "включён" or "выключен"))
+end)
+
+HacksGroup:AddSlider("SpeedhackSpeed", {
+    Text = "Скорость Speedhack",
+    Default = SpeedhackState.Speed,
+    Min = 20,
+    Max = 80,
+    Rounding = 0,
+    Tooltip = "Скорость передвижения (20-80)"
+})
+Options.SpeedhackSpeed:OnChanged(function()
+    SpeedhackState.Speed = Options.SpeedhackSpeed.Value
+end)
+
+HacksGroup:AddButton({
+    Text = "Назначить клавишу Speedhack",
+    Func = function()
+        Library:Notify("Нажми клавишу для Speedhack (текущая: " .. (SpeedhackState.Bind and SpeedhackState.Bind.Name or "Нет") .. ")")
+        local binding = true
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                SpeedhackState.Bind = input.KeyCode
+                Library:Notify("Клавиша Speedhack установлена: " .. input.KeyCode.Name)
+                binding = false
+                connection:Disconnect()
+            end
+        end)
+    end,
+    Tooltip = "Назначить клавишу для переключения Speedhack"
+})
+
+HacksGroup:AddButton({
+    Text = "Удалить клавишу Speedhack",
+    Func = function()
+        SpeedhackState.Bind = nil
+        Library:Notify("Клавиша Speedhack удалена")
+    end,
+    Tooltip = "Удаляет текущую клавишу Speedhack"
+})
+
+-- Bunny Hop
+HacksGroup:AddToggle("BunnyHopEnabled", {
+    Text = "Bunny Hop",
+    Default = BunnyHopState.Enabled,
+    Tooltip = "Позволяет прыгать без задержки"
+})
+Toggles.BunnyHopEnabled:OnChanged(function()
+    BunnyHopState.Enabled = Toggles.BunnyHopEnabled.Value
+    Library:Notify("Bunny Hop " .. (BunnyHopState.Enabled and "включён" or "выключен"))
+end)
+
+-- Force Speed
+HacksGroup:AddToggle("ForceSpeedEnabled", {
+    Text = "Force Speed",
+    Default = ForceSpeedState.Enabled,
+    Tooltip = "Устанавливает скорость 26 и позволяет свободно двигаться"
+})
+Toggles.ForceSpeedEnabled:OnChanged(function()
+    ForceSpeedState.Enabled = Toggles.ForceSpeedEnabled.Value
+    Library:Notify("Force Speed " .. (ForceSpeedState.Enabled and "включён" or "выключен"))
+end)
+
+-- Fly
+HacksGroup:AddToggle("FlyEnabled", {
+    Text = "Fly",
+    Default = FlyState.Enabled,
+    Tooltip = "Включает полёт с разными режимами"
+})
+Toggles.FlyEnabled:OnChanged(function()
+    FlyState.Enabled = Toggles.FlyEnabled.Value
+    Library:Notify("Fly " .. (FlyState.Enabled and "включён" or "выключен"))
+end)
+
+HacksGroup:AddDropdown("FlyMode", {
+    Text = "Режим полёта",
+    Default = FlyState.Mode,
+    Values = FlyState.AvailableModes,
+    Tooltip = "Выберите режим полёта"
+})
+Options.FlyMode:OnChanged(function()
+    FlyState.Mode = Options.FlyMode.Value
+    Library:Notify("Режим полёта изменён на " .. FlyState.Mode)
+end)
+
+HacksGroup:AddSlider("FlySpeed", {
+    Text = "Скорость полёта",
+    Default = FlyState.Speed,
+    Min = 20,
+    Max = 80,
+    Rounding = 0,
+    Tooltip = "Скорость для FreeFly и JumpFly (20-80)"
+})
+Options.FlySpeed:OnChanged(function()
+    FlyState.Speed = Options.FlySpeed.Value
+end)
+
+-- Spider
+HacksGroup:AddToggle("SpiderEnabled", {
+    Text = "Spider",
+    Default = SpiderState.Enabled,
+    Tooltip = "Позволяет лазить по стенам"
+})
+Toggles.SpiderEnabled:OnChanged(function()
+    SpiderState.Enabled = Toggles.SpiderEnabled.Value
+    Library:Notify("Spider " .. (SpiderState.Enabled and "включён" or "выключен"))
+end)
+
+HacksGroup:AddSlider("SpiderSpeed", {
+    Text = "Скорость Spider",
+    Default = SpiderState.Speed,
+    Min = 10,
+    Max = 40,
+    Rounding = 0,
+    Tooltip = "Скорость подъёма по стенам (10-40)"
+})
+Options.SpiderSpeed:OnChanged(function()
+    SpiderState.Speed = Options.SpiderSpeed.Value
+end)
+
+-- FreeCam
+HacksGroup:AddToggle("FreeCamEnabled", {
+    Text = "FreeCam",
+    Default = FreeCamState.Enabled,
+    Tooltip = "Свободная камера с видом от первого лица"
+})
+Toggles.FreeCamEnabled:OnChanged(function()
+    FreeCamState.Enabled = Toggles.FreeCamEnabled.Value
+    Library:Notify("FreeCam " .. (FreeCamState.Enabled and "включён" or "выключен"))
+end)
+
+HacksGroup:AddDropdown("FreeCamMode", {
+    Text = "Режим FreeCam",
+    Default = FreeCamState.Mode,
+    Values = FreeCamState.AvailableModes,
+    Tooltip = "Middle: Скорость 10; Button: Настраиваемая скорость"
+})
+Options.FreeCamMode:OnChanged(function()
+    FreeCamState.Mode = Options.FreeCamMode.Value
+    Library:Notify("Режим FreeCam изменён на " .. FreeCamState.Mode)
+end)
+
+HacksGroup:AddSlider("FreeCamSpeed", {
+    Text = "Скорость FreeCam (Button)",
+    Default = FreeCamState.Speed,
+    Min = 20,
+    Max = 100,
+    Rounding = 0,
+    Tooltip = "Скорость движения камеры для Button (20-100), Middle всегда 10"
+})
+Options.FreeCamSpeed:OnChanged(function()
+    FreeCamState.Speed = Options.FreeCamSpeed.Value
+end)
+
+HacksGroup:AddButton({
+    Text = "Delete Wall",
+    Func = function()
+        FreeCamState.DeleteWallEnabled = not FreeCamState.DeleteWallEnabled
+        Library:Notify("Delete Wall " .. (FreeCamState.DeleteWallEnabled and "включён" or "выключен") .. " (Alt + ЛКМ)")
+    end,
+    Tooltip = "Включает удаление стен при зажатии Alt + ЛКМ"
+})
+
+-- UI для Manipulations
+local ManipulationsGroup = Tabs.Hacks:AddRightGroupbox("Manipulations")
+
+-- Visual Tool
+ManipulationsGroup:AddDropdown("VisualToolSelected", {
+    Text = "Выбрать предмет",
+    Default = VisualToolState.SelectedTool,
+    Values = VisualToolState.AvailableTools,
+    Tooltip = "Выберите предмет для выдачи"
+})
+Options.VisualToolSelected:OnChanged(function()
+    VisualToolState.SelectedTool = Options.VisualToolSelected.Value
+end)
+
+ManipulationsGroup:AddSlider("VisualToolAmount", {
+    Text = "Количество",
+    Default = VisualToolState.Amount,
+    Min = 1,
+    Max = 128,
+    Rounding = 0,
+    Tooltip = "Количество предметов (1-128)"
+})
+Options.VisualToolAmount:OnChanged(function()
+    VisualToolState.Amount = Options.VisualToolAmount.Value
+end)
+
+ManipulationsGroup:AddButton({
+    Text = "Выдать",
+    Func = function()
+        spawnTool(VisualToolState.SelectedTool, VisualToolState.Amount)
+    end,
+    Tooltip = "Выдать выбранный предмет в указанном количестве"
+})
+
+-- Show All Backpack
+ManipulationsGroup:AddButton({
+    Text = "Show All Backpack",
+    Func = function()
+        ShowBackpackState.WindowVisible = not ShowBackpackState.WindowVisible
+        if ShowBackpackState.WindowVisible then
+            showBackpackWindow()
+        else
+            hideBackpackWindow()
+        end
+    end,
+    Tooltip = "Показать/скрыть список рюкзаков"
+})
+
+-- UI для Visuals
+local VisualGroup = Tabs.Visual:AddLeftGroupbox("Visual Settings")
+
+-- View Model
+VisualGroup:AddToggle("ViewModelEnabled", {
+    Text = "Включить View Model",
+    Default = VisualState.ViewModelEnabled,
+    Tooltip = "Включает/выключает View Model"
+})
+Toggles.ViewModelEnabled:OnChanged(function()
+    VisualState.ViewModelEnabled = Toggles.ViewModelEnabled.Value
+    Library:Notify("View Model " .. (VisualState.ViewModelEnabled and "включён" or "выключен"))
+end)
+
+VisualGroup:AddSlider("ViewModelFOV", {
+    Text = "FOV View Model",
+    Default = VisualState.FOV,
+    Min = 70,
+    Max = 120,
+    Rounding = 0,
+    Tooltip = "Настройка поля зрения для View Model"
+})
+Options.ViewModelFOV:OnChanged(function()
+    VisualState.FOV = Options.ViewModelFOV.Value
+end)
+
+-- Jump Circle
+VisualGroup:AddToggle("JumpCircleEnabled", {
+    Text = "Включить Jump Circle",
+    Default = VisualState.JumpCircleEnabled,
+    Tooltip = "Включает/выключает круг при прыжке"
+})
+Toggles.JumpCircleEnabled:OnChanged(function()
+    VisualState.JumpCircleEnabled = Toggles.JumpCircleEnabled.Value
+    Library:Notify("Jump Circle " .. (VisualState.JumpCircleEnabled and "включён" or "выключен"))
+end)
+
+VisualGroup:AddSlider("CircleSpeed", {
+    Text = "Скорость исчезания",
+    Default = VisualState.CircleSpeed,
+    Min = 1,
+    Max = 100,
+    Rounding = 0,
+    Tooltip = "Скорость исчезания круга (1-100)"
+})
+Options.CircleSpeed:OnChanged(function()
+    VisualState.CircleSpeed = Options.CircleSpeed.Value
+end)
+
+VisualGroup:AddDropdown("CircleColor", {
+    Text = "Цвет круга",
+    Default = VisualState.CircleColor,
+    Values = VisualState.AvailableColors,
+    Tooltip = "Выберите цвет для Jump Circle"
+})
+Options.CircleColor:OnChanged(function()
+    VisualState.CircleColor = Options.CircleColor.Value
+end)
+
+-- Titles
+local TitlesGroup = Tabs.Visual:AddRightGroupbox("Titles")
+
+TitlesGroup:AddToggle("TitlesEnabled", {
+    Text = "Включить Titles",
+    Default = TitlesState.Enabled,
+    Tooltip = "Включает/выключает отображение титулов"
+})
+Toggles.TitlesEnabled:OnChanged(function()
+    TitlesState.Enabled = Toggles.TitlesEnabled.Value
+    Library:Notify("Titles " .. (TitlesState.Enabled and "включены" or "выключены"))
+end)
+
+TitlesGroup:AddToggle("TitlesRGB", {
+    Text = "RGB для Titles",
+    Default = TitlesState.RGBEnabled,
+    Tooltip = "Включает RGB-эффект для титулов"
+})
+Toggles.TitlesRGB:OnChanged(function()
+    TitlesState.RGBEnabled = Toggles.TitlesRGB.Value
+end)
+
+-- Staff Online
+local StaffGroup = Tabs.Visual:AddRightGroupbox("Helper")
+
+StaffGroup:AddToggle("StaffOnlineEnabled", {
+    Text = "Staff Online",
+    Default = StaffOnlineState.Enabled,
+    Tooltip = "Показывает, онлайн ли игроки из белого списка"
+})
+Toggles.StaffOnlineEnabled:OnChanged(function()
+    StaffOnlineState.Enabled = Toggles.StaffOnlineEnabled.Value
+    Library:Notify("Staff Online " .. (StaffOnlineState.Enabled and "включён" or "выключен"))
+end)
+
+StaffGroup:AddToggle("FullbrightEnabled", {
+    Text = "Fullbright",
+    Default = FullbrightState.Enabled,
+    Tooltip = "Делает сцену яркой независимо от времени суток"
+})
+Toggles.FullbrightEnabled:OnChanged(function()
+    FullbrightState.Enabled = Toggles.FullbrightEnabled.Value
+    Library:Notify("Fullbright " .. (FullbrightState.Enabled and "включён" or "выключен"))
+end)
+
+StaffGroup:AddToggle("NoFogEnabled", {
+    Text = "No Fog",
+    Default = NoFogState.Enabled,
+    Tooltip = "Убирает туман и облака"
+})
+Toggles.NoFogEnabled:OnChanged(function()
+    NoFogState.Enabled = Toggles.NoFogEnabled.Value
+    Library:Notify("No Fog " .. (NoFogState.Enabled and "включён" or "выключен"))
+end)
+
+StaffGroup:AddToggle("NoSkyEnabled", {
+    Text = "No Sky",
+    Default = NoSkyState.Enabled,
+    Tooltip = "Полностью убирает Skybox"
+})
+Toggles.NoSkyEnabled:OnChanged(function()
+    NoSkyState.Enabled = Toggles.NoSkyEnabled.Value
+    Library:Notify("No Sky " .. (NoSkyState.Enabled and "включён" or "выключен"))
+end)
+
+local SkyGroup = Tabs.Visual:AddLeftGroupbox("Sky Settings")
+
+SkyGroup:AddToggle("SkyEnabled", {
+    Text = "Включить Cycles Sky",
+    Default = SkyState.Enabled,
+    Tooltip = "Включает/выключает настройку неба"
+})
+Toggles.SkyEnabled:OnChanged(function()
+    SkyState.Enabled = Toggles.SkyEnabled.Value
+    Library:Notify("Cycles Sky " .. (SkyState.Enabled and "включён" or "выключен"))
+end)
+
+SkyGroup:AddDropdown("SkyCycleMode", {
+    Text = "Режим неба",
+    Default = SkyState.CycleMode,
+    Values = SkyState.AvailableCycles,
+    Tooltip = "Выберите стиль облаков и неба"
+})
+Options.SkyCycleMode:OnChanged(function()
+    SkyState.CycleMode = Options.SkyCycleMode.Value
+    Library:Notify("Режим неба изменён на " .. SkyState.CycleMode)
+end)
+
+local CrosshairGroup = Tabs.Visual:AddRightGroupbox("Crosshair")
+
+CrosshairGroup:AddToggle("CrosshairEnabled", {
+    Text = "Включить Crosshair",
+    Default = CrosshairState.Enabled,
+    Tooltip = "Включает/выключает прицел"
+})
+Toggles.CrosshairEnabled:OnChanged(function()
+    CrosshairState.Enabled = Toggles.CrosshairEnabled.Value
+    Library:Notify("Crosshair " .. (CrosshairState.Enabled and "включён" or "выключен"))
+end)
+
+CrosshairGroup:AddDropdown("CrosshairType", {
+    Text = "Тип прицела",
+    Default = CrosshairState.Type,
+    Values = CrosshairState.AvailableTypes,
+    Tooltip = "Выберите стиль прицела"
+})
+Options.CrosshairType:OnChanged(function()
+    CrosshairState.Type = Options.CrosshairType.Value
+end)
+
+CrosshairGroup:AddToggle("CrosshairRGB", {
+    Text = "RGB Crosshair",
+    Default = CrosshairState.RGBEnabled,
+    Tooltip = "Включает RGB-эффект для прицела"
+})
+Toggles.CrosshairRGB:OnChanged(function()
+    CrosshairState.RGBEnabled = Toggles.CrosshairRGB.Value
+end)
+
+CrosshairGroup:AddToggle("CrosshairSpin", {
+    Text = "Вращение Crosshair",
+    Default = CrosshairState.SpinEnabled,
+    Tooltip = "Включает вращение прицела"
+})
+Toggles.CrosshairSpin:OnChanged(function()
+    CrosshairState.SpinEnabled = Toggles.CrosshairSpin.Value
+end)
+
+CrosshairGroup:AddSlider("CrosshairSpinSpeed", {
+    Text = "Скорость вращения",
+    Default = CrosshairState.SpinSpeed,
+    Min = 1,
+    Max = 10,
+    Rounding = 0,
+    Tooltip = "Настройка скорости вращения прицела"
+})
+Options.CrosshairSpinSpeed:OnChanged(function()
+    CrosshairState.SpinSpeed = Options.CrosshairSpinSpeed.Value
+end)
+
+-- Функция создания круга при приземлении
+local function createJumpCircle(character)
+    if not VisualState.JumpCircleEnabled or not character then return end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    local circle = Instance.new("Part")
+    circle.Shape = Enum.PartType.Cylinder
+    circle.Size = Vector3.new(0.1, 5, 5)
+    circle.Position = Vector3.new(rootPart.Position.X, rootPart.Position.Y - rootPart.Size.Y / 2, rootPart.Position.Z)
+    circle.CFrame = circle.CFrame * CFrame.Angles(math.rad(0), 0, 100)
+    circle.Anchored = true
+    circle.CanCollide = false
+    circle.Material = Enum.Material.Neon
+    circle.Transparency = 0.3
+    circle.Parent = workspace
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 1, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = circle
+    billboard.Parent = circle
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "simfoniaHUB"
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = true
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Parent = billboard
+
+    local duration = VisualState.CircleSpeed * 0.1
+    local startTime = tick()
+    local initialSize = circle.Size
+
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        local elapsed = tick() - startTime
+        local progress = elapsed / duration
+        if progress >= 1 then
+            circle:Destroy()
+            if connection then connection:Disconnect() end
+            return
+        end
+
+        circle.Size = Vector3.new(0.1, initialSize.Y * (1 - progress), initialSize.Z * (1 - progress))
+
+        if VisualState.CircleColor == "BlueFade" then
+            local b = math.sin(tick() * 2) * 127 + 128
+            circle.Color = Color3.fromRGB(0, 191, b)
+        elseif VisualState.CircleColor == "RGBBlue" then
+            local b = math.sin(tick() * 2) * 127 + 128
+            circle.Color = Color3.fromRGB(0, 0, b)
+        elseif VisualState.CircleColor == "RGB" then
+            local r = math.sin(tick() * 2) * 127 + 128
+            local g = math.sin(tick() * 2 + 2) * 127 + 128
+            local b = math.sin(tick() * 2 + 4) * 127 + 128
+            circle.Color = Color3.fromRGB(r, g, b)
+        end
+    end)
+end
+
+-- Функция обновления View Model
+local function updateViewModel()
+    if VisualState.ViewModelEnabled then
+        camera.FieldOfView = VisualState.FOV
+    else
+        camera.FieldOfView = defaultFOV
+    end
+end
+
+-- Функция обновления Jump Circle
+local function updateJumpCircle()
+    local character = LocalPlayer.Character
+    if not character or not VisualState.JumpCircleEnabled then return end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    local currentState = humanoid:GetState()
+    if lastState == Enum.HumanoidStateType.Freefall and currentState == Enum.HumanoidStateType.Landed then
+        createJumpCircle(character)
+    end
+    lastState = currentState
+end
+
+-- Функция создания титула
+local function createTitle()
+    local title = Drawing.new("Text")
+    title.Text = "simfoniaHUB"
+    title.Color = Color3.fromRGB(255, 255, 255)
+    title.Size = math.random(20, 40)
+    title.Position = Vector2.new(math.random(0, camera.ViewportSize.X), math.random(0, camera.ViewportSize.Y))
+    title.Transparency = 0.7
+    title.Visible = false
+    local velocity = Vector2.new(math.random(-50, 50) / 10, math.random(-50, 50) / 10)
+    return { Object = title, Velocity = velocity }
+end
+
+-- Функция обновления Titles
+local function updateTitles(deltaTime)
+    if not TitlesState.Enabled then
+        for _, title in pairs(titles) do
+            title.Object.Visible = false
+        end
+        return
+    end
+
+    while #titles < 10 do
+        table.insert(titles, createTitle())
+    end
+
+    if TitlesState.RGBEnabled then
+        rgbTime = rgbTime + deltaTime
+        local r = math.sin(rgbTime * 2) * 127 + 128
+        local g = math.sin(rgbTime * 2 + 2) * 127 + 128
+        local b = math.sin(rgbTime * 2 + 4) * 127 + 128
+        local rgbColor = Color3.fromRGB(r, g, b)
+        for _, title in pairs(titles) do
+            title.Object.Color = rgbColor
+        end
+    else
+        for _, title in pairs(titles) do
+            title.Object.Color = Color3.fromRGB(255, 255, 255)
+        end
+    end
+
+    for _, title in pairs(titles) do
+        title.Object.Visible = true
+        local newPos = title.Object.Position + title.Velocity
+        local screenWidth = camera.ViewportSize.X
+        local screenHeight = camera.ViewportSize.Y
+
+        if newPos.X < 0 or newPos.X > screenWidth then
+            title.Velocity = Vector2.new(-title.Velocity.X, title.Velocity.Y)
+            newPos = Vector2.new(math.clamp(newPos.X, 0, screenWidth), newPos.Y)
+        end
+        if newPos.Y < 0 or newPos.Y > screenHeight then
+            title.Velocity = Vector2.new(title.Velocity.X, -title.Velocity.Y)
+            newPos = Vector2.new(newPos.X, math.clamp(newPos.Y, 0, screenHeight))
+        end
+        title.Object.Position = newPos
+    end
+end
+
+-- Функция создания Staff Online меню
+local function createStaffMenu()
+    if staffFrame then return end
+
+    staffFrame = Instance.new("Frame")
+    staffFrame.Size = UDim2.new(0, 100, 0, 300)
+    staffFrame.Position = UDim2.new(0, 50, 0, 50)
+    staffFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    staffFrame.BorderSizePixel = 0
+    staffFrame.Parent = game.CoreGui:FindFirstChild("ScreenGui") or Instance.new("ScreenGui", game.CoreGui)
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0, 20)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "Staff Online"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextScaled = true
+    titleLabel.Parent = staffFrame
+
+    for i, name in pairs(StaffOnlineState.Whitelist) do
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Position = UDim2.new(0, 0, 0, 20 + (i - 1) * 20)
+        label.BackgroundTransparency = 1
+        label.Text = name
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextScaled = true
+        label.Parent = staffFrame
+        staffLabels[name] = label
+    end
+
+    staffFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragOffset = Vector2.new(input.Position.X - staffFrame.Position.X.Offset, input.Position.Y - staffFrame.Position.Y.Offset)
+        end
+    end)
+
+    staffFrame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    local UserInputService = game:GetService("UserInputService")
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            staffFrame.Position = UDim2.new(0, input.Position.X - dragOffset.X, 0, input.Position.Y - dragOffset.Y)
+        end
+    end)
+end
+
+-- Функция обновления Staff Online
+local function updateStaffMenu()
+    if not StaffOnlineState.Enabled then
+        if staffFrame then
+            staffFrame.Visible = false
+        end
+        return
+    end
+
+    if not staffFrame then
+        createStaffMenu()
+    end
+
+    staffFrame.Visible = true
+
+    local currentPlayers = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        currentPlayers[player.Name] = true
+    end
+
+    for name, label in pairs(staffLabels) do
+        if currentPlayers[name] then
+            label.TextColor3 = Color3.fromRGB(0, 255, 0)
+        else
+            label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end
+end
+
+-- Инициализация Jump Circle
+LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    lastState = humanoid:GetState()
+    updateJumpCircle()
+end)
+
+-- Функция Fullbright
+local Lighting = game:GetService("Lighting")
+local defaultBrightness = Lighting.Brightness
+local defaultFogEnd = Lighting.FogEnd
+
+local function updateFullbright()
+    if FullbrightState.Enabled then
+        Lighting.Brightness = 2
+        Lighting.FogEnd = 100000
+        Lighting.ClockTime = 12 -- Полдень
+    else
+        Lighting.Brightness = defaultBrightness
+        Lighting.FogEnd = defaultFogEnd
+        -- Восстановление времени суток не делаем, так как это может быть изменено игрой
+    end
+end
+
+-- Сначала определим updateSkyCycle
+local function updateSkyCycle()
+    local sky = Lighting:FindFirstChildOfClass("Sky")
+    if NoSkyState.Enabled then
+        if sky then sky:Destroy() end
+        return
+    end
+    if not sky then
+        sky = Instance.new("Sky", Lighting)
+    end
+
+    if SkyState.Enabled then
+        if SkyState.CycleMode == "Realistic" then
+            sky.SkyboxBk = "rbxassetid://600830446"
+            sky.SkyboxDn = "rbxassetid://600831635"
+            sky.SkyboxFt = "rbxassetid://600832720"
+            sky.SkyboxLf = "rbxassetid://600833862"
+            sky.SkyboxRt = "rbxassetid://600835007"
+            sky.SkyboxUp = "rbxassetid://600836181"
+        elseif SkyState.CycleMode == "Light" then
+            sky.SkyboxBk = "rbxassetid://1012890"
+            sky.SkyboxDn = "rbxassetid://1012891"
+            sky.SkyboxFt = "rbxassetid://1012889"
+            sky.SkyboxLf = "rbxassetid://1012887"
+            sky.SkyboxRt = "rbxassetid://1012888"
+            sky.SkyboxUp = "rbxassetid://1012892"
+        elseif SkyState.CycleMode == "DeepNight" then
+            sky.SkyboxBk = "rbxassetid://151165174"
+            sky.SkyboxDn = "rbxassetid://151165191"
+            sky.SkyboxFt = "rbxassetid://151165206"
+            sky.SkyboxLf = "rbxassetid://151165223"
+            sky.SkyboxRt = "rbxassetid://151165245"
+            sky.SkyboxUp = "rbxassetid://151165264"
+        end
+    end
+end
+
+-- Затем updateNoSky
+local function updateNoSky()
+    local sky = Lighting:FindFirstChildOfClass("Sky")
+    if NoSkyState.Enabled then
+        if sky then
+            sky:Destroy()
+        end
+    else
+        if not sky then
+            sky = Instance.new("Sky", Lighting)
+        end
+        updateSkyCycle() -- Теперь это безопасно
+    end
+end
+
+-- Функция No Fog (для полноты)
+local function updateNoFog()
+    if NoFogState.Enabled then
+        Lighting.FogEnd = 100000
+        Lighting.FogStart = 100000
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if sky then
+            sky.CelestialBodiesShown = false
+        end
+    else
+        Lighting.FogEnd = defaultFogEnd
+        Lighting.FogStart = 0
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if sky then
+            sky.CelestialBodiesShown = true
+        end
+    end
+end
+
+-- Функция Crosshair
+local crosshairParts = {}
+local function createCrosshair()
+    for _, part in pairs(crosshairParts) do
+        part:Remove()
+    end
+    crosshairParts = {}
+
+    if not CrosshairState.Enabled then return end
+
+    local centerX, centerY = camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2
+
+    if CrosshairState.Type == "DotCircle" then
+        local circle = Drawing.new("Circle")
+        circle.Radius = 10
+        circle.Position = Vector2.new(centerX, centerY)
+        circle.Thickness = 2
+        circle.Color = Color3.fromRGB(255, 255, 255)
+        circle.Filled = false
+        circle.Visible = true
+        table.insert(crosshairParts, circle)
+
+        local dot = Drawing.new("Circle")
+        dot.Radius = 2
+        dot.Position = Vector2.new(centerX, centerY)
+        dot.Color = Color3.fromRGB(255, 255, 255)
+        dot.Filled = true
+        dot.Visible = true
+        table.insert(crosshairParts, dot)
+    elseif CrosshairState.Type == "Cross" then
+        local line1 = Drawing.new("Line")
+        line1.From = Vector2.new(centerX, centerY - 10)
+        line1.To = Vector2.new(centerX, centerY + 10)
+        line1.Thickness = 2
+        line1.Color = Color3.fromRGB(255, 255, 255)
+        line1.Visible = true
+        table.insert(crosshairParts, line1)
+
+        local line2 = Drawing.new("Line")
+        line2.From = Vector2.new(centerX - 10, centerY)
+        line2.To = Vector2.new(centerX + 10, centerY)
+        line2.Thickness = 2
+        line2.Color = Color3.fromRGB(255, 255, 255)
+        line2.Visible = true
+        table.insert(crosshairParts, line2)
+    end
+end
+
+local rotationAngle = 0
+local function updateCrosshair(deltaTime)
+    if not CrosshairState.Enabled then
+        for _, part in pairs(crosshairParts) do
+            part.Visible = false
+        end
+        return
+    end
+
+    if #crosshairParts == 0 then
+        createCrosshair()
+    end
+
+    for _, part in pairs(crosshairParts) do
+        part.Visible = true
+    end
+
+    if CrosshairState.RGBEnabled then
+        local r = math.sin(tick() * 2) * 127 + 128
+        local g = math.sin(tick() * 2 + 2) * 127 + 128
+        local b = math.sin(tick() * 2 + 4) * 127 + 128
+        for _, part in pairs(crosshairParts) do
+            part.Color = Color3.fromRGB(r, g, b)
+        end
+    else
+        for _, part in pairs(crosshairParts) do
+            part.Color = Color3.fromRGB(255, 255, 255)
+        end
+    end
+
+    if CrosshairState.SpinEnabled and CrosshairState.Type == "Cross" then
+        rotationAngle = rotationAngle + (CrosshairState.SpinSpeed * deltaTime)
+        local centerX, centerY = camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2
+        local cosAngle = math.cos(rotationAngle)
+        local sinAngle = math.sin(rotationAngle)
+
+        local line1 = crosshairParts[1]
+        local line2 = crosshairParts[2]
+
+        line1.From = Vector2.new(centerX - 10 * cosAngle, centerY - 10 * sinAngle)
+        line1.To = Vector2.new(centerX + 10 * cosAngle, centerY + 10 * sinAngle)
+        line2.From = Vector2.new(centerX + 10 * sinAngle, centerY - 10 * cosAngle)
+        line2.To = Vector2.new(centerX - 10 * sinAngle, centerY + 10 * cosAngle)
+    end
+end
+
+-- Обновление при изменении настроек Crosshair
+Toggles.CrosshairEnabled:OnChanged(function()
+    CrosshairState.Enabled = Toggles.CrosshairEnabled.Value
+    createCrosshair()
+end)
+Options.CrosshairType:OnChanged(function()
+    CrosshairState.Type = Options.CrosshairType.Value
+    createCrosshair()
+end)
+
+-- Speedhack
+local UserInputService = game:GetService("UserInputService")
+local function updateSpeedhack()
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = character.HumanoidRootPart
+
+    if SpeedhackState.Enabled then
+        local moveDirection = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + camera.CFrame.RightVector
+        end
+
+        if moveDirection.Magnitude > 0 then
+            moveDirection = moveDirection.Unit
+            humanoidRootPart.Velocity = Vector3.new(
+                moveDirection.X * SpeedhackState.Speed,
+                humanoidRootPart.Velocity.Y,
+                moveDirection.Z * SpeedhackState.Speed
+            )
+        else
+            humanoidRootPart.Velocity = Vector3.new(0, humanoidRootPart.Velocity.Y, 0)
+        end
+    end
+end
+
+-- Обработка бинда
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == SpeedhackState.Bind then
+        SpeedhackState.Enabled = not SpeedhackState.Enabled
+        Toggles.SpeedhackEnabled:SetValue(SpeedhackState.Enabled)
+        Library:Notify("Speedhack " .. (SpeedhackState.Enabled and "включён" or "выключен") .. " через бинд")
+    end
+end)
+
+-- Bunny Hop
+local function updateBunnyHop()
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("Humanoid") then return end
+    local humanoid = character.Humanoid
+
+    if BunnyHopState.Enabled then
+        if humanoid:GetState() == Enum.HumanoidStateType.Landed or humanoid:GetState() == Enum.HumanoidStateType.Running then
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                humanoid.Jump = true
+            end
+        end
+    end
+end
+
+-- Force Speed
+local defaultWalkSpeed = 16 -- Стандартная скорость ходьбы в Roblox
+local function updateForceSpeed()
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("Humanoid") then return end
+    local humanoid = character.Humanoid
+
+    if ForceSpeedState.Enabled then
+        humanoid.WalkSpeed = ForceSpeedState.Speed
+        -- Убираем ограничения направления движения
+        humanoid.MoveDirection = humanoid.MoveDirection.Unit * ForceSpeedState.Speed
+    else
+        humanoid.WalkSpeed = defaultWalkSpeed
+    end
+end
+
+-- Fly
+local UserInputService = game:GetService("UserInputService")
 local function updateFly()
     local character = LocalPlayer.Character
-    if not character then return end
-    
-    local humanoid = character:FindFirstChild("Humanoid")
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoid or not rootPart then return end
+    if not character or not character:FindFirstChild("HumanoidRootPart") or not character:FindFirstChild("Humanoid") then return end
+    local humanoidRootPart = character.HumanoidRootPart
+    local humanoid = character.Humanoid
 
     if FlyState.Enabled then
-        humanoid.PlatformStand = true
-        rootPart.Velocity = Vector3.new(0, 0, 0)
+        humanoid.PlatformStand = true -- Отключаем стандартное движение
 
         if FlyState.Mode == "FreeFly" then
             local moveDirection = Vector3.new()
-            local camera = workspace.CurrentCamera
-            local lookVector = camera.CFrame.LookVector
-            local rightVector = camera.CFrame.RightVector
-
             if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDirection = moveDirection + lookVector
+                moveDirection = moveDirection + camera.CFrame.LookVector
             end
             if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDirection = moveDirection - lookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDirection = moveDirection + rightVector
+                moveDirection = moveDirection - camera.CFrame.LookVector
             end
             if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDirection = moveDirection - rightVector
+                moveDirection = moveDirection - camera.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                moveDirection = moveDirection + camera.CFrame.RightVector
             end
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                 moveDirection = moveDirection + Vector3.new(0, 1, 0)
@@ -1661,542 +1567,149 @@ local function updateFly()
 
             if moveDirection.Magnitude > 0 then
                 moveDirection = moveDirection.Unit
-                rootPart.Velocity = Vector3.new(
-                    moveDirection.X * FlyState.WalkSpeed,
-                    moveDirection.Y * FlyState.VerticalSpeed,
-                    moveDirection.Z * FlyState.WalkSpeed
-                )
-            end
-        elseif FlyState.Mode == "Platform" then
-            local spacePressed = false
-            UserInputService.InputBegan:Connect(function(input)
-                if input.KeyCode == Enum.KeyCode.Space and FlyState.Enabled then
-                    spacePressed = true
-                    FlyState.PlatformActive = true
-                    rootPart.Velocity = Vector3.new(0, FlyState.VerticalSpeed, 0)
-                    task.wait(0.5)
-                    if FlyState.Enabled and FlyState.Mode == "Platform" then
-                        rootPart.Velocity = Vector3.new(0, 0, 0)
-                    end
-                end
-            end)
-
-            UserInputService.InputEnded:Connect(function(input)
-                if input.KeyCode == Enum.KeyCode.Space then
-                    spacePressed = false
-                end
-            end)
-
-            if FlyState.PlatformActive and not spacePressed then
-                rootPart.Velocity = Vector3.new(0, 0, 0)
-            end
-        end
-    else
-        humanoid.PlatformStand = false
-        FlyState.PlatformActive = false
-    end
-end
-
--- Логика ESP для игроков (без изменений)
-local ESP = {}
-local camera = workspace.CurrentCamera or workspace:WaitForChild("CurrentCamera")
-
-local weaponList = {"Ak1", "C4", "Revolver", "Rocket Launcher", "Bow"}
-
-local function getPlayerWeapon(character)
-    if not character then return "None" end
-    for _, tool in pairs(character:GetChildren()) do
-        if tool:IsA("Tool") then
-            for _, weapon in pairs(weaponList) do
-                if tool.Name == weapon then
-                    return weapon
-                end
-            end
-        end
-    end
-    return "None"
-end
-
-local function createESP(player)
-    if player == LocalPlayer then return end
-    
-    local function setupESP()
-        local character = player.Character
-        if not character then return end
-        
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
-        local humanoid = character:WaitForChild("Humanoid", 5)
-        if not humanoidRootPart or not humanoid then return end
-
-        if ESP[player] then
-            if ESP[player].Box then ESP[player].Box:Remove() end
-            if ESP[player].Text then ESP[player].Text:Remove() end
-            ESP[player] = nil
-        end
-
-        local box = Drawing.new("Square")
-        box.Thickness = 2
-        box.Filled = false
-        box.Color = ESPState.Color
-        box.Visible = false
-
-        local text = Drawing.new("Text")
-        text.Size = 16
-        text.Color = Color3.fromRGB(255, 255, 255)
-        text.Visible = false
-
-        ESP[player] = {Box = box, Text = text}
-
-        local connection
-        connection = RunService.RenderStepped:Connect(function()
-            if not player.Character or not player.Character.Parent or not humanoidRootPart or not humanoid or humanoid.Health <= 0 then
-                box.Visible = false
-                text.Visible = false
-                if connection then
-                    connection:Disconnect()
-                end
-                if ESP[player] then
-                    if ESP[player].Box then ESP[player].Box:Remove() end
-                    if ESP[player].Text then ESP[player].Text:Remove() end
-                    ESP[player] = nil
-                end
-                return
-            end
-
-            if ESPState.Enabled then
-                local rootPos, onScreen = camera:WorldToViewportPoint(humanoidRootPart.Position)
-                if onScreen then
-                    local size = character:GetExtentsSize() * 1.2
-                    local topLeft = camera:WorldToViewportPoint(humanoidRootPart.Position + Vector3.new(size.X/2, size.Y/2, size.Z/2))
-                    local bottomRight = camera:WorldToViewportPoint(humanoidRootPart.Position - Vector3.new(size.X/2, size.Y/2, size.Z/2))
-
-                    if topLeft.Z > 0 and bottomRight.Z > 0 then
-                        local width = math.abs(topLeft.X - bottomRight.X)
-                        local height = math.abs(topLeft.Y - bottomRight.Y)
-                        local centerX = (topLeft.X + bottomRight.X) / 2
-
-                        box.Size = Vector2.new(width, height)
-                        box.Position = Vector2.new(centerX - width / 2, topLeft.Y)
-                        box.Color = ESPState.Color
-                        box.Visible = true
-
-                        local textString = ""
-                        if ESPState.Name then
-                            textString = textString .. player.Name .. "\n"
-                        end
-                        if ESPState.Studs then
-                            local distance = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and (humanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude) or 0
-                            textString = textString .. math.floor(distance) .. " studs\n"
-                        end
-                        if ESPState.HP then
-                            textString = textString .. math.floor(humanoid.Health) .. "/" .. humanoid.MaxHealth .. " HP\n"
-                        end
-                        if ESPState.WeaponEnabled then
-                            local weapon = getPlayerWeapon(character)
-                            textString = textString .. weapon
-                        end
-
-                        text.Text = textString
-                        text.Position = Vector2.new(centerX - width / 2, topLeft.Y - 20)
-                        text.Visible = textString ~= ""
-                    else
-                        box.Visible = false
-                        text.Visible = false
-                    end
-                else
-                    box.Visible = false
-                    text.Visible = false
-                end
+                humanoidRootPart.Velocity = moveDirection * FlyState.Speed
             else
-                box.Visible = false
-                text.Visible = false
+                humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
             end
-        end)
-    end
 
-    if player.Character then
-        spawn(function()
-            pcall(setupESP)
-        end)
-    end
+        elseif FlyState.Mode == "JumpFly" then
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) and humanoid:GetState() == Enum.HumanoidStateType.Jumping then
+                humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, FlyState.Speed, humanoidRootPart.Velocity.Z)
+                wait(0.1) -- Небольшая задержка для "платформы"
+                humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, 0, humanoidRootPart.Velocity.Z)
+            end
 
-    player.CharacterAdded:Connect(function()
-        spawn(function()
-            pcall(setupESP)
-        end)
-    end)
-end
-
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        spawn(function()
-            pcall(createESP, player)
-        end)
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    if player ~= LocalPlayer then
-        spawn(function()
-            pcall(createESP, player)
-        end)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    if ESP[player] then
-        if ESP[player].Box then ESP[player].Box:Remove() end
-        if ESP[player].Text then ESP[player].Text:Remove() end
-        ESP[player] = nil
-    end
-end)
-
--- Логика Object ESP
-local ObjectESP = {}
-local trackedRecyclerHelicopter = {}
-local trackedCupboard = {}
-
-local function getDistanceToPlayer(obj)
-    local playerRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not playerRoot then return math.huge end
-    local objRoot = obj:IsA("Model") and obj.PrimaryPart or obj
-    if not objRoot then return math.huge end
-    return (playerRoot.Position - objRoot.Position).Magnitude
-end
-
-local function createObjectESP(object)
-    if ObjectESP[object] then return end
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Adornee = object:IsA("Model") and object.PrimaryPart or object
-    billboard.Size = UDim2.new(0, 100, 0, 20) -- Фиксированный размер в пикселях
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Parent = game.CoreGui
-    billboard.ExtentsOffset = Vector3.new(0, 0, 0) -- Убираем смещение границ
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 1, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = object.Name
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = false -- Отключаем масштабирование текста
-    textLabel.TextSize = 14 -- Фиксированный размер текста
-    textLabel.TextStrokeTransparency = 0
-    textLabel.TextStrokeColor3 = ObjectESPState.Color
-    textLabel.Parent = billboard
-
-    ObjectESP[object] = billboard
-    if object.Name == "Cupboard" then
-        table.insert(trackedCupboard, object)
+        elseif FlyState.Mode == "ClockFly" then
+            humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, -5, humanoidRootPart.Velocity.Z) -- Медленное падение
+        end
     else
-        table.insert(trackedRecyclerHelicopter, object)
+        humanoid.PlatformStand = false -- Восстанавливаем стандартное движение
+        humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, humanoidRootPart.Velocity.Y, humanoidRootPart.Velocity.Z)
     end
-
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not object.Parent or not ObjectESPState.Enabled or not ObjectESPState.SelectedObjects[object.Name] then
-            billboard.Enabled = false
-            if connection then
-                connection:Disconnect()
-            end
-            if ObjectESP[object] then
-                ObjectESP[object]:Destroy()
-                ObjectESP[object] = nil
-                if object.Name == "Cupboard" then
-                    for i, trackedObj in ipairs(trackedCupboard) do
-                        if trackedObj == object then
-                            table.remove(trackedCupboard, i)
-                            break
-                        end
-                    end
-                else
-                    for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
-                        if trackedObj == object then
-                            table.remove(trackedRecyclerHelicopter, i)
-                            break
-                        end
-                    end
-                end
-            end
-            return
-        end
-        billboard.Enabled = true
-    end)
 end
 
-local function updateObjectESP()
-    if not ObjectESPState.Enabled then
-        for _, billboard in pairs(ObjectESP) do
-            if billboard then billboard:Destroy() end
-        end
-        ObjectESP = {}
-        trackedRecyclerHelicopter = {}
-        trackedCupboard = {}
-        return
-    end
-
-    local recyclerHelicopterObjects = {}
-    local cupboardObjects = {}
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if ObjectESPState.SelectedObjects[obj.Name] then
-            if obj.Name == "Cupboard" then
-                table.insert(cupboardObjects, obj)
-            elseif obj.Name == "Recycler" or obj.Name == "Helicopter" then
-                table.insert(recyclerHelicopterObjects, obj)
-            end
+-- ClockFly: Подъём на клик
+UserInputService.InputBegan:Connect(function(input)
+    if FlyState.Enabled and FlyState.Mode == "ClockFly" and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = character.HumanoidRootPart
+            humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, 30, humanoidRootPart.Velocity.Z) -- Подъём на 30 studs
         end
     end
+end)
 
-    table.sort(recyclerHelicopterObjects, function(a, b)
-        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
-    end)
-    table.sort(cupboardObjects, function(a, b)
-        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
-    end)
+-- Spider
+local function updateSpider()
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = character.HumanoidRootPart
 
-    for obj, billboard in pairs(ObjectESP) do
-        local isInLimit = false
-        if obj.Name == "Cupboard" then
-            for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
-                if cupboardObjects[i] == obj then
-                    isInLimit = true
-                    break
-                end
+    if SpiderState.Enabled then
+        local rayOrigin = humanoidRootPart.Position
+        local rayDirection = humanoidRootPart.CFrame.LookVector * 2 -- Проверяем стену впереди
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {character}
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+        if raycastResult then
+            -- Если есть стена впереди, поднимаемся
+            local moveDirection = Vector3.new(0, 1, 0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                humanoidRootPart.Velocity = moveDirection * SpiderState.Speed
+            elseif UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                humanoidRootPart.Velocity = moveDirection * -SpiderState.Speed
+            else
+                humanoidRootPart.Velocity = Vector3.new(0, 0, 0) -- Останавливаемся, если не двигаемся
             end
         else
-            for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
-                if recyclerHelicopterObjects[i] == obj then
-                    isInLimit = true
-                    break
-                end
-            end
-        end
-        if not isInLimit then
-            if billboard then billboard:Destroy() end
-            ObjectESP[obj] = nil
-            if obj.Name == "Cupboard" then
-                for i, trackedObj in ipairs(trackedCupboard) do
-                    if trackedObj == obj then
-                        table.remove(trackedCupboard, i)
-                        break
-                    end
-                end
-            else
-                for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
-                    if trackedObj == obj then
-                        table.remove(trackedRecyclerHelicopter, i)
-                        break
-                    end
-                end
-            end
-        end
-    end
-
-    for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
-        local obj = recyclerHelicopterObjects[i]
-        if not ObjectESP[obj] then
-            createObjectESP(obj)
-        end
-    end
-    for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
-        local obj = cupboardObjects[i]
-        if not ObjectESP[obj] then
-            createObjectESP(obj)
+            humanoidRootPart.Velocity = Vector3.new(humanoidRootPart.Velocity.X, humanoidRootPart.Velocity.Y, humanoidRootPart.Velocity.Z)
         end
     end
 end
 
-task.spawn(function()
-    while true do
-        if ObjectESPState.Enabled then
-            updateObjectESP()
+-- FreeCam
+local UserInputService = game:GetService("UserInputService")
+local originalCameraCFrame = nil
+local originalCameraMode = nil
+local function updateFreeCam(deltaTime)
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") or not character:FindFirstChild("Humanoid") then return end
+    local humanoidRootPart = character.HumanoidRootPart
+    local humanoid = character.Humanoid
+
+    if FreeCamState.Enabled then
+        if not originalCameraCFrame then
+            originalCameraCFrame = camera.CFrame
+            originalCameraMode = LocalPlayer.CameraMode
         end
-        wait(1)
+
+        camera.CameraType = Enum.CameraType.Scriptable
+        humanoidRootPart.Anchored = true -- Фиксируем тело на месте
+        LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson -- Вид от первого лица
+
+        local moveSpeed = (FreeCamState.Mode == "Middle") and 10 or FreeCamState.Speed
+        local moveDirection = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDirection = moveDirection + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            moveDirection = moveDirection - Vector3.new(0, 1, 0)
+        end
+
+        if moveDirection.Magnitude > 0 then
+            moveDirection = moveDirection.Unit
+            camera.CFrame = camera.CFrame + moveDirection * moveSpeed * deltaTime
+        end
+
+        -- Свободный поворот камеры мышкой
+        local mouseDelta = UserInputService:GetMouseDelta()
+        camera.CFrame = camera.CFrame * CFrame.Angles(math.rad(-mouseDelta.Y * 0.2), math.rad(-mouseDelta.X * 0.2), 0)
+    else
+        if originalCameraCFrame then
+            camera.CFrame = originalCameraCFrame
+            originalCameraCFrame = nil
+        end
+        if originalCameraMode then
+            LocalPlayer.CameraMode = originalCameraMode
+            originalCameraMode = nil
+        end
+        camera.CameraType = Enum.CameraType.Custom
+        humanoidRootPart.Anchored = false
+    end
+end
+
+-- Delete Wall
+UserInputService.InputBegan:Connect(function(input)
+    if FreeCamState.Enabled and FreeCamState.DeleteWallEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 and UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) then
+        local mouse = LocalPlayer:GetMouse()
+        local ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+
+        if raycastResult and raycastResult.Instance then
+            raycastResult.Instance:Destroy()
+            Library:Notify("Стена удалена")
+        end
     end
 end)
 
-workspace.DescendantAdded:Connect(function(obj)
-    if ObjectESPState.Enabled and ObjectESPState.SelectedObjects[obj.Name] then
-        updateObjectESP()
-    end
-end)
-
--- Логика Ore ESP
-local OreESP = {}
-local trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
-
-local function createOreESP(ore)
-    if OreESP[ore] then return end
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Adornee = ore:IsA("Model") and ore.PrimaryPart or ore
-    billboard.Size = UDim2.new(0, 100, 0, 20) -- Фиксированный размер в пикселях
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Parent = game.CoreGui
-    billboard.ExtentsOffset = Vector3.new(0, 0, 0) -- Убираем смещение границ
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 1, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = ore.Name
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = false -- Отключаем масштабирование текста
-    textLabel.TextSize = 14 -- Фиксированный размер текста
-    textLabel.TextStrokeTransparency = 0
-    textLabel.TextStrokeColor3 = OreESPState.Color
-    textLabel.Parent = billboard
-
-    OreESP[ore] = billboard
-    local oreType = ore.Name:lower() == "iron" and "Iron" or
-                    ore.Name:lower() == "stone" and "Stone" or
-                    ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
-    table.insert(trackedOres[oreType], ore)
-
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not ore.Parent or not OreESPState.Enabled or not OreESPState.SelectedOres[oreType] then
-            billboard.Enabled = false
-            if connection then
-                connection:Disconnect()
-            end
-            if OreESP[ore] then
-                OreESP[ore]:Destroy()
-                OreESP[ore] = nil
-                for i, trackedOre in ipairs(trackedOres[oreType]) do
-                    if trackedOre == ore then
-                        table.remove(trackedOres[oreType], i)
-                        break
-                    end
-                end
-            end
-            return
-        end
-        billboard.Enabled = true
-    end)
-end
-
-local function updateOreESP()
-    if not OreESPState.Enabled then
-        for _, billboard in pairs(OreESP) do
-            if billboard then billboard:Destroy() end
-        end
-        OreESP = {}
-        trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
-        return
-    end
-
-    local oreFolder = workspace:FindFirstChild("ores")
-    if not oreFolder then return end
-
-    local ironOres = {}
-    local stoneOres = {}
-    local sulfurOres = {}
-    for _, ore in pairs(oreFolder:GetChildren()) do
-        local oreNameLower = ore.Name:lower()
-        if OreESPState.SelectedOres["Iron"] and (oreNameLower == "iron" or ore.Name == "Iron") then
-            table.insert(ironOres, ore)
-        elseif OreESPState.SelectedOres["Stone"] and (oreNameLower == "stone" or ore.Name == "Stone") then
-            table.insert(stoneOres, ore)
-        elseif OreESPState.SelectedOres["Sulfur"] and (oreNameLower == "sulfur" or ore.Name == "Sulfur") then
-            table.insert(sulfurOres, ore)
-        end
-    end
-
-    table.sort(ironOres, function(a, b)
-        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
-    end)
-    table.sort(stoneOres, function(a, b)
-        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
-    end)
-    table.sort(sulfurOres, function(a, b)
-        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
-    end)
-
-    for ore, billboard in pairs(OreESP) do
-        local oreType = ore.Name:lower() == "iron" and "Iron" or
-                        ore.Name:lower() == "stone" and "Stone" or
-                        ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
-        local isInLimit = false
-        if oreType == "Iron" then
-            for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
-                if ironOres[i] == ore then
-                    isInLimit = true
-                    break
-                end
-            end
-        elseif oreType == "Stone" then
-            for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
-                if stoneOres[i] == ore then
-                    isInLimit = true
-                    break
-                end
-            end
-        elseif oreType == "Sulfur" then
-            for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
-                if sulfurOres[i] == ore then
-                    isInLimit = true
-                    break
-                end
-            end
-        end
-        if not isInLimit then
-            if billboard then billboard:Destroy() end
-            OreESP[ore] = nil
-            for i, trackedOre in ipairs(trackedOres[oreType]) do
-                if trackedOre == ore then
-                    table.remove(trackedOres[oreType], i)
-                    break
-                end
-            end
-        end
-    end
-
-    for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
-        local ore = ironOres[i]
-        if not OreESP[ore] then
-            createOreESP(ore)
-        end
-    end
-    for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
-        local ore = stoneOres[i]
-        if not OreESP[ore] then
-            createOreESP(ore)
-        end
-    end
-    for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
-        local ore = sulfurOres[i]
-        if not OreESP[ore] then
-            createOreESP(ore)
-        end
-    end
-end
-
-task.spawn(function()
-    while true do
-        if OreESPState.Enabled then
-            updateOreESP()
-        end
-        wait(0.5)
-    end
-end)
-
-local oreFolder = workspace:FindFirstChild("ores")
-if oreFolder then
-    oreFolder.ChildAdded:Connect(function(ore)
-        local oreNameLower = ore.Name:lower()
-        if OreESPState.Enabled and (
-            (OreESPState.SelectedOres["Iron"] and (oreNameLower == "iron" or ore.Name == "Iron")) or
-            (OreESPState.SelectedOres["Stone"] and (oreNameLower == "stone" or ore.Name == "Stone")) or
-            (OreESPState.SelectedOres["Sulfur"] and (oreNameLower == "sulfur" or ore.Name == "Sulfur"))
-        ) then
-            updateOreESP()
-        end
-    end)
-end
-
--- Логика Aimbot
+-- Aimbot объекты
 local aimbotSnapline = Drawing.new("Line")
 aimbotSnapline.Thickness = 2
 aimbotSnapline.Color = Color3.fromRGB(255, 0, 0)
@@ -2206,38 +1719,10 @@ local aimbotFovCircle = Drawing.new("Circle")
 aimbotFovCircle.Thickness = 1
 aimbotFovCircle.NumSides = 64
 aimbotFovCircle.Radius = AimbotState.FOVSize
-aimbotFovCircle.Color = Color3.fromRGB(0, 255, 0)
 aimbotFovCircle.Filled = false
 aimbotFovCircle.Visible = false
 
-local silentSnapline = Drawing.new("Line")
-silentSnapline.Thickness = 2
-silentSnapline.Color = Color3.fromRGB(0, 255, 255)
-silentSnapline.Visible = false
-
-local silentFovCircle = Drawing.new("Circle")
-silentFovCircle.Thickness = 1
-silentFovCircle.NumSides = 64
-silentFovCircle.Radius = SilentAimState.FOVSize
-silentFovCircle.Color = Color3.fromRGB(255, 255, 0)
-silentFovCircle.Filled = false
-silentFovCircle.Visible = false
-
 local aimbotActive = false
-local silentAimActive = false
-local teleportedPlayer = nil
-local originalHitboxData = {}
-local defaultFOV = 70
-
-local defaultFOV = 70
-local titles = {}
-local menuVisible = false
-local rgbTime = 0
-local staffFrame = nil
-local staffLabels = {}
-local dragging = false
-local dragOffset = Vector2.new(0, 0)
-local lastState = Enum.HumanoidStateType.Running -- Для отслеживания состояния
 
 -- Функции для Aimbot
 local function isInAimbotFOV(targetPos)
@@ -2288,9 +1773,9 @@ local function updateAimbot()
     end
 
     if AimbotState.BindType == "Mouse" then
-        aimbotActive = UserInputService:IsMouseButtonPressed(AimbotState.MouseBind)
+        aimbotActive = UserInputService:IsMouseButtonPressed(AimbotState.MouseBind or Enum.UserInputType.MouseButton2)
     elseif AimbotState.BindType == "Key" then
-        aimbotActive = UserInputService:IsKeyDown(AimbotState.KeyBind)
+        aimbotActive = UserInputService:IsKeyDown(AimbotState.KeyBind or Enum.KeyCode.Unknown)
     end
 
     local target = getAimbotTarget()
@@ -2317,11 +1802,34 @@ local function updateAimbot()
         camera.CFrame = camera.CFrame:Lerp(newCFrame, lerpFactor)
     end
 
+    -- RGB для FOV Circle
     local mousePos = UserInputService:GetMouseLocation()
     aimbotFovCircle.Position = mousePos
     aimbotFovCircle.Radius = AimbotState.FOVSize
     aimbotFovCircle.Visible = AimbotState.FOVEnabled
+    if AimbotState.FOVEnabled then
+        local r = math.sin(tick() * 2) * 127 + 128
+        local g = math.sin(tick() * 2 + 2) * 127 + 128
+        local b = math.sin(tick() * 2 + 4) * 127 + 128
+        aimbotFovCircle.Color = Color3.fromRGB(r, g, b)
+    end
 end
+
+-- Silent Aim объекты
+local silentSnapline = Drawing.new("Line")
+silentSnapline.Thickness = 2
+silentSnapline.Color = Color3.fromRGB(0, 255, 255)
+silentSnapline.Visible = false
+
+local silentFovCircle = Drawing.new("Circle")
+silentFovCircle.Thickness = 1
+silentFovCircle.NumSides = 64
+silentFovCircle.Radius = SilentAimState.FOVSize
+silentFovCircle.Filled = false
+silentFovCircle.Visible = false
+
+local silentAimActive = false
+local teleportedPlayer = nil
 
 -- Функции для Silent Aim
 local function isInSilentFOV(targetPos)
@@ -2371,7 +1879,9 @@ local function updateSilentAim()
 
     local target = getSilentTarget()
     local wasActive = silentAimActive
-    silentAimActive = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    silentAimActive = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or 
+                      (SilentAimState.KeyBind and UserInputService:IsKeyDown(SilentAimState.KeyBind)) or 
+                      (SilentAimState.MouseBind and UserInputService:IsMouseButtonPressed(SilentAimState.MouseBind))
 
     if SilentAimState.SnaplineEnabled and target then
         local screenPos, onScreen = camera:WorldToViewportPoint(target.Part.Position)
@@ -2445,359 +1955,710 @@ local function updateHitboxExpander()
     end
 end
 
--- Функция создания круга при приземлении
-local function createJumpCircle(character)
-    if not VisualState.JumpCircleEnabled or not character then return end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
+-- Обновляем цикл RenderStepped
+RunService.RenderStepped:Connect(function(deltaTime)
+    updateViewModel()
+    updateJumpCircle()
+    updateTitles(deltaTime)
+    updateStaffMenu()
+    updateFullbright()
+    updateSkyCycle()
+    updateCrosshair(deltaTime)
+    updateNoFog()
+    updateNoSky()
+    updateSpeedhack()
+    updateBunnyHop()
+    updateForceSpeed()
+    updateFly()
+    updateSpider()
+    updateAimbot()
+    updateSilentAim()
+    updateHitboxExpander() -- Добавляем Hitbox Expander
+end)
 
-    -- Создаём круг
-    local circle = Instance.new("Part")
-    circle.Shape = Enum.PartType.Cylinder
-    circle.Size = Vector3.new(0.1, 5, 5) -- Тонкий цилиндр
-    circle.Position = Vector3.new(rootPart.Position.X, rootPart.Position.Y - rootPart.Size.Y / 2, rootPart.Position.Z)
-    circle.CFrame = circle.CFrame * CFrame.Angles(math.rad(90), 0, 0) -- Поворот на 90 градусов по X для горизонтального положения
-    circle.Anchored = true
-    circle.CanCollide = false
-    circle.Material = Enum.Material.Neon
-    circle.Transparency = 0.3
-    circle.Parent = workspace
-
-    -- Текст в центре
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 100, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 1, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Adornee = circle
-    billboard.Parent = circle
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 1, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = "simfoniaHUB"
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = true
-    textLabel.TextStrokeTransparency = 0
-    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    textLabel.Parent = billboard
-
-    -- Анимация уменьшения и исчезания
-    local duration = VisualState.CircleSpeed * 0.1
-    local startTime = tick()
-    local initialSize = circle.Size
-
-    RunService.Heartbeat:Connect(function()
-        local elapsed = tick() - startTime
-        local progress = elapsed / duration
-        if progress >= 1 then
-            circle:Destroy()
-            return
-        end
-
-        circle.Size = Vector3.new(0.1, initialSize.Y * (1 - progress), initialSize.Z * (1 - progress))
-
-        if VisualState.CircleColor == "BlueFade" then
-            local b = math.sin(tick() * 2) * 127 + 128
-            circle.Color = Color3.fromRGB(0, 191, b)
-        elseif VisualState.CircleColor == "RGBBlue" then
-            local b = math.sin(tick() * 2) * 127 + 128
-            circle.Color = Color3.fromRGB(0, 0, b)
-        elseif VisualState.CircleColor == "RGB" then
-            local r = math.sin(tick() * 2) * 127 + 128
-            local g = math.sin(tick() * 2 + 2) * 127 + 128
-            local b = math.sin(tick() * 2 + 4) * 127 + 128
-            circle.Color = Color3.fromRGB(r, g, b)
-        end
-    end)
-end
-
--- Функция обновления View Model
-local function updateViewModel()
-    if VisualState.ViewModelEnabled then
-        camera.FieldOfView = VisualState.FOV
-    else
-        camera.FieldOfView = defaultFOV
-    end
-end
-
--- Функция обновления Jump Circle
-local function updateJumpCircle()
+-- Visual Tool
+local function spawnTool(toolName, amount)
     local character = LocalPlayer.Character
-    if not character or not VisualState.JumpCircleEnabled then return end
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = character.HumanoidRootPart
 
-    local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then return end
+    if toolName == "5.56 Rifle ammo" then
+        local tool = Instance.new("Tool")
+        tool.Name = toolName
+        tool.RequiresHandle = false
 
-    local currentState = humanoid:GetState()
-    if lastState == Enum.HumanoidStateType.Freefall and currentState == Enum.HumanoidStateType.Landed then
-        createJumpCircle(character)
-    end
-    lastState = currentState
+        local ammoProperty = Instance.new("IntValue")
+        ammoProperty.Name = "Ammo"
+        ammoProperty.Value = math.min(amount, 128) -- Ограничиваем до 128 для патронов
+        ammoProperty.Parent = tool
 
-    for color, button in pairs(circleColorButtons) do
-        if VisualState.CircleColor == color then
-            if color == "BlueFade" then
-                button.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
-            elseif color == "RGBBlue" then
-                local b = math.sin(tick() * 2) * 127 + 128
-                button.BackgroundColor3 = Color3.fromRGB(0, 0, b)
-            elseif color == "RGB" then
-                local r = math.sin(tick() * 2) * 127 + 128
-                local g = math.sin(tick() * 2 + 2) * 127 + 128
-                local b = math.sin(tick() * 2 + 4) * 127 + 128
-                button.BackgroundColor3 = Color3.fromRGB(r, g, b)
-            end
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        if backpack then
+            tool.Parent = backpack
+            Library:Notify(toolName .. " (" .. ammoProperty.Value .. ") добавлен в Backpack")
         else
-            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-        end
-    end
-end
-
--- Обновление Titles
-local function createTitle()
-    local title = Drawing.new("Text")
-    title.Text = "simfoniaHUB"
-    title.Color = Color3.fromRGB(255, 255, 255)
-    title.Size = math.random(20, 40)
-    title.Position = Vector2.new(math.random(0, camera.ViewportSize.X), math.random(0, camera.ViewportSize.Y))
-    title.Transparency = 0.7
-    title.Visible = false
-    local velocity = Vector2.new(math.random(-50, 50) / 10, math.random(-50, 50) / 10)
-    return { Object = title, Velocity = velocity }
-end
-
-local function updateTitles(deltaTime)
-    if not TitlesState.Enabled or not menuVisible then
-        for _, title in pairs(titles) do
-            title.Object.Visible = false
-        end
-        return
-    end
-
-    while #titles < 10 do
-        table.insert(titles, createTitle())
-    end
-
-    if TitlesState.RGBEnabled then
-        rgbTime = rgbTime + deltaTime
-        local r = math.sin(rgbTime * 2) * 127 + 128
-        local g = math.sin(rgbTime * 2 + 2) * 127 + 128
-        local b = math.sin(rgbTime * 2 + 4) * 127 + 128
-        local rgbColor = Color3.fromRGB(r, g, b)
-        for _, title in pairs(titles) do
-            title.Object.Color = rgbColor
+            tool.Parent = workspace
+            tool.Position = humanoidRootPart.Position + humanoidRootPart.CFrame.LookVector * 5
+            Library:Notify(toolName .. " (" .. ammoProperty.Value .. ") упал перед игроком")
         end
     else
-        for _, title in pairs(titles) do
-            title.Object.Color = Color3.fromRGB(255, 255, 255)
-        end
-    end
+        for i = 1, amount do
+            local tool = Instance.new("Tool")
+            tool.Name = toolName
+            tool.RequiresHandle = false
 
-    for _, title in pairs(titles) do
-        title.Object.Visible = true
-        local newPos = title.Object.Position + title.Velocity
-        local screenWidth = camera.ViewportSize.X
-        local screenHeight = camera.ViewportSize.Y
-
-        if newPos.X < 0 or newPos.X > screenWidth then
-            title.Velocity = Vector2.new(-title.Velocity.X, title.Velocity.Y)
-            newPos = Vector2.new(math.clamp(newPos.X, 0, screenWidth), newPos.Y)
+            local backpack = LocalPlayer:FindFirstChild("Backpack")
+            if backpack then
+                tool.Parent = backpack
+            else
+                tool.Parent = workspace
+                tool.Position = humanoidRootPart.Position + humanoidRootPart.CFrame.LookVector * 5 + Vector3.new(0, i * 0.5, 0) -- Смещение по высоте
+            end
         end
-        if newPos.Y < 0 or newPos.Y > screenHeight then
-            title.Velocity = Vector2.new(title.Velocity.X, -title.Velocity.Y)
-            newPos = Vector2.new(newPos.X, math.clamp(newPos.Y, 0, screenHeight))
-        end
-        title.Object.Position = newPos
+        Library:Notify(toolName .. " (" .. amount .. ") " .. (LocalPlayer:FindFirstChild("Backpack") and "добавлен в Backpack" or "упал перед игроком"))
     end
 end
 
--- Функции для Titles
-local function createTitle()
-    local title = Drawing.new("Text")
-    title.Text = "simfoniaHUB"
-    title.Color = Color3.fromRGB(255, 255, 255)
-    title.Size = math.random(20, 40)
-    title.Position = Vector2.new(math.random(0, camera.ViewportSize.X), math.random(0, camera.ViewportSize.Y))
-    title.Transparency = 0.7
-    title.Visible = false
+-- Show All Backpack Window
+local backpackFrame = nil
+local backpackButtons = {}
+local function showBackpackWindow()
+    if backpackFrame then return end
 
-    local velocity = Vector2.new(math.random(-50, 50) / 10, math.random(-50, 50) / 10)
-    return { Object = title, Velocity = velocity }
-end
-
-local function updateTitles(deltaTime)
-    if not TitlesState.Enabled or not menuVisible then
-        for _, title in pairs(titles) do
-            title.Object.Visible = false
-        end
-        return
-    end
-
-    while #titles < 10 do
-        table.insert(titles, createTitle())
-    end
-
-    if TitlesState.RGBEnabled then
-        rgbTime = rgbTime + deltaTime
-        local r = math.sin(rgbTime * 2) * 127 + 128
-        local g = math.sin(rgbTime * 2 + 2) * 127 + 128
-        local b = math.sin(rgbTime * 2 + 4) * 127 + 128
-        local rgbColor = Color3.fromRGB(r, g, b)
-
-        for _, title in pairs(titles) do
-            title.Object.Color = rgbColor
-        end
-    else
-        for _, title in pairs(titles) do
-            title.Object.Color = Color3.fromRGB(255, 255, 255)
-        end
-    end
-
-    for _, title in pairs(titles) do
-        title.Object.Visible = true
-        local newPos = title.Object.Position + title.Velocity
-        local screenWidth = camera.ViewportSize.X
-        local screenHeight = camera.ViewportSize.Y
-
-        if newPos.X < 0 or newPos.X > screenWidth then
-            title.Velocity = Vector2.new(-title.Velocity.X, title.Velocity.Y)
-            newPos = Vector2.new(math.clamp(newPos.X, 0, screenWidth), newPos.Y)
-        end
-        if newPos.Y < 0 or newPos.Y > screenHeight then
-            title.Velocity = Vector2.new(title.Velocity.X, -title.Velocity.Y)
-            newPos = Vector2.new(newPos.X, math.clamp(newPos.Y, 0, screenHeight))
-        end
-
-        title.Object.Position = newPos
-    end
-end
-
--- Функции для Staff Online
-local function createStaffMenu()
-    if staffFrame then return end
-
-    staffFrame = Instance.new("Frame")
-    staffFrame.Size = UDim2.new(0, 100, 0, 300)
-    staffFrame.Position = UDim2.new(0, 50, 0, 50)
-    staffFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    staffFrame.BorderSizePixel = 0
-    staffFrame.Parent = GuiElements.ScreenGui
+    backpackFrame = Instance.new("Frame")
+    backpackFrame.Size = UDim2.new(0, 200, 0, 300)
+    backpackFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
+    backpackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    backpackFrame.BorderSizePixel = 0
+    backpackFrame.Parent = game.CoreGui:FindFirstChild("ScreenGui") or Instance.new("ScreenGui", game.CoreGui)
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, 0, 0, 20)
     titleLabel.Position = UDim2.new(0, 0, 0, 0)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "Staff Online"
+    titleLabel.Text = "DeathBackpacks"
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleLabel.TextScaled = true
-    titleLabel.Parent = staffFrame
+    titleLabel.Parent = backpackFrame
 
-    for i, name in pairs(StaffOnlineState.Whitelist) do
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 0, 20)
-        label.Position = UDim2.new(0, 0, 0, 20 + (i - 1) * 20)
-        label.BackgroundTransparency = 1
-        label.Text = name
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.TextScaled = true
-        label.Parent = staffFrame
-        staffLabels[name] = label
-    end
-
-    -- Логика перетаскивания
-    staffFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragOffset = Vector2.new(input.Position.X - staffFrame.Position.X.Offset, input.Position.Y - staffFrame.Position.Y.Offset)
-        end
-    end)
-
-    staffFrame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            staffFrame.Position = UDim2.new(0, input.Position.X - dragOffset.X, 0, input.Position.Y - dragOffset.Y)
-        end
-    end)
-end
-
-local function updateStaffMenu()
-    if not StaffOnlineState.Enabled then
-        if staffFrame then
-            staffFrame.Visible = false
-        end
-        return
-    end
-
-    if not staffFrame then
-        createStaffMenu()
-    end
-
-    staffFrame.Visible = true
-
-    local currentPlayers = {}
-    for _, player in pairs(Players:GetPlayers()) do
-        currentPlayers[player.Name] = true
-    end
-
-    for name, label in pairs(staffLabels) do
-        if currentPlayers[name] then
-            label.TextColor3 = Color3.fromRGB(0, 255, 0)
-        else
-            label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    local backpacks = workspace:GetDescendants()
+    local deathBackpacks = {}
+    for _, obj in pairs(backpacks) do
+        if obj.Name == "DeathBackpack" then
+            table.insert(deathBackpacks, obj)
         end
     end
-end
 
--- Обновление при появлении персонажа
-LocalPlayer.CharacterAdded:Connect(function(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    lastState = humanoid:GetState()
-    updateJumpCircle()
-end)
+    for i, backpack in ipairs(deathBackpacks) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0.9, 0, 0, 30)
+        button.Position = UDim2.new(0.05, 0, 0, 30 + (i - 1) * 35)
+        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        button.Text = "Backpack " .. i
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.TextScaled = true
+        button.Parent = backpackFrame
+        backpackButtons[button] = backpack
 
--- Основной цикл обновления
-RunService.RenderStepped:Connect(function(deltaTime)
-    updateFly()
-    updateAimbot()
-    updateSilentAim()
-    updateHitboxExpander()
-    updateViewModel()
-    updateJumpCircle()
-    updateTitles(deltaTime)
-    updateStaffMenu()
-end)
-
--- Обработка новых игроков для Hitbox Expander
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        if HitboxExpanderState.Enabled then
-            local rootPart = character:WaitForChild("HumanoidRootPart")
-            if not originalHitboxData[player] then
-                originalHitboxData[player] = {
-                    Size = rootPart.Size,
-                    Transparency = rootPart.Transparency
-                }
+        button.MouseButton1Click:Connect(function()
+            ShowBackpackState.SelectedBackpack = backpack
+            for btn in pairs(backpackButtons) do
+                btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             end
-            rootPart.Size = Vector3.new(HitboxExpanderState.Size, HitboxExpanderState.Size, HitboxExpanderState.Size)
-            rootPart.Transparency = HitboxExpanderState.Transparency
+            button.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Подсветка выбранного
+        end)
+    end
+
+    local teleportButton = Instance.new("TextButton")
+    teleportButton.Size = UDim2.new(0.9, 0, 0, 30)
+    teleportButton.Position = UDim2.new(0.05, 0, 1, -35)
+    teleportButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    teleportButton.Text = "Teleport"
+    teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    teleportButton.TextScaled = true
+    teleportButton.Parent = backpackFrame
+
+    teleportButton.MouseButton1Click:Connect(function()
+        if ShowBackpackState.SelectedBackpack then
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = CFrame.new(ShowBackpackState.SelectedBackpack.Position + Vector3.new(0, 5, 0))
+                Library:Notify("Телепортация к DeathBackpack")
+            end
+        else
+            Library:Notify("Выбери рюкзак для телепортации!")
         end
     end)
+end
+
+local function hideBackpackWindow()
+    if backpackFrame then
+        backpackFrame:Destroy()
+        backpackFrame = nil
+        backpackButtons = {}
+        ShowBackpackState.SelectedBackpack = nil
+    end
+end
+
+-- Логика ESP для игроков
+local ESP = {}
+local camera = workspace.CurrentCamera or workspace:WaitForChild("CurrentCamera")
+local weaponList = {"Ak1", "C4", "Revolver", "Rocket Launcher", "Bow", "Thompson"}
+
+local function getPlayerWeapon(character)
+    if not character then return "None" end
+    for _, tool in pairs(character:GetChildren()) do
+        if tool:IsA("Tool") then
+            for _, weapon in pairs(weaponList) do
+                if tool.Name == weapon then
+                    return weapon
+                end
+            end
+        end
+    end
+    return "None"
+end
+
+local function createESP(player)
+    if player == LocalPlayer then return end
+    
+    local function setupESP()
+        local character = player.Character
+        if not character then return end
+        
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        if not humanoidRootPart or not humanoid then
+            Library:Notify("Не удалось найти HumanoidRootPart или Humanoid для " .. player.Name)
+            return
+        end
+
+        if ESP[player] then
+            if ESP[player].Box then ESP[player].Box:Remove() end
+            if ESP[player].Text then ESP[player].Text:Remove() end
+            ESP[player] = nil
+        end
+
+        local box = Drawing.new("Square")
+        box.Thickness = 2
+        box.Filled = false
+        box.Color = ESPState.Color
+        box.Visible = false
+
+        local text = Drawing.new("Text")
+        text.Size = 16
+        text.Color = Color3.fromRGB(255, 255, 255)
+        text.Visible = false
+
+        ESP[player] = {Box = box, Text = text}
+
+        local connection
+        connection = RunService.RenderStepped:Connect(function()
+            if not player.Character or not player.Character.Parent or not humanoidRootPart or not humanoid or humanoid.Health <= 0 then
+                box.Visible = false
+                text.Visible = false
+                if connection then connection:Disconnect() end
+                if ESP[player] then
+                    if ESP[player].Box then ESP[player].Box:Remove() end
+                    if ESP[player].Text then ESP[player].Text:Remove() end
+                    ESP[player] = nil
+                end
+                return
+            end
+
+            if ESPState.Enabled then
+                local rootPos, onScreen = camera:WorldToViewportPoint(humanoidRootPart.Position)
+                if onScreen then
+                    local size = character:GetExtentsSize() * 1.2
+                    local topLeft = camera:WorldToViewportPoint(humanoidRootPart.Position + Vector3.new(size.X/2, size.Y/2, size.Z/2))
+                    local bottomRight = camera:WorldToViewportPoint(humanoidRootPart.Position - Vector3.new(size.X/2, size.Y/2, size.Z/2))
+
+                    if topLeft.Z > 0 and bottomRight.Z > 0 then
+                        local width = math.abs(topLeft.X - bottomRight.X)
+                        local height = math.abs(topLeft.Y - bottomRight.Y)
+                        local centerX = (topLeft.X + bottomRight.X) / 2
+
+                        box.Size = Vector2.new(width, height)
+                        box.Position = Vector2.new(centerX - width / 2, topLeft.Y)
+                        box.Color = ESPState.Color
+                        box.Visible = true
+
+                        local textString = ""
+                        if ESPState.Name then
+                            textString = textString .. player.Name .. "\n"
+                        end
+                        if ESPState.Studs then
+                            local distance = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and (humanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude) or 0
+                            textString = textString .. math.floor(distance) .. " studs\n"
+                        end
+                        if ESPState.HP then
+                            textString = textString .. math.floor(humanoid.Health) .. "/" .. humanoid.MaxHealth .. " HP\n"
+                        end
+                        if ESPState.WeaponEnabled then
+                            local weapon = getPlayerWeapon(character)
+                            textString = textString .. weapon
+                        end
+
+                        text.Text = textString
+                        text.Position = Vector2.new(centerX - width / 2, topLeft.Y - 20)
+                        text.Visible = textString ~= ""
+                    else
+                        box.Visible = false
+                        text.Visible = false
+                    end
+                else
+                    box.Visible = false
+                    text.Visible = false
+                end
+            else
+                box.Visible = false
+                text.Visible = false
+            end
+        end)
+    end
+
+    if player.Character then
+        spawn(function()
+            local success, err = pcall(setupESP)
+            if not success then
+                Library:Notify("Ошибка при создании ESP для " .. player.Name .. ": " .. err)
+            end
+        end)
+    end
+
+    player.CharacterAdded:Connect(function()
+        spawn(function()
+            local success, err = pcall(setupESP)
+            if not success then
+                Library:Notify("Ошибка при повторном создании ESP для " .. player.Name .. ": " .. err)
+            end
+        end)
+    end)
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        spawn(function()
+            local success, err = pcall(createESP, player)
+            if not success then
+                Library:Notify("Ошибка при инициализации ESP для " .. player.Name .. ": " .. err)
+            end
+        end)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        spawn(function()
+            local success, err = pcall(createESP, player)
+            if not success then
+                Library:Notify("Ошибка при добавлении ESP для нового игрока " .. player.Name .. ": " .. err)
+            end
+        end)
+    end
 end)
 
 Players.PlayerRemoving:Connect(function(player)
-    originalHitboxData[player] = nil
-end)
-
--- Логика появления/скрытия меню
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        GuiElements.MainFrame.Visible = not GuiElements.MainFrame.Visible
-        menuVisible = GuiElements.MainFrame.Visible
+    if ESP[player] then
+        if ESP[player].Box then ESP[player].Box:Remove() end
+        if ESP[player].Text then ESP[player].Text:Remove() end
+        ESP[player] = nil
     end
 end)
+
+-- Логика Object ESP
+local ObjectESP = {}
+local trackedRecyclerHelicopter = {}
+local trackedCupboard = {}
+
+local function getDistanceToPlayer(obj)
+    local playerRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not playerRoot then return math.huge end
+    local objRoot = obj:IsA("Model") and obj.PrimaryPart or obj
+    if not objRoot then return math.huge end
+    return (playerRoot.Position - objRoot.Position).Magnitude
+end
+
+local function createObjectESP(object)
+    if ObjectESP[object] then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = object:IsA("Model") and object.PrimaryPart or object
+    billboard.Size = UDim2.new(0, 100, 0, 20)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = game.CoreGui
+    billboard.ExtentsOffset = Vector3.new(0, 0, 0)
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = object.Name
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = false
+    textLabel.TextSize = 14
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = ObjectESPState.Color
+    textLabel.Parent = billboard
+
+    ObjectESP[object] = billboard
+    if object.Name == "Cupboard" then
+        table.insert(trackedCupboard, object)
+    elseif object.Name == "Recycler" or object.Name == "Helicopter" then
+        table.insert(trackedRecyclerHelicopter, object)
+    end
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not object.Parent or not ObjectESPState.Enabled or not ObjectESPState.SelectedObjects[object.Name] then
+            billboard.Enabled = false
+            if connection then
+                connection:Disconnect()
+            end
+            if ObjectESP[object] then
+                ObjectESP[object]:Destroy()
+                ObjectESP[object] = nil
+                if object.Name == "Cupboard" then
+                    for i, trackedObj in ipairs(trackedCupboard) do
+                        if trackedObj == object then
+                            table.remove(trackedCupboard, i)
+                            break
+                        end
+                    end
+                elseif object.Name == "Recycler" or object.Name == "Helicopter" then
+                    for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
+                        if trackedObj == object then
+                            table.remove(trackedRecyclerHelicopter, i)
+                            break
+                        end
+                    end
+                end
+            end
+            return
+        end
+        billboard.Enabled = true
+    end)
+end
+
+local function updateObjectESP()
+    if not ObjectESPState.Enabled then
+        for _, billboard in pairs(ObjectESP) do
+            if billboard then billboard:Destroy() end
+        end
+        ObjectESP = {}
+        trackedRecyclerHelicopter = {}
+        trackedCupboard = {}
+        return
+    end
+
+    local recyclerHelicopterObjects = {}
+    local cupboardObjects = {}
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if ObjectESPState.SelectedObjects[obj.Name] then
+            if obj.Name == "Cupboard" then
+                table.insert(cupboardObjects, obj)
+            elseif obj.Name == "Recycler" or obj.Name == "Helicopter" then
+                table.insert(recyclerHelicopterObjects, obj)
+            end
+        end
+    end
+
+    table.sort(recyclerHelicopterObjects, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(cupboardObjects, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+
+    for obj, billboard in pairs(ObjectESP) do
+        local isInLimit = false
+        if obj.Name == "Cupboard" then
+            for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
+                if cupboardObjects[i] == obj then
+                    isInLimit = true
+                    break
+                end
+            end
+        elseif obj.Name == "Recycler" or obj.Name == "Helicopter" then
+            for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
+                if recyclerHelicopterObjects[i] == obj then
+                    isInLimit = true
+                    break
+                end
+            end
+        end
+        if not isInLimit then
+            if billboard then billboard:Destroy() end
+            ObjectESP[obj] = nil
+            if obj.Name == "Cupboard" then
+                for i, trackedObj in ipairs(trackedCupboard) do
+                    if trackedObj == obj then
+                        table.remove(trackedCupboard, i)
+                        break
+                    end
+                end
+            elseif obj.Name == "Recycler" or obj.Name == "Helicopter" then
+                for i, trackedObj in ipairs(trackedRecyclerHelicopter) do
+                    if trackedObj == obj then
+                        table.remove(trackedRecyclerHelicopter, i)
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    for i = 1, math.min(#recyclerHelicopterObjects, ObjectESPState.MaxRecyclerHelicopter) do
+        local obj = recyclerHelicopterObjects[i]
+        if not ObjectESP[obj] then
+            createObjectESP(obj)
+        end
+    end
+    for i = 1, math.min(#cupboardObjects, ObjectESPState.MaxCupboard) do
+        local obj = cupboardObjects[i]
+        if not ObjectESP[obj] then
+            createObjectESP(obj)
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        if ObjectESPState.Enabled then
+            updateObjectESP()
+        end
+        wait(2) -- 2 секунды для оптимизации
+    end
+end)
+
+workspace.DescendantAdded:Connect(function(obj)
+    if ObjectESPState.Enabled and ObjectESPState.SelectedObjects[obj.Name] then
+        updateObjectESP()
+    end
+end)
+
+-- Логика Ore ESP
+local OreESP = {}
+local trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
+local trackedOreObjects = {} -- Кэш для руды
+
+local function createOreESP(ore)
+    if OreESP[ore] then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = ore:IsA("Model") and ore.PrimaryPart or ore
+    billboard.Size = UDim2.new(0, 100, 0, 20)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = game.CoreGui
+    billboard.ExtentsOffset = Vector3.new(0, 0, 0)
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = ore.Name
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = false
+    textLabel.TextSize = 14
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = OreESPState.Color
+    textLabel.Parent = billboard
+
+    OreESP[ore] = billboard
+    local oreType = ore.Name:lower() == "iron" and "Iron" or
+                    ore.Name:lower() == "stone" and "Stone" or
+                    ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+    table.insert(trackedOres[oreType], ore)
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not ore.Parent or not OreESPState.Enabled or not OreESPState.SelectedOres[oreType] then
+            billboard.Enabled = false
+            if connection then
+                connection:Disconnect()
+            end
+            if OreESP[ore] then
+                OreESP[ore]:Destroy()
+                OreESP[ore] = nil
+                for i, trackedOre in ipairs(trackedOres[oreType]) do
+                    if trackedOre == ore then
+                        table.remove(trackedOres[oreType], i)
+                        break
+                    end
+                end
+            end
+            return
+        end
+        billboard.Enabled = true
+    end)
+end
+
+local function initializeOreTracking()
+    trackedOreObjects = {}
+    local oreFolder = workspace:FindFirstChild("ores")
+    if oreFolder then
+        for _, ore in pairs(oreFolder:GetChildren()) do
+            local oreNameLower = ore.Name:lower()
+            if oreNameLower == "iron" or oreNameLower == "stone" or oreNameLower == "sulfur" then
+                trackedOreObjects[ore] = true
+            end
+        end
+    end
+end
+
+local function updateOreESP()
+    if not OreESPState.Enabled then
+        for _, billboard in pairs(OreESP) do
+            if billboard then billboard:Destroy() end
+        end
+        OreESP = {}
+        trackedOres = {Iron = {}, Stone = {}, Sulfur = {}}
+        return
+    end
+
+    local ironOres = {}
+    local stoneOres = {}
+    local sulfurOres = {}
+    for ore in pairs(trackedOreObjects) do
+        if ore.Parent then
+            local oreType = ore.Name:lower() == "iron" and "Iron" or
+                            ore.Name:lower() == "stone" and "Stone" or
+                            ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+            if OreESPState.SelectedOres[oreType] then
+                if oreType == "Iron" then
+                    table.insert(ironOres, ore)
+                elseif oreType == "Stone" then
+                    table.insert(stoneOres, ore)
+                elseif oreType == "Sulfur" then
+                    table.insert(sulfurOres, ore)
+                end
+            end
+        end
+    end
+
+    table.sort(ironOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(stoneOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+    table.sort(sulfurOres, function(a, b)
+        return getDistanceToPlayer(a) < getDistanceToPlayer(b)
+    end)
+
+    for ore, billboard in pairs(OreESP) do
+        local oreType = ore.Name:lower() == "iron" and "Iron" or
+                        ore.Name:lower() == "stone" and "Stone" or
+                        ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+        local isInLimit = false
+        if oreType == "Iron" then
+            for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
+                if ironOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        elseif oreType == "Stone" then
+            for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
+                if stoneOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        elseif oreType == "Sulfur" then
+            for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
+                if sulfurOres[i] == ore then
+                    isInLimit = true
+                    break
+                end
+            end
+        end
+        if not isInLimit or not ore.Parent then
+            if billboard then billboard:Destroy() end
+            OreESP[ore] = nil
+            for i, trackedOre in ipairs(trackedOres[oreType]) do
+                if trackedOre == ore then
+                    table.remove(trackedOres[oreType], i)
+                    break
+                end
+            end
+        end
+    end
+
+    for i = 1, math.min(#ironOres, OreESPState.MaxPerOre) do
+        local ore = ironOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+    for i = 1, math.min(#stoneOres, OreESPState.MaxPerOre) do
+        local ore = stoneOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+    for i = 1, math.min(#sulfurOres, OreESPState.MaxPerOre) do
+        local ore = sulfurOres[i]
+        if not OreESP[ore] then
+            createOreESP(ore)
+        end
+    end
+end
+
+-- Инициализация и обновление Ore ESP
+Toggles.OreESPEnabled:OnChanged(function()
+    OreESPState.Enabled = Toggles.OreESPEnabled.Value
+    Library:Notify("Ore ESP " .. (OreESPState.Enabled and "включён" or "выключен"))
+    if OreESPState.Enabled then
+        initializeOreTracking()
+        updateOreESP()
+    end
+end)
+
+Options.OreESPSelected:OnChanged(function()
+    OreESPState.SelectedOres = Options.OreESPSelected.Value
+    if OreESPState.Enabled then
+        initializeOreTracking()
+        updateOreESP()
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if OreESPState.Enabled then
+            updateOreESP()
+        end
+        wait(2) -- Обновление каждые 2 секунды для оптимизации
+    end
+end)
+
+local oreFolder = workspace:FindFirstChild("ores")
+if oreFolder then
+    oreFolder.ChildAdded:Connect(function(ore)
+        local oreNameLower = ore.Name:lower()
+        if OreESPState.SelectedOres[oreNameLower == "iron" and "Iron" or oreNameLower == "stone" and "Stone" or oreNameLower == "sulfur" and "Sulfur"] then
+            trackedOreObjects[ore] = true
+            if OreESPState.Enabled then
+                updateOreESP()
+            end
+        end
+    end)
+    oreFolder.ChildRemoved:Connect(function(ore)
+        if trackedOreObjects[ore] then
+            trackedOreObjects[ore] = nil
+            if OreESP[ore] then
+                OreESP[ore]:Destroy()
+                OreESP[ore] = nil
+                local oreType = ore.Name:lower() == "iron" and "Iron" or
+                                ore.Name:lower() == "stone" and "Stone" or
+                                ore.Name:lower() == "sulfur" and "Sulfur" or ore.Name
+                for i, trackedOre in ipairs(trackedOres[oreType]) do
+                    if trackedOre == ore then
+                        table.remove(trackedOres[oreType], i)
+                        break
+                    end
+                end
+            end
+        end
+    end)
+end
