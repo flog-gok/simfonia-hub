@@ -72,7 +72,7 @@ local FullbrightState = {
 -- === UI ===
 -- Создаём окно
 local Window = Library:CreateWindow({
-    Title = "Мой скрипт",
+    Title = "simfonia hub trident $$$ v1",
     Center = true,
     AutoShow = true,
 })
