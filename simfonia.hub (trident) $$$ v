@@ -1,0 +1,713 @@
+-- === Глобальные переменные ===
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
+
+-- Сервисы
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Lighting = game:GetService("Lighting")
+-- Сохраняем исходное FOV камеры
+local defaultFOV = Camera.FieldOfView
+
+-- Список частей для проверки моделей (для ESP и Skeleton)
+local requiredParts = {
+    "Armor", "LeftFoot", "LeftHand", "LeftLowerArm", "LeftUpperArm", "LeftUpperLeg",
+    "RightFoot", "RightHand", "RightLowerArm", "RightUpperArm", "RightUpperLeg",
+    "Torso", "Head", "HumanoidRootPart", "LowerTorso", "AnimationController",
+    "UpperTorso", "Chest", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
+}
+
+-- === Состояния ===
+-- Настройки ESP
+local espSettings = {
+    Enabled = false,
+    Thickness = 2,
+    ShowDistance = true,
+    ShowHP = false,
+    ShowEquippedTool = false,
+    MaxDistance = 1000
+}
+
+-- Настройки Skeleton ESP
+local skeletonSettings = {
+    Enabled = false,
+    Transparency = 0, -- Начальная прозрачность линий (0 - полностью видимые, 1 - полностью прозрачные)
+    MaxDistance = 1000 -- Используем ту же дистанцию, что и для ESP
+}
+
+-- Настройки Hitbox Expander
+local hitboxSettings = {
+    HitboxExpandEnabled = false,
+    HitboxSize = 1 -- Размер хитбокса головы в studs (от 1 до 15)
+}
+
+-- Настройки View Model
+local VisualState = {
+    ViewModelEnabled = false,
+    FOV = 70
+}
+
+-- Добавляем состояние для No Shadows (добавляем после FullbrightState)
+local ShadowsState = {
+    Enabled = false,
+    OriginalShadows = Lighting.GlobalShadows -- Сохраняем исходное состояние теней
+}
+
+-- Добавляем состояния для No Fog, Fullbright и No Grass
+local FogState = {
+    Enabled = false,
+    OriginalFogStart = Lighting.FogStart, -- Сохраняем исходные настройки тумана
+    OriginalFogEnd = Lighting.FogEnd,
+    OriginalFogColor = Lighting.FogColor
+}
+
+local FullbrightState = {
+    Enabled = false,
+    OriginalBrightness = Lighting.Brightness, -- Сохраняем исходную яркость
+    OriginalClockTime = Lighting.ClockTime -- Сохраняем исходное время суток
+}
+
+-- === UI ===
+-- Создаём окно
+local Window = Library:CreateWindow({
+    Title = "Мой скрипт",
+    Center = true,
+    AutoShow = true,
+})
+
+-- Создаём вкладки
+local Tabs = {
+    Legit = Window:AddTab("Legit"),
+    Render = Window:AddTab("Render"),
+    Misc = Window:AddTab("Misc"),
+    Settings = Window:AddTab("Settings"),
+}
+
+-- ESP и Skeleton Settings (Render)
+local RenderGroup = Tabs.Render:AddLeftGroupbox("ESP Settings")
+
+local espEnabledToggle = RenderGroup:AddToggle("ESPEnabled", {
+    Text = "Enable ESP",
+    Default = false,
+    Tooltip = "Включить/выключить ESP"
+})
+espEnabledToggle:OnChanged(function(value)
+    espSettings.Enabled = value
+end)
+
+local espThicknessSlider = RenderGroup:AddSlider("ESPThickness", {
+    Text = "Line Thickness",
+    Default = 2,
+    Min = 1,
+    Max = 5,
+    Rounding = 0,
+    Tooltip = "Установите толщину линий ESP"
+})
+espThicknessSlider:OnChanged(function(value)
+    espSettings.Thickness = value
+end)
+
+local espShowDistanceToggle = RenderGroup:AddToggle("ESPShowDistance", {
+    Text = "Show Distance",
+    Default = true,
+    Tooltip = "Показывать расстояние до объектов"
+})
+espShowDistanceToggle:OnChanged(function(value)
+    espSettings.ShowDistance = value
+end)
+
+local espShowHPToggle = RenderGroup:AddToggle("ESPShowHP", {
+    Text = "Show HP",
+    Default = false,
+    Tooltip = "Показывать здоровье персонажей"
+})
+espShowHPToggle:OnChanged(function(value)
+    espSettings.ShowHP = value
+end)
+
+local espShowEquippedToolToggle = RenderGroup:AddToggle("ESPShowEquippedTool", {
+    Text = "Show Equipped Tool",
+    Default = false,
+    Tooltip = "Показывать инструмент в руках"
+})
+espShowEquippedToolToggle:OnChanged(function(value)
+    espSettings.ShowEquippedTool = value
+end)
+
+local espMaxDistanceSlider = RenderGroup:AddSlider("ESPMaxDistance", {
+    Text = "Max Distance",
+    Default = 1000,
+    Min = 100,
+    Max = 5000,
+    Rounding = 0,
+    Tooltip = "Максимальная дистанция для отображения ESP и Skeleton (студс)"
+})
+espMaxDistanceSlider:OnChanged(function(value)
+    espSettings.MaxDistance = value
+    skeletonSettings.MaxDistance = value
+end)
+
+-- Skeleton Settings (в группе ESP)
+local skeletonEnabledToggle = RenderGroup:AddToggle("SkeletonEnabled", {
+    Text = "Enable Skeleton",
+    Default = false,
+    Tooltip = "Включить/выключить Skeleton ESP"
+})
+skeletonEnabledToggle:OnChanged(function(value)
+    skeletonSettings.Enabled = value
+end)
+
+local skeletonTransparencySlider = RenderGroup:AddSlider("SkeletonTransparency", {
+    Text = "Skeleton Transparency",
+    Default = 0,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Установите прозрачность линий Skeleton (0 - полностью видимые, 1 - полностью прозрачные)"
+})
+skeletonTransparencySlider:OnChanged(function(value)
+    skeletonSettings.Transparency = value
+end)
+
+-- Hitbox Expander Settings (Legit)
+local LegitGroup = Tabs.Legit:AddLeftGroupbox("Hitbox Expander Settings")
+
+local hitboxExpandEnabledToggle = LegitGroup:AddToggle("HitboxExpandEnabled", {
+    Text = "Enable Hitbox Expander",
+    Default = false,
+    Tooltip = "Включить/выключить расширение хитбокса головы"
+})
+hitboxExpandEnabledToggle:OnChanged(function(value)
+    hitboxSettings.HitboxExpandEnabled = value
+end)
+
+local hitboxSizeSlider = LegitGroup:AddSlider("HitboxSize", {
+    Text = "Head Hitbox Size",
+    Default = 1,
+    Min = 1,
+    Max = 15,
+    Rounding = 0,
+    Tooltip = "Размер хитбокса головы в studs (от 1 до 15)"
+})
+hitboxSizeSlider:OnChanged(function(value)
+    hitboxSettings.HitboxSize = value
+end)
+
+-- Полная секция UI для MiscGroup (заменяет старую реализацию)
+local MiscGroup = Tabs.Misc:AddLeftGroupbox("Miscellaneous")
+
+-- No Fog
+local noFogToggle = MiscGroup:AddToggle("NoFogEnabled", {
+    Text = "No Fog",
+    Default = FogState.Enabled,
+    Tooltip = "Убирает туман и другие атмосферные эффекты"
+})
+noFogToggle:OnChanged(function(value)
+    FogState.Enabled = value
+    Library:Notify("No Fog " .. (FogState.Enabled and "включён" or "выключен"))
+end)
+
+-- Fullbright
+local fullbrightToggle = MiscGroup:AddToggle("FullbrightEnabled", {
+    Text = "Fullbright",
+    Default = FullbrightState.Enabled,
+    Tooltip = "Делает всегда день (максимальная яркость)"
+})
+fullbrightToggle:OnChanged(function(value)
+    FullbrightState.Enabled = value
+    Library:Notify("Fullbright " .. (FullbrightState.Enabled and "включён" or "выключен"))
+end)
+
+-- No Shadows
+local noShadowsToggle = MiscGroup:AddToggle("NoShadowsEnabled", {
+    Text = "No Shadows",
+    Default = ShadowsState.Enabled,
+    Tooltip = "Убирает тени в игре"
+})
+noShadowsToggle:OnChanged(function(value)
+    ShadowsState.Enabled = value
+    Library:Notify("No Shadows " .. (ShadowsState.Enabled and "включён" or "выключен"))
+end)
+
+-- View Model
+local viewModelEnabledToggle = MiscGroup:AddToggle("ViewModelEnabled", {
+    Text = "Enable View Model",
+    Default = VisualState.ViewModelEnabled,
+    Tooltip = "Включает/выключает View Model"
+})
+viewModelEnabledToggle:OnChanged(function(value)
+    VisualState.ViewModelEnabled = value
+    Library:Notify("View Model " .. (VisualState.ViewModelEnabled and "включён" or "выключен"))
+end)
+
+local viewModelFOVSlider = MiscGroup:AddSlider("ViewModelFOV", {
+    Text = "View Model FOV",
+    Default = VisualState.FOV,
+    Min = 70,
+    Max = 120,
+    Rounding = 0,
+    Tooltip = "Настройка поля зрения для View Model (от 70 до 120)"
+})
+viewModelFOVSlider:OnChanged(function(value)
+    VisualState.FOV = value
+end)
+
+-- Settings
+local SettingsGroup = Tabs.Settings:AddLeftGroupbox("Settings")
+
+-- Уведомление о загрузке
+Library:Notify("Скрипт загружен! Используйте вкладки для настройки.", 5)
+
+-- === Функции логики ===
+-- Функция проверки, является ли модель персонажем
+local function hasRequiredParts(model)
+    if not model then return false end
+    -- Проверяем наличие HumanoidRootPart или любых BasePart
+    if model:FindFirstChild("HumanoidRootPart") then
+        return true
+    end
+    for _, child in ipairs(model:GetDescendants()) do
+        if child:IsA("BasePart") then
+            return true
+        end
+    end
+    return false
+end
+
+-- === ESP ===
+local espObjects = {}
+
+local function ESP()
+    local function createESP(model)
+        if espObjects[model] then return end
+
+        -- Создаём квадрат для ESP
+        local box = Drawing.new("Square")
+        box.Thickness = espSettings.Thickness
+        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Filled = false
+        box.Transparency = 1
+
+        local distText = Drawing.new("Text")
+        distText.Size = 14
+        distText.Color = Color3.fromRGB(255, 255, 0)
+        distText.Outline = true
+        distText.Center = true
+
+        local hpText = Drawing.new("Text")
+        hpText.Size = 14
+        hpText.Color = Color3.fromRGB(0, 255, 0)
+        hpText.Outline = true
+        hpText.Center = true
+
+        local toolText = Drawing.new("Text")
+        toolText.Size = 14
+        toolText.Color = Color3.fromRGB(255, 255, 0)
+        toolText.Outline = true
+        toolText.Center = true
+
+        espObjects[model] = {
+            Box = box,
+            DistText = distText,
+            HPText = hpText,
+            ToolText = toolText
+        }
+    end
+
+    local function removeESP(model)
+        if espObjects[model] then
+            espObjects[model].Box:Remove()
+            espObjects[model].DistText:Remove()
+            espObjects[model].HPText:Remove()
+            espObjects[model].ToolText:Remove()
+            espObjects[model] = nil
+        end
+    end
+
+    local function updateESP()
+        if not espSettings.Enabled then
+            for _, esp in pairs(espObjects) do
+                esp.Box.Visible = false
+                esp.DistText.Visible = false
+                esp.HPText.Visible = false
+                esp.ToolText.Visible = false
+            end
+            return
+        end
+
+        for model, esp in pairs(espObjects) do
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+            if not hrp or not model.Parent or not hasRequiredParts(model) then
+                removeESP(model)
+            else
+                local distance = (Camera.CFrame.Position - hrp.Position).Magnitude
+                if distance > espSettings.MaxDistance then
+                    esp.Box.Visible = false
+                    esp.DistText.Visible = false
+                    esp.HPText.Visible = false
+                    esp.ToolText.Visible = false
+                    continue
+                end
+
+                local orientation, size = model:GetBoundingBox()
+                local pos, onScreen = Camera:WorldToViewportPoint(orientation.Position)
+                if onScreen then
+                    local corner1 = Camera:WorldToViewportPoint(orientation.Position + size / 2)
+                    local corner2 = Camera:WorldToViewportPoint(orientation.Position - size / 2)
+                    local screenSize = Vector2.new(math.abs(corner1.X - corner2.X), math.abs(corner1.Y - corner2.Y))
+
+                    esp.Box.Size = screenSize
+                    esp.Box.Position = Vector2.new(pos.X - screenSize.X / 2, pos.Y - screenSize.Y / 2)
+                    esp.Box.Visible = true
+                    esp.Box.Transparency = 1
+                    esp.Box.Thickness = espSettings.Thickness
+
+                    local textOffset = 15
+                    if espSettings.ShowDistance then
+                        esp.DistText.Text = math.floor(distance) .. " studs"
+                        esp.DistText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                        esp.DistText.Visible = true
+                        textOffset = textOffset + 15
+                    else
+                        esp.DistText.Visible = false
+                    end
+
+                    if espSettings.ShowHP then
+                        local humanoid = model:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            esp.HPText.Text = math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth) .. " HP"
+                            esp.HPText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                            esp.HPText.Visible = true
+                            textOffset = textOffset + 15
+                        else
+                            esp.HPText.Visible = false
+                        end
+                    else
+                        esp.HPText.Visible = false
+                    end
+
+                    if espSettings.ShowEquippedTool then
+                        local tool = model:FindFirstChildOfClass("Tool")
+                        esp.ToolText.Text = tool and tool.Name or "None"
+                        esp.ToolText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                        esp.ToolText.Visible = true
+                    else
+                        esp.ToolText.Visible = false
+                    end
+                else
+                    esp.Box.Visible = false
+                    esp.DistText.Visible = false
+                    esp.HPText.Visible = false
+                    esp.ToolText.Visible = false
+                end
+            end
+        end
+    end
+
+    local function checkModels()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                createESP(model)
+            end
+        end
+    end
+
+    RunService.RenderStepped:Connect(updateESP)
+
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            createESP(descendant)
+        end
+    end)
+
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            removeESP(descendant)
+        end
+    end)
+
+    checkModels()
+end
+
+-- Инициализация ESP
+ESP()
+
+-- === Skeleton ESP ===
+local skeletonObjects = {}
+
+local function Skeleton()
+    local function createSkeleton(model)
+        if skeletonObjects[model] then return end
+
+        -- Создаём таблицу для хранения линий
+        local lines = {}
+
+        -- Находим ключевые части тела
+        local head = model:FindFirstChild("Head")
+        local upperTorso = model:FindFirstChild("UpperTorso") or model:FindFirstChild("Torso")
+        local lowerTorso = model:FindFirstChild("LowerTorso")
+        local leftUpperArm = model:FindFirstChild("LeftUpperArm")
+        local rightUpperArm = model:FindFirstChild("RightUpperArm")
+        local leftUpperLeg = model:FindFirstChild("LeftUpperLeg")
+        local rightUpperLeg = model:FindFirstChild("RightUpperLeg")
+
+        -- Проверяем, есть ли голова как начальная точка
+        if not head then return end
+
+        -- Создаём линии для скелета
+        local function createLine(fromPart, toPart)
+            if fromPart and toPart then
+                local line = Drawing.new("Line")
+                line.Thickness = 1
+                line.Color = Color3.fromRGB(255, 255, 255) -- Белый цвет линий
+                line.Transparency = 1 - skeletonSettings.Transparency
+                table.insert(lines, line)
+            end
+        end
+
+        -- Соединяем части тела линиями
+        createLine(head, upperTorso) -- Голова → Верхний торс
+        if upperTorso then
+            createLine(upperTorso, lowerTorso) -- Верхний торс → Нижний торс
+            createLine(upperTorso, leftUpperArm) -- Верхний торс → Левая рука
+            createLine(upperTorso, rightUpperArm) -- Верхний торс → Правая рука
+        end
+        if lowerTorso then
+            createLine(lowerTorso, leftUpperLeg) -- Нижний торс → Левая нога
+            createLine(lowerTorso, rightUpperLeg) -- Нижний торс → Правая нога
+        end
+
+        skeletonObjects[model] = { Lines = lines }
+    end
+
+    local function removeSkeleton(model)
+        if skeletonObjects[model] then
+            for _, line in pairs(skeletonObjects[model].Lines) do
+                line:Remove()
+            end
+            skeletonObjects[model] = nil
+        end
+    end
+
+    local function updateSkeleton()
+        if not skeletonSettings.Enabled then
+            for _, skeleton in pairs(skeletonObjects) do
+                for _, line in pairs(skeleton.Lines) do
+                    line.Visible = false
+                end
+            end
+            return
+        end
+
+        for model, skeleton in pairs(skeletonObjects) do
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+            if not hrp or not model.Parent or not hasRequiredParts(model) then
+                removeSkeleton(model)
+            else
+                local distance = (Camera.CFrame.Position - hrp.Position).Magnitude
+                if distance > skeletonSettings.MaxDistance then
+                    for _, line in pairs(skeleton.Lines) do
+                        line.Visible = false
+                    end
+                else
+                    -- Обновляем линии
+                    local head = model:FindFirstChild("Head")
+                    local upperTorso = model:FindFirstChild("UpperTorso") or model:FindFirstChild("Torso")
+                    local lowerTorso = model:FindFirstChild("LowerTorso")
+                    local leftUpperArm = model:FindFirstChild("LeftUpperArm")
+                    local rightUpperArm = model:FindFirstChild("RightUpperArm")
+                    local leftUpperLeg = model:FindFirstChild("LeftUpperLeg")
+                    local rightUpperLeg = model:FindFirstChild("RightUpperLeg")
+
+                    local lineIndex = 1
+                    local function updateLine(fromPart, toPart)
+                        if lineIndex > #skeleton.Lines then return end
+                        local line = skeleton.Lines[lineIndex]
+                        if fromPart and toPart then
+                            local fromPos, fromVisible = Camera:WorldToViewportPoint(fromPart.Position)
+                            local toPos, toVisible = Camera:WorldToViewportPoint(toPart.Position)
+                            if fromVisible and toVisible then
+                                line.From = Vector2.new(fromPos.X, fromPos.Y)
+                                line.To = Vector2.new(toPos.X, toPos.Y)
+                                line.Transparency = 1 - skeletonSettings.Transparency
+                                line.Visible = true
+                            else
+                                line.Visible = false
+                            end
+                        else
+                            line.Visible = false
+                        end
+                        lineIndex = lineIndex + 1
+                    end
+
+                    updateLine(head, upperTorso)
+                    if upperTorso then
+                        updateLine(upperTorso, lowerTorso)
+                        updateLine(upperTorso, leftUpperArm)
+                        updateLine(upperTorso, rightUpperArm)
+                    end
+                    if lowerTorso then
+                        updateLine(lowerTorso, leftUpperLeg)
+                        updateLine(lowerTorso, rightUpperLeg)
+                    end
+                end
+            end
+        end
+    end
+
+    local function checkModelsForSkeleton()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                createSkeleton(model)
+            end
+        end
+    end
+
+    RunService.RenderStepped:Connect(updateSkeleton)
+
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            createSkeleton(descendant)
+        end
+    end)
+
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            removeSkeleton(descendant)
+        end
+    end)
+
+    checkModelsForSkeleton()
+end
+
+-- Инициализация Skeleton
+Skeleton()
+
+-- === Hitbox Expander ===
+local originalHeadSizes = {} -- Храним оригинальные размеры головы для каждой модели
+
+local function HitboxExpander()
+    local function expandHitbox(model)
+        if not hitboxSettings.HitboxExpandEnabled then
+            -- Восстанавливаем оригинальный размер головы, если Hitbox Expander выключен
+            local head = model:FindFirstChild("Head")
+            if head and originalHeadSizes[model] then
+                head.Size = originalHeadSizes[model]
+                head.CFrame = head.CFrame -- Сохраняем позицию
+            end
+            return
+        end
+
+        local head = model:FindFirstChild("Head")
+        if head and head:IsA("BasePart") then
+            -- Сохраняем оригинальный размер, если ещё не сохранён
+            if not originalHeadSizes[model] then
+                originalHeadSizes[model] = head.Size
+            end
+
+            -- Изменяем размер головы
+            local newSize = hitboxSettings.HitboxSize
+            head.Size = Vector3.new(newSize, newSize, newSize)
+            head.CFrame = head.CFrame -- Сохраняем позицию после изменения размера
+        end
+    end
+
+    local function restoreHitbox(model)
+        if originalHeadSizes[model] then
+            local head = model:FindFirstChild("Head")
+            if head then
+                head.Size = originalHeadSizes[model]
+                head.CFrame = head.CFrame
+            end
+            originalHeadSizes[model] = nil
+        end
+    end
+
+    local function checkModelsForHitbox()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                expandHitbox(model)
+            end
+        end
+    end
+
+    -- Обновляем хитбоксы при добавлении новой модели
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant ~= LocalPlayer.Character and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            expandHitbox(descendant)
+        end
+    end)
+
+    -- Восстанавливаем хитбоксы при удалении модели
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            restoreHitbox(descendant)
+        end
+    end)
+
+    -- Инициализация хитбоксов для уже существующих моделей
+    checkModelsForHitbox()
+
+    -- Обновляем хитбоксы каждый кадр, если Hitbox Expander включён
+    RunService.RenderStepped:Connect(function()
+        if hitboxSettings.HitboxExpandEnabled then
+            checkModelsForHitbox()
+        end
+    end)
+end
+
+-- Инициализация Hitbox Expander
+HitboxExpander()
+
+-- === View Model ===
+local function updateViewModel()
+    if VisualState.ViewModelEnabled then
+        Camera.FieldOfView = VisualState.FOV
+    else
+        Camera.FieldOfView = defaultFOV
+    end
+end
+
+-- Обновляем цикл RenderStepped
+RunService.RenderStepped:Connect(function(deltaTime)
+    updateViewModel()
+end)
+
+-- Обновляем цикл RenderStepped (заменяем старую реализацию)
+RunService.RenderStepped:Connect(function(deltaTime)
+    -- No Fog
+    if FogState.Enabled then
+        Lighting.FogStart = 100000
+        Lighting.FogEnd = 100000
+        Lighting.FogColor = Color3.new(1, 1, 1) -- Белый цвет, чтобы убрать эффект
+    else
+        Lighting.FogStart = FogState.OriginalFogStart
+        Lighting.FogEnd = FogState.OriginalFogEnd
+        Lighting.FogColor = FogState.OriginalFogColor
+    end
+
+    -- Fullbright
+    if FullbrightState.Enabled then
+        Lighting.Brightness = 3 -- Максимальная яркость
+        Lighting.ClockTime = 12 -- Полдень
+    else
+        Lighting.Brightness = FullbrightState.OriginalBrightness
+        Lighting.ClockTime = FullbrightState.OriginalClockTime
+    end
+
+    -- No Shadows
+    if ShadowsState.Enabled then
+        Lighting.GlobalShadows = false -- Отключаем тени
+    else
+        Lighting.GlobalShadows = ShadowsState.OriginalShadows -- Восстанавливаем исходное состояние
+    end
+
+    -- View Model (уже есть, оставляем без изменений)
+    if VisualState.ViewModelEnabled then
+        Camera.FieldOfView = VisualState.FOV
+    else
+        Camera.FieldOfView = defaultFOV
+    end
+end)
