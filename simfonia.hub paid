@@ -16,7 +16,7 @@ local dragOffset = Vector2.new(0, 0) -- Смещение при перетаск
 
 -- Создаём окно "Simfonia HUB"
 local Window = Library:CreateWindow({
-    Title = "Simfonia.HUB v2.3",
+    Title = "Simfonia.HUB v2.4",
     Center = true,
     AutoShow = true
 })
