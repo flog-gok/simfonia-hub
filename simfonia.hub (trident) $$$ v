@@ -1,1 +1,713 @@
-do obf_cached_str[503]=LUAOBFUSACTOR_DECRYPT_STR_0("\25\45\181\87\127\36\47\178","\22\74\72\193\35");obf_cached_str[500]=LUAOBFUSACTOR_DECRYPT_STR_0("\199\188\55\224\69\51\230\180\42\230\79\42\249","\95\138\213\68\131\32");obf_cached_str[492]=LUAOBFUSACTOR_DECRYPT_STR_0("\126\87\135\238\94\81\152","\130\42\56\232");obf_cached_str[491]=LUAOBFUSACTOR_DECRYPT_STR_0("\144\140\214\47\41\161\33","\85\212\233\176\78\92\205");obf_cached_str[490]=LUAOBFUSACTOR_DECRYPT_STR_0("\183\95\241\77\196\100\240\91\148\91\247\84\129","\58\228\55\158");obf_cached_str[489]=LUAOBFUSACTOR_DECRYPT_STR_0("\37\163\181\186","\115\113\198\205\206\86");obf_cached_str[488]=LUAOBFUSACTOR_DECRYPT_STR_0("\201\68\237\235\68\244\77\242\240\126\244\73","\23\154\44\130\156");obf_cached_str[481]=LUAOBFUSACTOR_DECRYPT_STR_0("\153\37\92\64\162\164\58","\214\205\74\51\44");obf_cached_str[480]=LUAOBFUSACTOR_DECRYPT_STR_0("\158\131\127\242\74\194\48","\68\218\230\25\147\63\174");obf_cached_str[479]=LUAOBFUSACTOR_DECRYPT_STR_0("\31\88\83\175\131\141\13\26\16\127\177\209\168\46\41","\66\76\48\60\216\163\203");obf_cached_str[478]=LUAOBFUSACTOR_DECRYPT_STR_0("\116\173\191\247","\112\32\200\199\131");obf_cached_str[477]=LUAOBFUSACTOR_DECRYPT_STR_0("\206\46\10\5\47\15\203","\64\157\70\101\114\105");obf_cached_str[470]=LUAOBFUSACTOR_DECRYPT_STR_0("\114\12\230\32\71\31\86","\118\38\99\137\76\51");obf_cached_str[469]=LUAOBFUSACTOR_DECRYPT_STR_0("\145\188\247\207\194\10\126\127","\24\195\211\130\161\166\99\16");obf_cached_str[468]=LUAOBFUSACTOR_DECRYPT_STR_0("\198\196\169","\174\139\165\209\129");obf_cached_str[467]=LUAOBFUSACTOR_DECRYPT_STR_0("\1\0\232","\108\76\105\134");obf_cached_str[466]=LUAOBFUSACTOR_DECRYPT_STR_0("\201\251\11\242\237\219\249","\183\141\158\109\147\152");obf_cached_str[465]=LUAOBFUSACTOR_DECRYPT_STR_0("\137\228\247\142\157\202\197\199\186\216","\174\207\171\161");obf_cached_str[464]=LUAOBFUSACTOR_DECRYPT_STR_0("\157\13\198\149","\95\201\104\190\225");obf_cached_str[463]=LUAOBFUSACTOR_DECRYPT_STR_0("\40\164\48\113\6\185\27\92\63","\19\105\205\93");obf_cached_str[456]=LUAOBFUSACTOR_DECRYPT_STR_0("\105\186\173\139\73\188\178","\231\61\213\194");obf_cached_str[455]=LUAOBFUSACTOR_DECRYPT_STR_0("\41\136\160\93","\36\107\231\196");obf_cached_str[454]=LUAOBFUSACTOR_DECRYPT_STR_0("\32\92\8\91","\63\104\57\105");obf_cached_str[453]=LUAOBFUSACTOR_DECRYPT_STR_0("\3\140\119\74\215\188","\184\85\237\27\63\178\207\212");obf_cached_str[452]=LUAOBFUSACTOR_DECRYPT_STR_0("\140\229\76\183","\96\196\128\45\211\132");obf_cached_str[451]=LUAOBFUSACTOR_DECRYPT_STR_0("\221\17\192\253\153\173\228","\85\153\116\166\156\236\193\144");obf_cached_str[450]=LUAOBFUSACTOR_DECRYPT_STR_0("\25\53\183\219\115\187\151\182\44\38\177","\230\77\84\197\188\22\207\183");obf_cached_str[449]=LUAOBFUSACTOR_DECRYPT_STR_0("\145\143\29\218","\22\197\234\101\174\25");obf_cached_str[448]=LUAOBFUSACTOR_DECRYPT_STR_0("\13\216\203\24\253\213\217\75\62\214\195\14\194\192\255\94","\42\76\177\166\122\146\161\141");obf_cached_str[445]=LUAOBFUSACTOR_DECRYPT_STR_0("\131\88\202\17\53\183\167","\222\215\55\165\125\65");obf_cached_str[444]=LUAOBFUSACTOR_DECRYPT_STR_0("\83\164\85\73","\182\21\209\59\42");obf_cached_str[443]=LUAOBFUSACTOR_DECRYPT_STR_0("\40\71\46\172\41\76\165\47\19\79\33\172\43\9\199\7\20\70","\110\122\34\67\195\95\41\133");obf_cached_str[442]=LUAOBFUSACTOR_DECRYPT_STR_0("\48\234\188\215","\58\100\143\196\163\81");obf_cached_str[439]=LUAOBFUSACTOR_DECRYPT_STR_0("\8\74\211\184\238\116\29","\109\92\37\188\212\154\29");obf_cached_str[438]=LUAOBFUSACTOR_DECRYPT_STR_0("\248\177\85\79","\40\190\196\59\44\36\188");obf_cached_str[437]=LUAOBFUSACTOR_DECRYPT_STR_0("\14\209\174\157\86\71\42\80\50\192\250\255\126\64\35","\50\93\180\218\189\23\46\71");obf_cached_str[436]=LUAOBFUSACTOR_DECRYPT_STR_0("\191\129\45\175","\29\235\228\85\219\142\235");obf_cached_str[429]=LUAOBFUSACTOR_DECRYPT_STR_0("\68\192\134\133\171\31\96","\118\16\175\233\233\223");obf_cached_str[428]=LUAOBFUSACTOR_DECRYPT_STR_0("\213\239\42\183\48\253\254","\69\145\138\76\214");obf_cached_str[427]=LUAOBFUSACTOR_DECRYPT_STR_0("\255\135\94\0\0\232\154\168\86\15\14\226\206","\141\186\233\63\98\108");obf_cached_str[426]=LUAOBFUSACTOR_DECRYPT_STR_0("\194\243\97\21","\188\150\150\25\97\230");obf_cached_str[425]=LUAOBFUSACTOR_DECRYPT_STR_0("\231\49\180\52\182\22\227\54\184\52\181\7\194","\98\166\88\217\86\217");obf_cached_str[423]=LUAOBFUSACTOR_DECRYPT_STR_0("\234\125\200\53\93\55\89\248\113\209\35\91\45\30\216","\121\171\20\165\87\50\67");obf_cached_str[415]=LUAOBFUSACTOR_DECRYPT_STR_0("\242\214\140\210\58\227\214","\138\166\185\227\190\78");obf_cached_str[414]=LUAOBFUSACTOR_DECRYPT_STR_0("\246\32\52\42\11\205\33\38","\111\164\79\65\68");obf_cached_str[413]=LUAOBFUSACTOR_DECRYPT_STR_0("\121\117\30","\24\52\20\102\83\46\52");obf_cached_str[412]=LUAOBFUSACTOR_DECRYPT_STR_0("\202\51\229","\16\135\90\139");obf_cached_str[411]=LUAOBFUSACTOR_DECRYPT_STR_0("\55\169\128\93\6\160\146","\60\115\204\230");obf_cached_str[410]=LUAOBFUSACTOR_DECRYPT_STR_0("\25\177\59\166\16\185\48\242\53\190\32\227","\134\84\208\67");obf_cached_str[409]=LUAOBFUSACTOR_DECRYPT_STR_0("\182\212\185\153","\228\226\177\193\237\217");obf_cached_str[408]=LUAOBFUSACTOR_DECRYPT_STR_0("\38\108\243\214\2\71\231\242\16\75\194\245\0\90","\155\99\63\163");obf_cached_str[401]=LUAOBFUSACTOR_DECRYPT_STR_0("\79\51\176\76\165\210\97","\197\27\92\223\32\209\187\17");obf_cached_str[400]=LUAOBFUSACTOR_DECRYPT_STR_0("\236\95\8\44\12\212\187","\227\168\58\110\77\121\184\207");obf_cached_str[399]=LUAOBFUSACTOR_DECRYPT_STR_0("\51\143\173\71\64\162\179\69\9\151\178\85\4\199\150\95\15\139","\48\96\231\194");obf_cached_str[398]=LUAOBFUSACTOR_DECRYPT_STR_0("\48\64\92\62","\169\100\37\36\74");obf_cached_str[397]=LUAOBFUSACTOR_DECRYPT_STR_0("\192\234\56\0\46\234\206\45\34\51\236\201\24\54\34\209\214\7\63","\70\133\185\104\83");obf_cached_str[390]=LUAOBFUSACTOR_DECRYPT_STR_0("\124\126\187\242\209\65\97","\165\40\17\212\158");obf_cached_str[389]=LUAOBFUSACTOR_DECRYPT_STR_0("\29\163\179\40\159\53\163","\160\89\198\213\73\234\89\215");obf_cached_str[388]=LUAOBFUSACTOR_DECRYPT_STR_0("\28\26\93\89\183\175\59","\107\79\114\50\46\151\231");obf_cached_str[387]=LUAOBFUSACTOR_DECRYPT_STR_0("\13\118\97\85","\174\89\19\25\33");obf_cached_str[386]=LUAOBFUSACTOR_DECRYPT_STR_0("\253\117\48\64\163\164\207\110\48","\203\184\38\96\19\203");obf_cached_str[379]=LUAOBFUSACTOR_DECRYPT_STR_0("\151\67\142\16\168\6\179","\111\195\44\225\124\220");obf_cached_str[378]=LUAOBFUSACTOR_DECRYPT_STR_0("\107\80\114\9\90\89\96","\104\47\53\20");obf_cached_str[377]=LUAOBFUSACTOR_DECRYPT_STR_0("\238\46\249\84\245\249\47\229\87\180\211\37\243","\213\189\70\150\35");obf_cached_str[376]=LUAOBFUSACTOR_DECRYPT_STR_0("\193\187\18\15","\152\149\222\106\123\23");obf_cached_str[375]=LUAOBFUSACTOR_DECRYPT_STR_0("\163\78\29\36\208\195\197\162\116\62\3\217\194\209\131","\178\230\29\77\119\184\172");obf_cached_str[368]=LUAOBFUSACTOR_DECRYPT_STR_0("\154\224\178\176\186\230\173","\220\206\143\221");obf_cached_str[367]=LUAOBFUSACTOR_DECRYPT_STR_0("\205\126\65\184\50\215\242\248","\156\159\17\52\214\86\190");obf_cached_str[366]=LUAOBFUSACTOR_DECRYPT_STR_0("\32\48\45","\30\109\81\85\29\109");obf_cached_str[365]=LUAOBFUSACTOR_DECRYPT_STR_0("\123\166\50","\147\54\207\92\126\115\131");obf_cached_str[364]=LUAOBFUSACTOR_DECRYPT_STR_0("\115\93\2\223\66\84\16","\190\55\56\100");obf_cached_str[363]=LUAOBFUSACTOR_DECRYPT_STR_0("\199\202\238\220\1\223\203\233\218\74\229\198\243\202","\33\139\163\128\185");obf_cached_str[362]=LUAOBFUSACTOR_DECRYPT_STR_0("\58\168\104\240","\226\110\205\16\132\107");obf_cached_str[361]=LUAOBFUSACTOR_DECRYPT_STR_0("\1\37\156\213\57\249\212\47\24\169\242\34","\183\68\118\204\129\81\144");obf_cached_str[354]=LUAOBFUSACTOR_DECRYPT_STR_0("\111\15\130\7\49\6\1","\203\59\96\237\107\69\111\113");obf_cached_str[353]=LUAOBFUSACTOR_DECRYPT_STR_0("\18\76\245\17\102\194\34","\174\86\41\147\112\19");obf_cached_str[352]=LUAOBFUSACTOR_DECRYPT_STR_0("\161\38\167\195\212\86\242\161\27\150","\210\228\72\198\161\184\51");obf_cached_str[351]=LUAOBFUSACTOR_DECRYPT_STR_0("\235\226\182\204","\147\191\135\206\184");obf_cached_str[350]=LUAOBFUSACTOR_DECRYPT_STR_0("\4\114\96\33\249\93\33\45\68\84","\67\65\33\48\100\151\60");obf_cached_str[348]=LUAOBFUSACTOR_DECRYPT_STR_0("\247\182\236\99\180\172\64\198\140\210\36\148","\52\178\229\188\67\231\201");obf_cached_str[316]=LUAOBFUSACTOR_DECRYPT_STR_0("\134\204\94\85\70\104\46\89\191\204\69","\45\203\163\43\38\35\42\91");obf_cached_str[295]=LUAOBFUSACTOR_DECRYPT_STR_0("\17\189\65\25\206\237\7\61\154\67\23\212\210\15\43\188","\110\89\200\44\120\160\130");obf_cached_str[268]=LUAOBFUSACTOR_DECRYPT_STR_0("\56\1\63\244\216\161\171\20\38\61\250\194\158\163\2\0","\194\112\116\82\149\182\206");obf_cached_str[259]=LUAOBFUSACTOR_DECRYPT_STR_0("\205\12\88\130\17\2\38\90","\62\133\121\53\227\127\109\79");obf_cached_str[255]=LUAOBFUSACTOR_DECRYPT_STR_0("\170\91\82\94\190\198\87\134\124\80\80\164\249\95\144\90","\62\226\46\63\63\208\169");obf_cached_str[252]=LUAOBFUSACTOR_DECRYPT_STR_0("\149\122\230\240\129","\237\216\21\130\149");obf_cached_str[243]=LUAOBFUSACTOR_DECRYPT_STR_0("\223\10\39\21","\22\147\99\73\112\226\56\120");obf_cached_str[233]=LUAOBFUSACTOR_DECRYPT_STR_0("\95\254\59\53\63\161","\196\28\151\73\86\83");obf_cached_str[231]=LUAOBFUSACTOR_DECRYPT_STR_0("\34\207\122\110\10\200\115","\44\99\166\23");obf_cached_str[230]=LUAOBFUSACTOR_DECRYPT_STR_0("\198\242\163\52","\80\142\151\194");obf_cached_str[229]=LUAOBFUSACTOR_DECRYPT_STR_0("\46\180\154\10\31\161\184\12\8\161","\109\122\213\232");obf_cached_str[228]=LUAOBFUSACTOR_DECRYPT_STR_0("\233\227\120\255\184\201\219\251\123\225\133\194","\167\186\139\23\136\235");obf_cached_str[227]=LUAOBFUSACTOR_DECRYPT_STR_0("\237\175\202\202\85\222\107","\110\190\199\165\189\19\145\61");obf_cached_str[226]=LUAOBFUSACTOR_DECRYPT_STR_0("\100\193\111","\224\34\142\57");obf_cached_str[225]=LUAOBFUSACTOR_DECRYPT_STR_0("\169\239\163\127\61\225\184\17","\118\224\156\226\22\80\136\214");obf_cached_str[224]=LUAOBFUSACTOR_DECRYPT_STR_0("\99\66\192\161\250\205\66","\168\38\44\161\195\150");obf_cached_str[223]=LUAOBFUSACTOR_DECRYPT_STR_0("\170\251\0\35\174","\194\231\148\100\70");obf_cached_str[219]=LUAOBFUSACTOR_DECRYPT_STR_0("\196\189\14\197\82\227\161\7\246\83\227\188\51\197\78\248","\60\140\200\99\164");obf_cached_str[217]=LUAOBFUSACTOR_DECRYPT_STR_0("\29\17\132\29\77","\33\80\126\224\120");obf_cached_str[211]=LUAOBFUSACTOR_DECRYPT_STR_0("\120\180\248\34\74\33\89\165\199\44\75\58\96\160\231\55","\78\48\193\149\67\36");obf_cached_str[209]=LUAOBFUSACTOR_DECRYPT_STR_0("\43\16\86\194\160","\235\102\127\50\167\204\18");obf_cached_str[206]=LUAOBFUSACTOR_DECRYPT_STR_0("\40\102\15\126\69\1\131\4","\234\96\19\98\31\43\110");obf_cached_str[204]=LUAOBFUSACTOR_DECRYPT_STR_0("\140\12\1\187\75\167\188\52\150\22\3\174\117\169\167\36","\80\196\121\108\218\37\200\213");obf_cached_str[154]=LUAOBFUSACTOR_DECRYPT_STR_0("\162\51\74\231","\98\236\92\36\130\51");obf_cached_str[150]=LUAOBFUSACTOR_DECRYPT_STR_0("\31\29\39\89","\162\75\114\72\53\235\231");obf_cached_str[129]=LUAOBFUSACTOR_DECRYPT_STR_0("\150\169\207","\191\182\225\159\41");obf_cached_str[112]=LUAOBFUSACTOR_DECRYPT_STR_0("\179\252\76\195\33\69","\54\147\143\56\182\69");obf_cached_str[84]=LUAOBFUSACTOR_DECRYPT_STR_0("\108\24\40\74\108\18\63\82","\38\56\119\71");obf_cached_str[83]=LUAOBFUSACTOR_DECRYPT_STR_0("\110\74\96\11\43\82","\83\38\26\52\110");obf_cached_str[82]=LUAOBFUSACTOR_DECRYPT_STR_0("\223\167\161\60\207\171\170\60","\72\155\206\210");obf_cached_str[81]=LUAOBFUSACTOR_DECRYPT_STR_0("\145\92\210","\161\211\51\170\16\122\93\53");obf_cached_str[79]=LUAOBFUSACTOR_DECRYPT_STR_0("\12\3\21\249","\141\88\102\109");obf_cached_str[72]=LUAOBFUSACTOR_DECRYPT_STR_0("\0\35\24\212","\149\84\70\96\160");obf_cached_str[64]=LUAOBFUSACTOR_DECRYPT_STR_0("\226\165\21\59","\163\182\192\109\79");obf_cached_str[58]=LUAOBFUSACTOR_DECRYPT_STR_0("\109\210\224\228\62\197","\160\62\163\149\133\76");obf_cached_str[51]=LUAOBFUSACTOR_DECRYPT_STR_0("\148\13\155\5\11\38\184\184\2\128\36","\204\217\108\227\65\98\85");obf_cached_str[50]=LUAOBFUSACTOR_DECRYPT_STR_0("\49\1\168\65\152\245\2\160\18\25\162\82\137\235\24\165","\201\98\105\199\54\221\132\119");obf_cached_str[49]=LUAOBFUSACTOR_DECRYPT_STR_0("\60\174\34\104\207\216","\136\111\198\77\31\135");obf_cached_str[48]=LUAOBFUSACTOR_DECRYPT_STR_0("\192\121\249\27\52\67\224\101\247\2\19\79","\42\147\17\150\108\112");obf_cached_str[47]=LUAOBFUSACTOR_DECRYPT_STR_0("\47\229\143\82\230\51\60\8\254","\89\123\141\230\49\141\93");obf_cached_str[46]=LUAOBFUSACTOR_DECRYPT_STR_0("\235\112\179\1\137\203\122","\229\174\30\210\99");obf_cached_str[44]=LUAOBFUSACTOR_DECRYPT_STR_0("\165\79\81\35\133\85\81\33\138\98\87\32\144\83\87\34\136\68\74","\78\228\33\56");obf_cached_str[43]=LUAOBFUSACTOR_DECRYPT_STR_0("\1\193\72\238\84\251\143\63\221\80","\224\77\174\63\139\38\175");obf_cached_str[42]=LUAOBFUSACTOR_DECRYPT_STR_0("\243\196\35\93\33\88\210\213\28\83\32\67\235\208\60\72","\55\187\177\78\60\79");obf_cached_str[41]=LUAOBFUSACTOR_DECRYPT_STR_0("\172\196\1\189","\168\228\161\96\217\95\81");obf_cached_str[40]=LUAOBFUSACTOR_DECRYPT_STR_0("\249\232\15\232\21","\122\173\135\125\155");obf_cached_str[39]=LUAOBFUSACTOR_DECRYPT_STR_0("\3\8\213\188\236\229\173\33\4\192\152\253\215","\221\81\97\178\212\152\176");obf_cached_str[38]=LUAOBFUSACTOR_DECRYPT_STR_0("\32\41\63\116\168\65\2\48\61\110\157\102\31","\20\114\64\88\28\220");obf_cached_str[37]=LUAOBFUSACTOR_DECRYPT_STR_0("\243\27\10\253\22\92\182\214\23\31\212\16\125","\217\161\114\109\149\98\16");obf_cached_str[36]=LUAOBFUSACTOR_DECRYPT_STR_0("\111\127\116\20\103\131\76\83\114","\45\61\22\19\124\19\203");obf_cached_str[35]=LUAOBFUSACTOR_DECRYPT_STR_0("\1\91\85\254\237\21\93\93\226","\153\83\50\50\150");obf_cached_str[34]=LUAOBFUSACTOR_DECRYPT_STR_0("\146\241\5\81\182\174\228\6\87\175\187\243","\227\222\148\99\37");obf_cached_str[33]=LUAOBFUSACTOR_DECRYPT_STR_0("\232\206\21\208\104\230\184\193\217\50\214\80","\200\164\171\115\164\61\150");obf_cached_str[32]=LUAOBFUSACTOR_DECRYPT_STR_0("\62\248\51\32\90\29\234\48\38\87\0\240","\22\114\157\85\84");obf_cached_str[31]=LUAOBFUSACTOR_DECRYPT_STR_0("\216\168\176\192\128\87\87\240","\57\148\205\214\180\200\54");obf_cached_str[30]=LUAOBFUSACTOR_DECRYPT_STR_0("\154\176\224\196\144\186\233\196","\176\214\213\134");obf_cached_str[29]=LUAOBFUSACTOR_DECRYPT_STR_0("\155\159\165\221\168","\178\218\237\200");obf_cached_str[26]=LUAOBFUSACTOR_DECRYPT_STR_0("\142\44\185\127\172\175\68\183\188","\212\217\67\203\20\223\223\37");obf_cached_str[24]=LUAOBFUSACTOR_DECRYPT_STR_0("\123\3\50\104\103\30\39\111\90\35\50\104\88\25\52\127","\26\46\112\87");obf_cached_str[22]=LUAOBFUSACTOR_DECRYPT_STR_0("\118\95\192\70\53\86\92\199\118\53","\80\36\42\174\21");obf_cached_str[20]=LUAOBFUSACTOR_DECRYPT_STR_0("\210\46\230\69\126\99\213","\166\130\66\135\60\27\17");obf_cached_str[18]=LUAOBFUSACTOR_DECRYPT_STR_0("\32\208\150\239\227\201\20\198","\167\115\181\226\155\138");obf_cached_str[16]=LUAOBFUSACTOR_DECRYPT_STR_0("\2\135\104\168\56\140\123\175","\220\81\226\28");obf_cached_str[15]=LUAOBFUSACTOR_DECRYPT_STR_0("\113\12\211\172","\184\60\101\160\207\66");obf_cached_str[13]=LUAOBFUSACTOR_DECRYPT_STR_0("\239\136\5\253","\56\162\225\118\158\89\142");obf_cached_str[12]=LUAOBFUSACTOR_DECRYPT_STR_0("\7\177\133\246\223\39","\186\85\212\235\146");obf_cached_str[10]=LUAOBFUSACTOR_DECRYPT_STR_0("\207\200\26\209\75\165","\215\157\173\116\181\46");obf_cached_str[9]=LUAOBFUSACTOR_DECRYPT_STR_0("\18\58\254\248\42","\145\94\95\153");obf_cached_str[7]=LUAOBFUSACTOR_DECRYPT_STR_0("\117\251\220\235\150","\109\57\158\187\130\226");obf_cached_str[6]=LUAOBFUSACTOR_DECRYPT_STR_0("\247\149\58\61\229\136\33\37","\82\182\224\78");obf_cached_str[5]=LUAOBFUSACTOR_DECRYPT_STR_0("\16\14\70\90\56\23","\210\83\107\40\46\93\101\161");obf_cached_str[3]=LUAOBFUSACTOR_DECRYPT_STR_0("\206\230\36\240\209","\82\154\143\80\156\180\233");do local Library=loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))();local Window=Library:CreateWindow({[obf_cached_str[3]]="Мой скрипт",[obf_cached_str[5]]=true,[obf_cached_str[6]]=true});local Tabs={[obf_cached_str[7]]=Window:AddTab(obf_cached_str[9]),[obf_cached_str[10]]=Window:AddTab(obf_cached_str[12]),[obf_cached_str[13]]=Window:AddTab(obf_cached_str[15]),[obf_cached_str[16]]=Window:AddTab(obf_cached_str[18])};local Players=game:GetService(obf_cached_str[20]);local RunService=game:GetService(obf_cached_str[22]);local UserInputService=game:GetService(obf_cached_str[24]);local Camera=game:GetService(obf_cached_str[26]).CurrentCamera;local LocalPlayer=Players.LocalPlayer;local requiredParts={obf_cached_str[29],obf_cached_str[30],obf_cached_str[31],obf_cached_str[32],obf_cached_str[33],obf_cached_str[34],obf_cached_str[35],obf_cached_str[36],obf_cached_str[37],obf_cached_str[38],obf_cached_str[39],obf_cached_str[40],obf_cached_str[41],obf_cached_str[42],obf_cached_str[43],obf_cached_str[44]};local function hasRequiredParts(model) local FlatIdent_8D327=0;while true do local FlatIdent_1D164=0;while true do if (0==FlatIdent_1D164) then if (FlatIdent_8D327==0) then if  not model then return false;end for _,partName in ipairs(requiredParts) do if model:FindFirstChild(partName,true) then return true;end end FlatIdent_8D327=1;end if (FlatIdent_8D327==1) then return false;end break;end end end end local espObjects={};local espSettings={[obf_cached_str[46]]=false,[obf_cached_str[47]]=2,[obf_cached_str[48]]=true,[obf_cached_str[49]]=false,[obf_cached_str[50]]=false,[obf_cached_str[51]]=1000};local function ESP() local function createESP(model) local FlatIdent_49280=0;local box;local distText;local hpText;local toolText;while true do if (FlatIdent_49280==3) then hpText.Size=14;hpText.Color=Color3.fromRGB(0,255,0);hpText.Outline=true;hpText.Center=true;FlatIdent_49280=4;end if (FlatIdent_49280==0) then if espObjects[model] then return;end box=Drawing.new(obf_cached_str[58]);box.Thickness=espSettings.Thickness;box.Color=Color3.fromRGB(255,0,0);FlatIdent_49280=1;end if (FlatIdent_49280==4) then toolText=Drawing.new(obf_cached_str[64]);toolText.Size=14;toolText.Color=Color3.fromRGB(255,255,255);toolText.Outline=true;FlatIdent_49280=5;end if (FlatIdent_49280==1) then box.Filled=false;box.Transparency=1;distText=Drawing.new(obf_cached_str[72]);distText.Size=14;FlatIdent_49280=2;end if (FlatIdent_49280==2) then distText.Color=Color3.fromRGB(255,255,0);distText.Outline=true;distText.Center=true;hpText=Drawing.new(obf_cached_str[79]);FlatIdent_49280=3;end if (FlatIdent_49280==5) then toolText.Center=true;espObjects[model]={[obf_cached_str[81]]=box,[obf_cached_str[82]]=distText,[obf_cached_str[83]]=hpText,[obf_cached_str[84]]=toolText};break;end end end local function removeESP(model) if espObjects[model] then local FlatIdent_6E214=0;local FlatIdent_45D37;while true do if (FlatIdent_6E214==0) then FlatIdent_45D37=0;while true do if (FlatIdent_45D37==0) then espObjects[model].Box:Remove();espObjects[model].DistText:Remove();FlatIdent_45D37=1;end if (FlatIdent_45D37==1) then espObjects[model].HPText:Remove();espObjects[model].ToolText:Remove();FlatIdent_45D37=2;end if (FlatIdent_45D37==2) then espObjects[model]=nil;break;end end break;end end end end local function updateESP() if  not espSettings.Enabled then local FlatIdent_14124=0;local FlatIdent_12703;while true do if (0==FlatIdent_14124) then FlatIdent_12703=0;while true do if (FlatIdent_12703==0) then for _,esp in pairs(espObjects) do local FlatIdent_4AB8B=0;local FlatIdent_2BD95;while true do if (FlatIdent_4AB8B==0) then FlatIdent_2BD95=0;while true do if (FlatIdent_2BD95==1) then esp.HPText.Visible=false;esp.ToolText.Visible=false;break;end if (FlatIdent_2BD95==0) then esp.Box.Visible=false;esp.DistText.Visible=false;FlatIdent_2BD95=1;end end break;end end end return;end end break;end end end for model,esp in pairs(espObjects) do local FlatIdent_21DDC=0;local hrp;local humanoid;while true do if (FlatIdent_21DDC==1) then if ( not hrp or  not model.Parent or  not hasRequiredParts(model)) then removeESP(model);else local FlatIdent_67691=0;local distance;local orientation;local size;local pos;local onScreen;while true do if (FlatIdent_67691==1) then local FlatIdent_6F99F=0;while true do if (FlatIdent_6F99F==0) then orientation,size=model:GetBoundingBox();pos,onScreen=Camera:WorldToViewportPoint(orientation.Position);FlatIdent_6F99F=1;end if (FlatIdent_6F99F==1) then FlatIdent_67691=2;break;end end end if (FlatIdent_67691==2) then if onScreen then local FlatIdent_60EA1=0;local corner1;local corner2;local screenSize;local textOffset;while true do if (FlatIdent_60EA1==2) then if espSettings.ShowDistance then local FlatIdent_69D54=0;local FlatIdent_31905;while true do if (FlatIdent_69D54==0) then FlatIdent_31905=0;while true do if (FlatIdent_31905==1) then esp.DistText.Visible=true;textOffset=textOffset + 15 ;break;end if (0==FlatIdent_31905) then esp.DistText.Text=math.floor(distance)   .. obf_cached_str[112] ;esp.DistText.Position=Vector2.new(pos.X,pos.Y + (screenSize.Y/2) + textOffset );FlatIdent_31905=1;end end break;end end else esp.DistText.Visible=false;end if (espSettings.ShowHP and humanoid) then local FlatIdent_23B66=0;local FlatIdent_61B23;while true do if (FlatIdent_23B66==0) then FlatIdent_61B23=0;while true do if (FlatIdent_61B23==0) then esp.HPText.Text=math.floor(humanoid.Health)   .. "/"   .. math.floor(humanoid.MaxHealth)   .. obf_cached_str[129] ;esp.HPText.Position=Vector2.new(pos.X,pos.Y + (screenSize.Y/2) + textOffset );FlatIdent_61B23=1;end if (FlatIdent_61B23==1) then esp.HPText.Visible=true;textOffset=textOffset + 15 ;break;end end break;end end else esp.HPText.Visible=false;end if espSettings.ShowEquippedTool then local FlatIdent_30B1F=0;local tool;while true do if (1==FlatIdent_30B1F) then esp.ToolText.Position=Vector2.new(pos.X,pos.Y + (screenSize.Y/2) + textOffset );esp.ToolText.Visible=true;break;end if (FlatIdent_30B1F==0) then tool=model:FindFirstChildOfClass(obf_cached_str[150]);esp.ToolText.Text=(tool and tool.Name) or obf_cached_str[154] ;FlatIdent_30B1F=1;end end else esp.ToolText.Visible=false;end break;end if (FlatIdent_60EA1==0) then local FlatIdent_23521=0;while true do if (1==FlatIdent_23521) then screenSize=Vector2.new(math.abs(corner1.X-corner2.X ),math.abs(corner1.Y-corner2.Y ));esp.Box.Size=screenSize;FlatIdent_23521=2;end if (FlatIdent_23521==2) then FlatIdent_60EA1=1;break;end if (FlatIdent_23521==0) then corner1=Camera:WorldToViewportPoint(orientation.Position + (size/2) );corner2=Camera:WorldToViewportPoint(orientation.Position-(size/2) );FlatIdent_23521=1;end end end if (1==FlatIdent_60EA1) then esp.Box.Position=Vector2.new(pos.X-(screenSize.X/2) ,pos.Y-(screenSize.Y/2) );esp.Box.Visible=true;esp.Box.Thickness=espSettings.Thickness;textOffset=15;FlatIdent_60EA1=2;end end else local FlatIdent_7993F=0;local FlatIdent_946F;while true do if (FlatIdent_7993F==0) then FlatIdent_946F=0;while true do if (FlatIdent_946F==0) then esp.Box.Visible=false;esp.DistText.Visible=false;FlatIdent_946F=1;end if (FlatIdent_946F==1) then esp.HPText.Visible=false;esp.ToolText.Visible=false;break;end end break;end end end break;end if (FlatIdent_67691==0) then distance=(Camera.CFrame.Position-hrp.Position).Magnitude;if (distance>espSettings.MaxDistance) then local FlatIdent_9525B=0;local FlatIdent_1013A;while true do if (FlatIdent_9525B==0) then FlatIdent_1013A=0;while true do if (0==FlatIdent_1013A) then esp.Box.Visible=false;esp.DistText.Visible=false;FlatIdent_1013A=1;end if (FlatIdent_1013A==1) then esp.HPText.Visible=false;esp.ToolText.Visible=false;FlatIdent_1013A=2;end if (FlatIdent_1013A==2) then continue;break;end end break;end end end FlatIdent_67691=1;end end end break;end if (FlatIdent_21DDC==0) then local FlatIdent_C79F=0;while true do if (0==FlatIdent_C79F) then hrp=model:FindFirstChild(obf_cached_str[204]);humanoid=model:FindFirstChildOfClass(obf_cached_str[206]);FlatIdent_C79F=1;end if (FlatIdent_C79F==1) then FlatIdent_21DDC=1;break;end end end end end end local function checkModels() for _,model in pairs(workspace:GetDescendants()) do if (model:IsA(obf_cached_str[209]) and model:FindFirstChild(obf_cached_str[211]) and hasRequiredParts(model)) then createESP(model);end end end RunService.RenderStepped:Connect(updateESP);workspace.DescendantAdded:Connect(function(descendant) if (descendant:IsA(obf_cached_str[217]) and descendant:FindFirstChild(obf_cached_str[219]) and hasRequiredParts(descendant)) then createESP(descendant);end end);workspace.DescendantRemoving:Connect(function(descendant) if descendant:IsA(obf_cached_str[223]) then removeESP(descendant);end end);checkModels();end ESP();local aimbotSettings={[obf_cached_str[224]]=false,[obf_cached_str[225]]=false,[obf_cached_str[226]]=100,[obf_cached_str[227]]=false,[obf_cached_str[228]]=false,[obf_cached_str[229]]=obf_cached_str[230],[obf_cached_str[231]]=nil};local fovCircle=Drawing.new(obf_cached_str[233]);fovCircle.Thickness=1;fovCircle.NumSides=100;fovCircle.Radius=aimbotSettings.FOV;fovCircle.Filled=false;fovCircle.Visible=false;fovCircle.Color=Color3.fromRGB(255,255,255);local snapline=Drawing.new(obf_cached_str[243]);snapline.Thickness=1;snapline.Color=Color3.fromRGB(255,0,0);snapline.Visible=false;local aimConnection;local bindConnectionBegan;local bindConnectionEnded;local function getClosestModelToCursor() local FlatIdent_49AED=0;local closestModel;local closestDistance;local mousePos;while true do if (FlatIdent_49AED==0) then local FlatIdent_59521=0;while true do if (FlatIdent_59521==0) then closestModel=nil;closestDistance=aimbotSettings.FOV;FlatIdent_59521=1;end if (FlatIdent_59521==1) then FlatIdent_49AED=1;break;end end end if (FlatIdent_49AED==2) then return closestModel;end if (FlatIdent_49AED==1) then local FlatIdent_8325F=0;while true do if (FlatIdent_8325F==1) then FlatIdent_49AED=2;break;end if (FlatIdent_8325F==0) then mousePos=UserInputService:GetMouseLocation();for _,model in pairs(workspace:GetDescendants()) do if (model:IsA(obf_cached_str[252]) and (model~=LocalPlayer.Character) and model:FindFirstChild(obf_cached_str[255]) and hasRequiredParts(model)) then local FlatIdent_6F3E4=0;local FlatIdent_6A83E;local humanoid;local targetPart;local pos;local onScreen;while true do if (FlatIdent_6F3E4==2) then onScreen=nil;while true do if (FlatIdent_6A83E==2) then if  not targetPart then continue;end pos,onScreen=Camera:WorldToViewportPoint(targetPart.Position);FlatIdent_6A83E=3;end if (FlatIdent_6A83E==0) then humanoid=model:FindFirstChildOfClass(obf_cached_str[259]);if (humanoid and (humanoid.Health<=0)) then continue;end FlatIdent_6A83E=1;end if (FlatIdent_6A83E==3) then if onScreen then local FlatIdent_480B4=0;local FlatIdent_66799;local screenPos;local distance;while true do if (1==FlatIdent_480B4) then distance=nil;while true do if (FlatIdent_66799==0) then local FlatIdent_29A75=0;while true do if (FlatIdent_29A75==0) then screenPos=Vector2.new(pos.X,pos.Y);distance=(screenPos-mousePos).Magnitude;FlatIdent_29A75=1;end if (1==FlatIdent_29A75) then FlatIdent_66799=1;break;end end end if (FlatIdent_66799==1) then if (distance<closestDistance) then local FlatIdent_2A1A=0;local FlatIdent_5724B;while true do if (0==FlatIdent_2A1A) then FlatIdent_5724B=0;while true do if (0==FlatIdent_5724B) then closestDistance=distance;closestModel=model;break;end end break;end end end break;end end break;end if (FlatIdent_480B4==0) then FlatIdent_66799=0;screenPos=nil;FlatIdent_480B4=1;end end end break;end if (FlatIdent_6A83E==1) then targetPart=model:FindFirstChild(aimbotSettings.TargetPart);if  not targetPart then targetPart=model:FindFirstChild(obf_cached_str[268]);end FlatIdent_6A83E=2;end end break;end if (FlatIdent_6F3E4==1) then targetPart=nil;pos=nil;FlatIdent_6F3E4=2;end if (FlatIdent_6F3E4==0) then FlatIdent_6A83E=0;humanoid=nil;FlatIdent_6F3E4=1;end end end end FlatIdent_8325F=1;end end end end end local function updateAimbot() local FlatIdent_8E5B4=0;local closestModel;local targetPart;local pos;local onScreen;while true do if (FlatIdent_8E5B4==2) then if  not targetPart then local FlatIdent_994C=0;local FlatIdent_8BF78;while true do if (FlatIdent_994C==0) then FlatIdent_8BF78=0;while true do if (FlatIdent_8BF78==0) then local FlatIdent_3C1AA=0;while true do if (FlatIdent_3C1AA==0) then snapline.Visible=false;return;end end end end break;end end end pos,onScreen=Camera:WorldToViewportPoint(targetPart.Position);FlatIdent_8E5B4=3;end if (3==FlatIdent_8E5B4) then if onScreen then local FlatIdent_33F65=0;local mousePos;local targetPos;local delta;while true do if (FlatIdent_33F65==1) then delta=(targetPos-mousePos) * 0.1 ;Camera.CFrame=Camera.CFrame * CFrame.new(Vector3.new(delta.X/100 ,delta.Y/100 ,0)) ;FlatIdent_33F65=2;end if (FlatIdent_33F65==0) then mousePos=UserInputService:GetMouseLocation();targetPos=Vector2.new(pos.X,pos.Y);FlatIdent_33F65=1;end if (FlatIdent_33F65==2) then if aimbotSettings.ShowSnapline then local FlatIdent_8DAB1=0;local FlatIdent_6E549;while true do if (FlatIdent_8DAB1==0) then FlatIdent_6E549=0;while true do if (FlatIdent_6E549==1) then snapline.Visible=true;break;end if (FlatIdent_6E549==0) then snapline.From=mousePos;snapline.To=targetPos;FlatIdent_6E549=1;end end break;end end else snapline.Visible=false;end break;end end else snapline.Visible=false;end break;end if (FlatIdent_8E5B4==0) then if ( not aimbotSettings.Enabled or  not aimbotSettings.IsAiming) then local FlatIdent_67408=0;local FlatIdent_1468D;while true do if (FlatIdent_67408==0) then FlatIdent_1468D=0;while true do if (FlatIdent_1468D==0) then snapline.Visible=false;return;end end break;end end end closestModel=getClosestModelToCursor();FlatIdent_8E5B4=1;end if (FlatIdent_8E5B4==1) then if  not closestModel then local FlatIdent_904EC=0;local FlatIdent_651C5;while true do if (0==FlatIdent_904EC) then FlatIdent_651C5=0;while true do if (FlatIdent_651C5==0) then local FlatIdent_53252=0;while true do if (FlatIdent_53252==0) then snapline.Visible=false;return;end end end end break;end end end targetPart=closestModel:FindFirstChild(aimbotSettings.TargetPart) or closestModel:FindFirstChild(obf_cached_str[295]) ;FlatIdent_8E5B4=2;end end end local function updateFOVCircle() local FlatIdent_6A15B=0;while true do if (0==FlatIdent_6A15B) then fovCircle.Radius=aimbotSettings.FOV;fovCircle.Position=UserInputService:GetMouseLocation();FlatIdent_6A15B=1;end if (FlatIdent_6A15B==1) then fovCircle.Visible=aimbotSettings.ShowFOV and aimbotSettings.Enabled ;break;end end end local function setAimbotBind() if bindConnectionBegan then bindConnectionBegan:Disconnect();end if bindConnectionEnded then bindConnectionEnded:Disconnect();end Library:Notify("Нажмите клавишу или кнопку мыши для бинда...",5);local inputConnection;inputConnection=UserInputService.InputBegan:Connect(function(input,gameProcessed) local FlatIdent_D14D=0;local bind;while true do if (1==FlatIdent_D14D) then if (input.UserInputType==Enum.UserInputType.Keyboard) then bind=input.KeyCode;elseif input.UserInputType.Name:find(obf_cached_str[316]) then bind=input.UserInputType;end if bind then local FlatIdent_79884=0;local FlatIdent_817B0;while true do if (FlatIdent_79884==0) then FlatIdent_817B0=0;while true do if (FlatIdent_817B0==1) then bindConnectionBegan=UserInputService.InputBegan:Connect(function(input,gameProcessed) local FlatIdent_2B407=0;local FlatIdent_2A862;while true do if (FlatIdent_2B407==0) then FlatIdent_2A862=0;while true do if (FlatIdent_2A862==0) then if gameProcessed then return;end if ((input.KeyCode==aimbotSettings.AimBind) or (input.UserInputType==aimbotSettings.AimBind)) then aimbotSettings.IsAiming=true;end break;end end break;end end end);bindConnectionEnded=UserInputService.InputEnded:Connect(function(input,gameProcessed) local FlatIdent_68E5B=0;local FlatIdent_75B50;while true do if (FlatIdent_68E5B==0) then FlatIdent_75B50=0;while true do if (FlatIdent_75B50==0) then if gameProcessed then return;end if ((input.KeyCode==aimbotSettings.AimBind) or (input.UserInputType==aimbotSettings.AimBind)) then local FlatIdent_5E6B6=0;local FlatIdent_835BC;while true do if (FlatIdent_5E6B6==0) then FlatIdent_835BC=0;while true do if (0==FlatIdent_835BC) then aimbotSettings.IsAiming=false;snapline.Visible=false;break;end end break;end end end break;end end break;end end end);FlatIdent_817B0=2;end if (FlatIdent_817B0==0) then aimbotSettings.AimBind=bind;Library:Notify("Бинд установлен: "   .. tostring(bind) ,3);FlatIdent_817B0=1;end if (FlatIdent_817B0==2) then inputConnection:Disconnect();break;end end break;end end end break;end if (FlatIdent_D14D==0) then if gameProcessed then return;end bind=nil;FlatIdent_D14D=1;end end end);end local function removeAimbotBind() local FlatIdent_14A42=0;local FlatIdent_5346B;while true do if (FlatIdent_14A42==0) then FlatIdent_5346B=0;while true do if (FlatIdent_5346B==0) then if bindConnectionBegan then bindConnectionBegan:Disconnect();end if bindConnectionEnded then bindConnectionEnded:Disconnect();end FlatIdent_5346B=1;end if (2==FlatIdent_5346B) then snapline.Visible=false;Library:Notify("Бинд удалён",3);break;end if (1==FlatIdent_5346B) then aimbotSettings.AimBind=nil;aimbotSettings.IsAiming=false;FlatIdent_5346B=2;end end break;end end end aimConnection=RunService.RenderStepped:Connect(function() local FlatIdent_259C6=0;while true do if (FlatIdent_259C6==0) then updateAimbot();updateFOVCircle();break;end end end);local RenderGroup=Tabs.Render:AddLeftGroupbox(obf_cached_str[348]);RenderGroup:AddToggle(obf_cached_str[350],{[obf_cached_str[351]]=obf_cached_str[352],[obf_cached_str[353]]=false,[obf_cached_str[354]]="Включить/выключить ESP"}):OnChanged(function() espSettings.Enabled=Toggles.ESPEnabled.Value;end);RenderGroup:AddSlider(obf_cached_str[361],{[obf_cached_str[362]]=obf_cached_str[363],[obf_cached_str[364]]=2,[obf_cached_str[365]]=1,[obf_cached_str[366]]=5,[obf_cached_str[367]]=0,[obf_cached_str[368]]="Установите толщину линий ESP"}):OnChanged(function() espSettings.Thickness=Options.ESPThickness.Value;end);RenderGroup:AddToggle(obf_cached_str[375],{[obf_cached_str[376]]=obf_cached_str[377],[obf_cached_str[378]]=true,[obf_cached_str[379]]="Показывать расстояние до объектов"}):OnChanged(function() espSettings.ShowDistance=Toggles.ESPShowDistance.Value;end);RenderGroup:AddToggle(obf_cached_str[386],{[obf_cached_str[387]]=obf_cached_str[388],[obf_cached_str[389]]=false,[obf_cached_str[390]]="Показывать здоровье персонажей"}):OnChanged(function() espSettings.ShowHP=Toggles.ESPShowHP.Value;end);RenderGroup:AddToggle(obf_cached_str[397],{[obf_cached_str[398]]=obf_cached_str[399],[obf_cached_str[400]]=false,[obf_cached_str[401]]="Показывать инструмент в руках"}):OnChanged(function() espSettings.ShowEquippedTool=Toggles.ESPShowEquippedTool.Value;end);RenderGroup:AddSlider(obf_cached_str[408],{[obf_cached_str[409]]=obf_cached_str[410],[obf_cached_str[411]]=1000,[obf_cached_str[412]]=100,[obf_cached_str[413]]=5000,[obf_cached_str[414]]=0,[obf_cached_str[415]]="Максимальная дистанция для отображения ESP (студс)"}):OnChanged(function() espSettings.MaxDistance=Options.ESPMaxDistance.Value;end);local LegitGroup=Tabs.Legit:AddLeftGroupbox(obf_cached_str[423]);LegitGroup:AddToggle(obf_cached_str[425],{[obf_cached_str[426]]=obf_cached_str[427],[obf_cached_str[428]]=false,[obf_cached_str[429]]="Включить/выключить аимбот"}):OnChanged(function() local FlatIdent_3E76B=0;while true do if (0==FlatIdent_3E76B) then aimbotSettings.Enabled=Toggles.AimbotEnabled.Value;updateFOVCircle();break;end end end);LegitGroup:AddButton({[obf_cached_str[436]]=obf_cached_str[437],[obf_cached_str[438]]=setAimbotBind,[obf_cached_str[439]]="Установить бинд для активации аимбота"});LegitGroup:AddButton({[obf_cached_str[442]]=obf_cached_str[443],[obf_cached_str[444]]=removeAimbotBind,[obf_cached_str[445]]="Удалить бинд для аимбота"});LegitGroup:AddDropdown(obf_cached_str[448],{[obf_cached_str[449]]=obf_cached_str[450],[obf_cached_str[451]]=obf_cached_str[452],[obf_cached_str[453]]={obf_cached_str[454],obf_cached_str[455]},[obf_cached_str[456]]="Выберите часть тела для наведения"}):OnChanged(function() aimbotSettings.TargetPart=Options.AimbotTargetPart.Value;end);LegitGroup:AddSlider(obf_cached_str[463],{[obf_cached_str[464]]=obf_cached_str[465],[obf_cached_str[466]]=100,[obf_cached_str[467]]=10,[obf_cached_str[468]]=700,[obf_cached_str[469]]=0,[obf_cached_str[470]]="Радиус поля зрения аимбота (пиксели)"}):OnChanged(function() local FlatIdent_7C89=0;local FlatIdent_656E9;while true do if (FlatIdent_7C89==0) then FlatIdent_656E9=0;while true do if (FlatIdent_656E9==0) then aimbotSettings.FOV=Options.AimbotFOV.Value;updateFOVCircle();break;end end break;end end end);LegitGroup:AddToggle(obf_cached_str[477],{[obf_cached_str[478]]=obf_cached_str[479],[obf_cached_str[480]]=false,[obf_cached_str[481]]="Показывать круг FOV"}):OnChanged(function() local FlatIdent_89237=0;while true do if (FlatIdent_89237==0) then aimbotSettings.ShowFOV=Toggles.ShowFOV.Value;updateFOVCircle();break;end end end);LegitGroup:AddToggle(obf_cached_str[488],{[obf_cached_str[489]]=obf_cached_str[490],[obf_cached_str[491]]=false,[obf_cached_str[492]]="Показывать линию к цели"}):OnChanged(function() aimbotSettings.ShowSnapline=Toggles.ShowSnapline.Value;end);local MiscGroup=Tabs.Misc:AddLeftGroupbox(obf_cached_str[500]);local SettingsGroup=Tabs.Settings:AddLeftGroupbox(obf_cached_str[503]);Library:Notify("Скрипт загружен! Используйте вкладки для настройки.",5);end end
+-- === Глобальные переменные ===
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
+
+-- Сервисы
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Lighting = game:GetService("Lighting")
+-- Сохраняем исходное FOV камеры
+local defaultFOV = Camera.FieldOfView
+
+-- Список частей для проверки моделей (для ESP и Skeleton)
+local requiredParts = {
+    "Armor", "LeftFoot", "LeftHand", "LeftLowerArm", "LeftUpperArm", "LeftUpperLeg",
+    "RightFoot", "RightHand", "RightLowerArm", "RightUpperArm", "RightUpperLeg",
+    "Torso", "Head", "HumanoidRootPart", "LowerTorso", "AnimationController",
+    "UpperTorso", "Chest", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
+}
+
+-- === Состояния ===
+-- Настройки ESP
+local espSettings = {
+    Enabled = false,
+    Thickness = 2,
+    ShowDistance = true,
+    ShowHP = false,
+    ShowEquippedTool = false,
+    MaxDistance = 1000
+}
+
+-- Настройки Skeleton ESP
+local skeletonSettings = {
+    Enabled = false,
+    Transparency = 0, -- Начальная прозрачность линий (0 - полностью видимые, 1 - полностью прозрачные)
+    MaxDistance = 1000 -- Используем ту же дистанцию, что и для ESP
+}
+
+-- Настройки Hitbox Expander
+local hitboxSettings = {
+    HitboxExpandEnabled = false,
+    HitboxSize = 1 -- Размер хитбокса головы в studs (от 1 до 15)
+}
+
+-- Настройки View Model
+local VisualState = {
+    ViewModelEnabled = false,
+    FOV = 70
+}
+
+-- Добавляем состояние для No Shadows (добавляем после FullbrightState)
+local ShadowsState = {
+    Enabled = false,
+    OriginalShadows = Lighting.GlobalShadows -- Сохраняем исходное состояние теней
+}
+
+-- Добавляем состояния для No Fog, Fullbright и No Grass
+local FogState = {
+    Enabled = false,
+    OriginalFogStart = Lighting.FogStart, -- Сохраняем исходные настройки тумана
+    OriginalFogEnd = Lighting.FogEnd,
+    OriginalFogColor = Lighting.FogColor
+}
+
+local FullbrightState = {
+    Enabled = false,
+    OriginalBrightness = Lighting.Brightness, -- Сохраняем исходную яркость
+    OriginalClockTime = Lighting.ClockTime -- Сохраняем исходное время суток
+}
+
+-- === UI ===
+-- Создаём окно
+local Window = Library:CreateWindow({
+    Title = "simfonia hub trident $$$ v1",
+    Center = true,
+    AutoShow = true,
+})
+
+-- Создаём вкладки
+local Tabs = {
+    Legit = Window:AddTab("Legit"),
+    Render = Window:AddTab("Render"),
+    Misc = Window:AddTab("Misc"),
+    Settings = Window:AddTab("Settings"),
+}
+
+-- ESP и Skeleton Settings (Render)
+local RenderGroup = Tabs.Render:AddLeftGroupbox("ESP Settings")
+
+local espEnabledToggle = RenderGroup:AddToggle("ESPEnabled", {
+    Text = "Enable ESP",
+    Default = false,
+    Tooltip = "Включить/выключить ESP"
+})
+espEnabledToggle:OnChanged(function(value)
+    espSettings.Enabled = value
+end)
+
+local espThicknessSlider = RenderGroup:AddSlider("ESPThickness", {
+    Text = "Line Thickness",
+    Default = 2,
+    Min = 1,
+    Max = 5,
+    Rounding = 0,
+    Tooltip = "Установите толщину линий ESP"
+})
+espThicknessSlider:OnChanged(function(value)
+    espSettings.Thickness = value
+end)
+
+local espShowDistanceToggle = RenderGroup:AddToggle("ESPShowDistance", {
+    Text = "Show Distance",
+    Default = true,
+    Tooltip = "Показывать расстояние до объектов"
+})
+espShowDistanceToggle:OnChanged(function(value)
+    espSettings.ShowDistance = value
+end)
+
+local espShowHPToggle = RenderGroup:AddToggle("ESPShowHP", {
+    Text = "Show HP",
+    Default = false,
+    Tooltip = "Показывать здоровье персонажей"
+})
+espShowHPToggle:OnChanged(function(value)
+    espSettings.ShowHP = value
+end)
+
+local espShowEquippedToolToggle = RenderGroup:AddToggle("ESPShowEquippedTool", {
+    Text = "Show Equipped Tool",
+    Default = false,
+    Tooltip = "Показывать инструмент в руках"
+})
+espShowEquippedToolToggle:OnChanged(function(value)
+    espSettings.ShowEquippedTool = value
+end)
+
+local espMaxDistanceSlider = RenderGroup:AddSlider("ESPMaxDistance", {
+    Text = "Max Distance",
+    Default = 1000,
+    Min = 100,
+    Max = 5000,
+    Rounding = 0,
+    Tooltip = "Максимальная дистанция для отображения ESP и Skeleton (студс)"
+})
+espMaxDistanceSlider:OnChanged(function(value)
+    espSettings.MaxDistance = value
+    skeletonSettings.MaxDistance = value
+end)
+
+-- Skeleton Settings (в группе ESP)
+local skeletonEnabledToggle = RenderGroup:AddToggle("SkeletonEnabled", {
+    Text = "Enable Skeleton",
+    Default = false,
+    Tooltip = "Включить/выключить Skeleton ESP"
+})
+skeletonEnabledToggle:OnChanged(function(value)
+    skeletonSettings.Enabled = value
+end)
+
+local skeletonTransparencySlider = RenderGroup:AddSlider("SkeletonTransparency", {
+    Text = "Skeleton Transparency",
+    Default = 0,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Установите прозрачность линий Skeleton (0 - полностью видимые, 1 - полностью прозрачные)"
+})
+skeletonTransparencySlider:OnChanged(function(value)
+    skeletonSettings.Transparency = value
+end)
+
+-- Hitbox Expander Settings (Legit)
+local LegitGroup = Tabs.Legit:AddLeftGroupbox("Hitbox Expander Settings")
+
+local hitboxExpandEnabledToggle = LegitGroup:AddToggle("HitboxExpandEnabled", {
+    Text = "Enable Hitbox Expander",
+    Default = false,
+    Tooltip = "Включить/выключить расширение хитбокса головы"
+})
+hitboxExpandEnabledToggle:OnChanged(function(value)
+    hitboxSettings.HitboxExpandEnabled = value
+end)
+
+local hitboxSizeSlider = LegitGroup:AddSlider("HitboxSize", {
+    Text = "Head Hitbox Size",
+    Default = 1,
+    Min = 1,
+    Max = 15,
+    Rounding = 0,
+    Tooltip = "Размер хитбокса головы в studs (от 1 до 15)"
+})
+hitboxSizeSlider:OnChanged(function(value)
+    hitboxSettings.HitboxSize = value
+end)
+
+-- Полная секция UI для MiscGroup (заменяет старую реализацию)
+local MiscGroup = Tabs.Misc:AddLeftGroupbox("Miscellaneous")
+
+-- No Fog
+local noFogToggle = MiscGroup:AddToggle("NoFogEnabled", {
+    Text = "No Fog",
+    Default = FogState.Enabled,
+    Tooltip = "Убирает туман и другие атмосферные эффекты"
+})
+noFogToggle:OnChanged(function(value)
+    FogState.Enabled = value
+    Library:Notify("No Fog " .. (FogState.Enabled and "включён" or "выключен"))
+end)
+
+-- Fullbright
+local fullbrightToggle = MiscGroup:AddToggle("FullbrightEnabled", {
+    Text = "Fullbright",
+    Default = FullbrightState.Enabled,
+    Tooltip = "Делает всегда день (максимальная яркость)"
+})
+fullbrightToggle:OnChanged(function(value)
+    FullbrightState.Enabled = value
+    Library:Notify("Fullbright " .. (FullbrightState.Enabled and "включён" or "выключен"))
+end)
+
+-- No Shadows
+local noShadowsToggle = MiscGroup:AddToggle("NoShadowsEnabled", {
+    Text = "No Shadows",
+    Default = ShadowsState.Enabled,
+    Tooltip = "Убирает тени в игре"
+})
+noShadowsToggle:OnChanged(function(value)
+    ShadowsState.Enabled = value
+    Library:Notify("No Shadows " .. (ShadowsState.Enabled and "включён" or "выключен"))
+end)
+
+-- View Model
+local viewModelEnabledToggle = MiscGroup:AddToggle("ViewModelEnabled", {
+    Text = "Enable View Model",
+    Default = VisualState.ViewModelEnabled,
+    Tooltip = "Включает/выключает View Model"
+})
+viewModelEnabledToggle:OnChanged(function(value)
+    VisualState.ViewModelEnabled = value
+    Library:Notify("View Model " .. (VisualState.ViewModelEnabled and "включён" or "выключен"))
+end)
+
+local viewModelFOVSlider = MiscGroup:AddSlider("ViewModelFOV", {
+    Text = "View Model FOV",
+    Default = VisualState.FOV,
+    Min = 70,
+    Max = 120,
+    Rounding = 0,
+    Tooltip = "Настройка поля зрения для View Model (от 70 до 120)"
+})
+viewModelFOVSlider:OnChanged(function(value)
+    VisualState.FOV = value
+end)
+
+-- Settings
+local SettingsGroup = Tabs.Settings:AddLeftGroupbox("Settings")
+
+-- Уведомление о загрузке
+Library:Notify("Скрипт загружен! Используйте вкладки для настройки.", 5)
+
+-- === Функции логики ===
+-- Функция проверки, является ли модель персонажем
+local function hasRequiredParts(model)
+    if not model then return false end
+    -- Проверяем наличие HumanoidRootPart или любых BasePart
+    if model:FindFirstChild("HumanoidRootPart") then
+        return true
+    end
+    for _, child in ipairs(model:GetDescendants()) do
+        if child:IsA("BasePart") then
+            return true
+        end
+    end
+    return false
+end
+
+-- === ESP ===
+local espObjects = {}
+
+local function ESP()
+    local function createESP(model)
+        if espObjects[model] then return end
+
+        -- Создаём квадрат для ESP
+        local box = Drawing.new("Square")
+        box.Thickness = espSettings.Thickness
+        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Filled = false
+        box.Transparency = 1
+
+        local distText = Drawing.new("Text")
+        distText.Size = 14
+        distText.Color = Color3.fromRGB(255, 255, 0)
+        distText.Outline = true
+        distText.Center = true
+
+        local hpText = Drawing.new("Text")
+        hpText.Size = 14
+        hpText.Color = Color3.fromRGB(0, 255, 0)
+        hpText.Outline = true
+        hpText.Center = true
+
+        local toolText = Drawing.new("Text")
+        toolText.Size = 14
+        toolText.Color = Color3.fromRGB(255, 255, 0)
+        toolText.Outline = true
+        toolText.Center = true
+
+        espObjects[model] = {
+            Box = box,
+            DistText = distText,
+            HPText = hpText,
+            ToolText = toolText
+        }
+    end
+
+    local function removeESP(model)
+        if espObjects[model] then
+            espObjects[model].Box:Remove()
+            espObjects[model].DistText:Remove()
+            espObjects[model].HPText:Remove()
+            espObjects[model].ToolText:Remove()
+            espObjects[model] = nil
+        end
+    end
+
+    local function updateESP()
+        if not espSettings.Enabled then
+            for _, esp in pairs(espObjects) do
+                esp.Box.Visible = false
+                esp.DistText.Visible = false
+                esp.HPText.Visible = false
+                esp.ToolText.Visible = false
+            end
+            return
+        end
+
+        for model, esp in pairs(espObjects) do
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+            if not hrp or not model.Parent or not hasRequiredParts(model) then
+                removeESP(model)
+            else
+                local distance = (Camera.CFrame.Position - hrp.Position).Magnitude
+                if distance > espSettings.MaxDistance then
+                    esp.Box.Visible = false
+                    esp.DistText.Visible = false
+                    esp.HPText.Visible = false
+                    esp.ToolText.Visible = false
+                    continue
+                end
+
+                local orientation, size = model:GetBoundingBox()
+                local pos, onScreen = Camera:WorldToViewportPoint(orientation.Position)
+                if onScreen then
+                    local corner1 = Camera:WorldToViewportPoint(orientation.Position + size / 2)
+                    local corner2 = Camera:WorldToViewportPoint(orientation.Position - size / 2)
+                    local screenSize = Vector2.new(math.abs(corner1.X - corner2.X), math.abs(corner1.Y - corner2.Y))
+
+                    esp.Box.Size = screenSize
+                    esp.Box.Position = Vector2.new(pos.X - screenSize.X / 2, pos.Y - screenSize.Y / 2)
+                    esp.Box.Visible = true
+                    esp.Box.Transparency = 1
+                    esp.Box.Thickness = espSettings.Thickness
+
+                    local textOffset = 15
+                    if espSettings.ShowDistance then
+                        esp.DistText.Text = math.floor(distance) .. " studs"
+                        esp.DistText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                        esp.DistText.Visible = true
+                        textOffset = textOffset + 15
+                    else
+                        esp.DistText.Visible = false
+                    end
+
+                    if espSettings.ShowHP then
+                        local humanoid = model:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            esp.HPText.Text = math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth) .. " HP"
+                            esp.HPText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                            esp.HPText.Visible = true
+                            textOffset = textOffset + 15
+                        else
+                            esp.HPText.Visible = false
+                        end
+                    else
+                        esp.HPText.Visible = false
+                    end
+
+                    if espSettings.ShowEquippedTool then
+                        local tool = model:FindFirstChildOfClass("Tool")
+                        esp.ToolText.Text = tool and tool.Name or "None"
+                        esp.ToolText.Position = Vector2.new(pos.X, pos.Y + screenSize.Y / 2 + textOffset)
+                        esp.ToolText.Visible = true
+                    else
+                        esp.ToolText.Visible = false
+                    end
+                else
+                    esp.Box.Visible = false
+                    esp.DistText.Visible = false
+                    esp.HPText.Visible = false
+                    esp.ToolText.Visible = false
+                end
+            end
+        end
+    end
+
+    local function checkModels()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                createESP(model)
+            end
+        end
+    end
+
+    RunService.RenderStepped:Connect(updateESP)
+
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            createESP(descendant)
+        end
+    end)
+
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            removeESP(descendant)
+        end
+    end)
+
+    checkModels()
+end
+
+-- Инициализация ESP
+ESP()
+
+-- === Skeleton ESP ===
+local skeletonObjects = {}
+
+local function Skeleton()
+    local function createSkeleton(model)
+        if skeletonObjects[model] then return end
+
+        -- Создаём таблицу для хранения линий
+        local lines = {}
+
+        -- Находим ключевые части тела
+        local head = model:FindFirstChild("Head")
+        local upperTorso = model:FindFirstChild("UpperTorso") or model:FindFirstChild("Torso")
+        local lowerTorso = model:FindFirstChild("LowerTorso")
+        local leftUpperArm = model:FindFirstChild("LeftUpperArm")
+        local rightUpperArm = model:FindFirstChild("RightUpperArm")
+        local leftUpperLeg = model:FindFirstChild("LeftUpperLeg")
+        local rightUpperLeg = model:FindFirstChild("RightUpperLeg")
+
+        -- Проверяем, есть ли голова как начальная точка
+        if not head then return end
+
+        -- Создаём линии для скелета
+        local function createLine(fromPart, toPart)
+            if fromPart and toPart then
+                local line = Drawing.new("Line")
+                line.Thickness = 1
+                line.Color = Color3.fromRGB(255, 255, 255) -- Белый цвет линий
+                line.Transparency = 1 - skeletonSettings.Transparency
+                table.insert(lines, line)
+            end
+        end
+
+        -- Соединяем части тела линиями
+        createLine(head, upperTorso) -- Голова → Верхний торс
+        if upperTorso then
+            createLine(upperTorso, lowerTorso) -- Верхний торс → Нижний торс
+            createLine(upperTorso, leftUpperArm) -- Верхний торс → Левая рука
+            createLine(upperTorso, rightUpperArm) -- Верхний торс → Правая рука
+        end
+        if lowerTorso then
+            createLine(lowerTorso, leftUpperLeg) -- Нижний торс → Левая нога
+            createLine(lowerTorso, rightUpperLeg) -- Нижний торс → Правая нога
+        end
+
+        skeletonObjects[model] = { Lines = lines }
+    end
+
+    local function removeSkeleton(model)
+        if skeletonObjects[model] then
+            for _, line in pairs(skeletonObjects[model].Lines) do
+                line:Remove()
+            end
+            skeletonObjects[model] = nil
+        end
+    end
+
+    local function updateSkeleton()
+        if not skeletonSettings.Enabled then
+            for _, skeleton in pairs(skeletonObjects) do
+                for _, line in pairs(skeleton.Lines) do
+                    line.Visible = false
+                end
+            end
+            return
+        end
+
+        for model, skeleton in pairs(skeletonObjects) do
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+            if not hrp or not model.Parent or not hasRequiredParts(model) then
+                removeSkeleton(model)
+            else
+                local distance = (Camera.CFrame.Position - hrp.Position).Magnitude
+                if distance > skeletonSettings.MaxDistance then
+                    for _, line in pairs(skeleton.Lines) do
+                        line.Visible = false
+                    end
+                else
+                    -- Обновляем линии
+                    local head = model:FindFirstChild("Head")
+                    local upperTorso = model:FindFirstChild("UpperTorso") or model:FindFirstChild("Torso")
+                    local lowerTorso = model:FindFirstChild("LowerTorso")
+                    local leftUpperArm = model:FindFirstChild("LeftUpperArm")
+                    local rightUpperArm = model:FindFirstChild("RightUpperArm")
+                    local leftUpperLeg = model:FindFirstChild("LeftUpperLeg")
+                    local rightUpperLeg = model:FindFirstChild("RightUpperLeg")
+
+                    local lineIndex = 1
+                    local function updateLine(fromPart, toPart)
+                        if lineIndex > #skeleton.Lines then return end
+                        local line = skeleton.Lines[lineIndex]
+                        if fromPart and toPart then
+                            local fromPos, fromVisible = Camera:WorldToViewportPoint(fromPart.Position)
+                            local toPos, toVisible = Camera:WorldToViewportPoint(toPart.Position)
+                            if fromVisible and toVisible then
+                                line.From = Vector2.new(fromPos.X, fromPos.Y)
+                                line.To = Vector2.new(toPos.X, toPos.Y)
+                                line.Transparency = 1 - skeletonSettings.Transparency
+                                line.Visible = true
+                            else
+                                line.Visible = false
+                            end
+                        else
+                            line.Visible = false
+                        end
+                        lineIndex = lineIndex + 1
+                    end
+
+                    updateLine(head, upperTorso)
+                    if upperTorso then
+                        updateLine(upperTorso, lowerTorso)
+                        updateLine(upperTorso, leftUpperArm)
+                        updateLine(upperTorso, rightUpperArm)
+                    end
+                    if lowerTorso then
+                        updateLine(lowerTorso, leftUpperLeg)
+                        updateLine(lowerTorso, rightUpperLeg)
+                    end
+                end
+            end
+        end
+    end
+
+    local function checkModelsForSkeleton()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                createSkeleton(model)
+            end
+        end
+    end
+
+    RunService.RenderStepped:Connect(updateSkeleton)
+
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            createSkeleton(descendant)
+        end
+    end)
+
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            removeSkeleton(descendant)
+        end
+    end)
+
+    checkModelsForSkeleton()
+end
+
+-- Инициализация Skeleton
+Skeleton()
+
+-- === Hitbox Expander ===
+local originalHeadSizes = {} -- Храним оригинальные размеры головы для каждой модели
+
+local function HitboxExpander()
+    local function expandHitbox(model)
+        if not hitboxSettings.HitboxExpandEnabled then
+            -- Восстанавливаем оригинальный размер головы, если Hitbox Expander выключен
+            local head = model:FindFirstChild("Head")
+            if head and originalHeadSizes[model] then
+                head.Size = originalHeadSizes[model]
+                head.CFrame = head.CFrame -- Сохраняем позицию
+            end
+            return
+        end
+
+        local head = model:FindFirstChild("Head")
+        if head and head:IsA("BasePart") then
+            -- Сохраняем оригинальный размер, если ещё не сохранён
+            if not originalHeadSizes[model] then
+                originalHeadSizes[model] = head.Size
+            end
+
+            -- Изменяем размер головы
+            local newSize = hitboxSettings.HitboxSize
+            head.Size = Vector3.new(newSize, newSize, newSize)
+            head.CFrame = head.CFrame -- Сохраняем позицию после изменения размера
+        end
+    end
+
+    local function restoreHitbox(model)
+        if originalHeadSizes[model] then
+            local head = model:FindFirstChild("Head")
+            if head then
+                head.Size = originalHeadSizes[model]
+                head.CFrame = head.CFrame
+            end
+            originalHeadSizes[model] = nil
+        end
+    end
+
+    local function checkModelsForHitbox()
+        for _, model in pairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                expandHitbox(model)
+            end
+        end
+    end
+
+    -- Обновляем хитбоксы при добавлении новой модели
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant ~= LocalPlayer.Character and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            expandHitbox(descendant)
+        end
+    end)
+
+    -- Восстанавливаем хитбоксы при удалении модели
+    workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            restoreHitbox(descendant)
+        end
+    end)
+
+    -- Инициализация хитбоксов для уже существующих моделей
+    checkModelsForHitbox()
+
+    -- Обновляем хитбоксы каждый кадр, если Hitbox Expander включён
+    RunService.RenderStepped:Connect(function()
+        if hitboxSettings.HitboxExpandEnabled then
+            checkModelsForHitbox()
+        end
+    end)
+end
+
+-- Инициализация Hitbox Expander
+HitboxExpander()
+
+-- === View Model ===
+local function updateViewModel()
+    if VisualState.ViewModelEnabled then
+        Camera.FieldOfView = VisualState.FOV
+    else
+        Camera.FieldOfView = defaultFOV
+    end
+end
+
+-- Обновляем цикл RenderStepped
+RunService.RenderStepped:Connect(function(deltaTime)
+    updateViewModel()
+end)
+
+-- Обновляем цикл RenderStepped (заменяем старую реализацию)
+RunService.RenderStepped:Connect(function(deltaTime)
+    -- No Fog
+    if FogState.Enabled then
+        Lighting.FogStart = 100000
+        Lighting.FogEnd = 100000
+        Lighting.FogColor = Color3.new(1, 1, 1) -- Белый цвет, чтобы убрать эффект
+    else
+        Lighting.FogStart = FogState.OriginalFogStart
+        Lighting.FogEnd = FogState.OriginalFogEnd
+        Lighting.FogColor = FogState.OriginalFogColor
+    end
+
+    -- Fullbright
+    if FullbrightState.Enabled then
+        Lighting.Brightness = 3 -- Максимальная яркость
+        Lighting.ClockTime = 12 -- Полдень
+    else
+        Lighting.Brightness = FullbrightState.OriginalBrightness
+        Lighting.ClockTime = FullbrightState.OriginalClockTime
+    end
+
+    -- No Shadows
+    if ShadowsState.Enabled then
+        Lighting.GlobalShadows = false -- Отключаем тени
+    else
+        Lighting.GlobalShadows = ShadowsState.OriginalShadows -- Восстанавливаем исходное состояние
+    end
+
+    -- View Model (уже есть, оставляем без изменений)
+    if VisualState.ViewModelEnabled then
+        Camera.FieldOfView = VisualState.FOV
+    else
+        Camera.FieldOfView = defaultFOV
+    end
+end)
