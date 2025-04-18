@@ -37,10 +37,16 @@ local skeletonSettings = {
     MaxDistance = 1000 -- Используем ту же дистанцию, что и для ESP
 }
 
--- Настройки Hitbox Expander
+
+-- Обновляем hitboxSettings (заменяем старую реализацию)
 local hitboxSettings = {
     HitboxExpandEnabled = false,
-    HitboxSize = 1 -- Размер хитбокса головы в studs (от 1 до 15)
+    HitboxSize = 1, -- Размер хитбокса головы в studs (от 1 до 10)
+    BodyExpandEnabled = false,
+    BodySize = 1, -- Размер тела (от 1 до 10)
+    CanCollide = true, -- Коллизия головы (по умолчанию включена)
+    Transparency = 0, -- Прозрачность головы (от 0 до 1)
+    Variation = 0.1 -- Амплитуда случайного колебания размеров (для маскировки)
 }
 
 -- Настройки View Model
@@ -72,7 +78,7 @@ local FullbrightState = {
 -- === UI ===
 -- Создаём окно
 local Window = Library:CreateWindow({
-    Title = "simfonia hub trident $$$ v1",
+    Title = "simfonia hub (trident) v1.2",
     Center = true,
     AutoShow = true,
 })
@@ -171,9 +177,10 @@ skeletonTransparencySlider:OnChanged(function(value)
     skeletonSettings.Transparency = value
 end)
 
--- Hitbox Expander Settings (Legit)
+-- Обновляем группу Hitbox Expander Settings в Legit (заменяем старую реализацию)
 local LegitGroup = Tabs.Legit:AddLeftGroupbox("Hitbox Expander Settings")
 
+-- Hitbox Expander (голова)
 local hitboxExpandEnabledToggle = LegitGroup:AddToggle("HitboxExpandEnabled", {
     Text = "Enable Hitbox Expander",
     Default = false,
@@ -187,12 +194,60 @@ local hitboxSizeSlider = LegitGroup:AddSlider("HitboxSize", {
     Text = "Head Hitbox Size",
     Default = 1,
     Min = 1,
-    Max = 15,
+    Max = 10, -- Уменьшаем максимальный размер
     Rounding = 0,
-    Tooltip = "Размер хитбокса головы в studs (от 1 до 15)"
+    Tooltip = "Размер хитбокса головы в studs (от 1 до 10)"
 })
 hitboxSizeSlider:OnChanged(function(value)
     hitboxSettings.HitboxSize = value
+end)
+
+-- Body Expander (тело)
+local bodyExpandEnabledToggle = LegitGroup:AddToggle("BodyExpandEnabled", {
+    Text = "Enable Body Expander",
+    Default = false,
+    Tooltip = "Включить/выключить расширение хитбокса тела"
+})
+bodyExpandEnabledToggle:OnChanged(function(value)
+    hitboxSettings.BodyExpandEnabled = value
+end)
+
+local bodySizeSlider = LegitGroup:AddSlider("BodySize", {
+    Text = "Body Hitbox Size",
+    Default = 1,
+    Min = 1,
+    Max = 10, -- Уменьшаем максимальный размер
+    Rounding = 0,
+    Tooltip = "Размер хитбокса тела в studs (от 1 до 10)"
+})
+bodySizeSlider:OnChanged(function(value)
+    hitboxSettings.BodySize = value
+end)
+
+-- Transparency (прозрачность головы)
+local transparencySlider = LegitGroup:AddSlider("Transparency", {
+    Text = "Head Transparency",
+    Default = 0,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Прозрачность головы (от 0 до 1)"
+})
+transparencySlider:OnChanged(function(value)
+    hitboxSettings.Transparency = value
+end)
+
+-- Variation (случайное колебание размеров для маскировки)
+local variationSlider = LegitGroup:AddSlider("Variation", {
+    Text = "Size Variation",
+    Default = 0.1,
+    Min = 0,
+    Max = 0.5,
+    Rounding = 2,
+    Tooltip = "Случайное колебание размеров для маскировки (от 0 до 0.5)"
+})
+variationSlider:OnChanged(function(value)
+    hitboxSettings.Variation = value
 end)
 
 -- Полная секция UI для MiscGroup (заменяет старую реализацию)
@@ -276,6 +331,15 @@ local function hasRequiredParts(model)
     return false
 end
 
+
+-- Список частей для проверки моделей (для ESP)
+local requiredParts = {
+    "Armor", "LeftFoot", "LeftHand", "LeftLowerArm", "LeftUpperArm", "LeftUpperLeg",
+    "RightFoot", "RightHand", "RightLowerArm", "RightUpperArm", "RightUpperLeg",
+    "Torso", "Head", "HumanoidRootPart", "LowerTorso", "AnimationController",
+    "UpperTorso", "Chest", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
+}
+
 -- === ESP ===
 local espObjects = {}
 
@@ -283,10 +347,9 @@ local function ESP()
     local function createESP(model)
         if espObjects[model] then return end
 
-        -- Создаём квадрат для ESP
         local box = Drawing.new("Square")
         box.Thickness = espSettings.Thickness
-        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Color = Color3.fromRGB(255, 0, 0) -- По умолчанию красный
         box.Filled = false
         box.Transparency = 1
 
@@ -326,6 +389,32 @@ local function ESP()
         end
     end
 
+    local function isModelInView(model)
+        local hrp = model:FindFirstChild("HumanoidRootPart")
+        if not hrp then return false end
+
+        -- Проверка направления взгляда
+        local cameraPos = Camera.CFrame.Position
+        local cameraLookVector = Camera.CFrame.LookVector
+        local modelPos = hrp.Position
+        local directionToModel = (modelPos - cameraPos).Unit
+        local dotProduct = directionToModel:Dot(cameraLookVector)
+        if dotProduct <= 0.5 then return false end -- Модель вне поля зрения (угол > 60 градусов)
+
+        -- Проверка на препятствия
+        local rayOrigin = cameraPos
+        local rayDirection = (modelPos - cameraPos).Unit * (modelPos - cameraPos).Magnitude
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {model, Camera} -- Игнорируем саму модель и камеру
+        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+        -- Если есть препятствие, модель не видна
+        if raycastResult then return false end
+
+        return true
+    end
+
     local function updateESP()
         if not espSettings.Enabled then
             for _, esp in pairs(espObjects) do
@@ -357,6 +446,9 @@ local function ESP()
                     local corner1 = Camera:WorldToViewportPoint(orientation.Position + size / 2)
                     local corner2 = Camera:WorldToViewportPoint(orientation.Position - size / 2)
                     local screenSize = Vector2.new(math.abs(corner1.X - corner2.X), math.abs(corner1.Y - corner2.Y))
+
+                    local isInView = isModelInView(model)
+                    esp.Box.Color = isInView and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 
                     esp.Box.Size = screenSize
                     esp.Box.Position = Vector2.new(pos.X - screenSize.X / 2, pos.Y - screenSize.Y / 2)
@@ -585,80 +677,120 @@ end
 -- Инициализация Skeleton
 Skeleton()
 
--- === Hitbox Expander ===
-local originalHeadSizes = {} -- Храним оригинальные размеры головы для каждой модели
+-- Обновляем HitboxExpander (заменяем старую реализацию)
+local originalHeadSizes = {} -- Храним оригинальные размеры головы
+local originalBodySizes = {} -- Храним оригинальные размеры тела
+local originalHeadProperties = {} -- Храним оригинальные свойства головы (CanCollide, Transparency)
 
 local function HitboxExpander()
     local function expandHitbox(model)
-        if not hitboxSettings.HitboxExpandEnabled then
-            -- Восстанавливаем оригинальный размер головы, если Hitbox Expander выключен
-            local head = model:FindFirstChild("Head")
-            if head and originalHeadSizes[model] then
-                head.Size = originalHeadSizes[model]
-                head.CFrame = head.CFrame -- Сохраняем позицию
-            end
-            return
-        end
-
+        -- Голова
         local head = model:FindFirstChild("Head")
         if head and head:IsA("BasePart") then
-            -- Сохраняем оригинальный размер, если ещё не сохранён
+            -- Сохраняем оригинальные свойства головы, если ещё не сохранены
+            if not originalHeadProperties[model] then
+                originalHeadProperties[model] = {
+                    CanCollide = head.CanCollide,
+                    Transparency = head.Transparency
+                }
+            end
+            -- Сохраняем оригинальный размер головы
             if not originalHeadSizes[model] then
                 originalHeadSizes[model] = head.Size
             end
+            -- Изменяем размер головы, если Hitbox Expander включён
+            if hitboxSettings.HitboxExpandEnabled then
+                local newSize = hitboxSettings.HitboxSize
+                head.Size = Vector3.new(newSize, newSize, newSize)
+            else
+                head.Size = originalHeadSizes[model]
+            end
+            -- Применяем настройки коллизии и прозрачности
+            head.CanCollide = hitboxSettings.CanCollide
+            head.Transparency = hitboxSettings.Transparency
+            head.CFrame = head.CFrame -- Сохраняем позицию
+        end
 
-            -- Изменяем размер головы
-            local newSize = hitboxSettings.HitboxSize
-            head.Size = Vector3.new(newSize, newSize, newSize)
-            head.CFrame = head.CFrame -- Сохраняем позицию после изменения размера
+        -- Тело (UpperTorso и LowerTorso)
+        local bodyParts = {
+            model:FindFirstChild("UpperTorso"),
+            model:FindFirstChild("LowerTorso")
+        }
+        for _, part in pairs(bodyParts) do
+            if part and part:IsA("BasePart") then
+                -- Сохраняем оригинальный размер тела
+                if not originalBodySizes[part] then
+                    originalBodySizes[part] = part.Size
+                end
+                -- Изменяем размер тела, если Body Expander включён
+                if hitboxSettings.BodyExpandEnabled then
+                    local newSize = hitboxSettings.BodySize
+                    part.Size = Vector3.new(newSize, newSize, newSize)
+                else
+                    part.Size = originalBodySizes[part]
+                end
+                part.CFrame = part.CFrame -- Сохраняем позицию
+            end
         end
     end
 
     local function restoreHitbox(model)
+        -- Восстанавливаем голову
         if originalHeadSizes[model] then
             local head = model:FindFirstChild("Head")
             if head then
                 head.Size = originalHeadSizes[model]
                 head.CFrame = head.CFrame
+                -- Восстанавливаем оригинальные свойства
+                if originalHeadProperties[model] then
+                    head.CanCollide = originalHeadProperties[model].CanCollide
+                    head.Transparency = originalHeadProperties[model].Transparency
+                end
             end
             originalHeadSizes[model] = nil
+            originalHeadProperties[model] = nil
+        end
+        -- Восстанавливаем тело
+        local bodyParts = {
+            model:FindFirstChild("UpperTorso"),
+            model:FindFirstChild("LowerTorso")
+        }
+        for _, part in pairs(bodyParts) do
+            if part and originalBodySizes[part] then
+                part.Size = originalBodySizes[part]
+                part.CFrame = part.CFrame
+                originalBodySizes[part] = nil
+            end
         end
     end
 
     local function checkModelsForHitbox()
-        for _, model in pairs(workspace:GetDescendants()) do
+        for _, model in pairs(Workspace:GetDescendants()) do
             if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
                 expandHitbox(model)
             end
         end
     end
 
-    -- Обновляем хитбоксы при добавлении новой модели
-    workspace.DescendantAdded:Connect(function(descendant)
+    Workspace.DescendantAdded:Connect(function(descendant)
         if descendant:IsA("Model") and descendant ~= LocalPlayer.Character and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
             expandHitbox(descendant)
         end
     end)
 
-    -- Восстанавливаем хитбоксы при удалении модели
-    workspace.DescendantRemoving:Connect(function(descendant)
+    Workspace.DescendantRemoving:Connect(function(descendant)
         if descendant:IsA("Model") then
             restoreHitbox(descendant)
         end
     end)
 
-    -- Инициализация хитбоксов для уже существующих моделей
     checkModelsForHitbox()
 
-    -- Обновляем хитбоксы каждый кадр, если Hitbox Expander включён
     RunService.RenderStepped:Connect(function()
-        if hitboxSettings.HitboxExpandEnabled then
-            checkModelsForHitbox()
-        end
+        checkModelsForHitbox()
     end)
 end
 
--- Инициализация Hitbox Expander
 HitboxExpander()
 
 -- === View Model ===
@@ -711,3 +843,187 @@ RunService.RenderStepped:Connect(function(deltaTime)
         Camera.FieldOfView = defaultFOV
     end
 end)
+
+-- Оптимизированная логика HitboxExpander
+local originalHeadSizes = {}
+local originalBodySizes = {}
+local originalHeadProperties = {}
+local trackedModels = {} -- Кэшируем модели, которые нужно обрабатывать
+
+local function HitboxExpander()
+    local function applyHitboxChanges(model)
+        -- Пропускаем локального игрока
+        if model == LocalPlayer.Character then return end
+
+        -- Голова
+        local head = model:FindFirstChild("Head")
+        if head and head:IsA("BasePart") then
+            -- Сохраняем оригинальные свойства
+            if not originalHeadProperties[model] then
+                originalHeadProperties[model] = {
+                    CanCollide = head.CanCollide,
+                    Transparency = head.Transparency
+                }
+            end
+            if not originalHeadSizes[model] then
+                originalHeadSizes[model] = head.Size
+            end
+            -- Изменяем размер головы
+            if hitboxSettings.HitboxExpandEnabled then
+                local baseSize = hitboxSettings.HitboxSize
+                local variation = hitboxSettings.Variation * (math.random() - 0.5) * 2
+                local newSize = math.clamp(baseSize + variation, 1, 10)
+                local targetSize = Vector3.new(newSize, newSize, newSize)
+                if head.Size ~= targetSize then -- Проверяем, нужно ли обновлять
+                    head.Size = targetSize
+                    head.CFrame = head.CFrame
+                end
+            else
+                local originalSize = originalHeadSizes[model] or Vector3.new(2, 1, 1)
+                if head.Size ~= originalSize then
+                    head.Size = originalSize
+                    head.CFrame = head.CFrame
+                end
+            end
+            -- Применяем прозрачность (будет обновляться через Heartbeat)
+            head.CanCollide = true -- Оставляем коллизию включённой
+        end
+
+        -- Тело (UpperTorso и LowerTorso)
+        local bodyParts = {
+            UpperTorso = model:FindFirstChild("UpperTorso"),
+            LowerTorso = model:FindFirstChild("LowerTorso")
+        }
+        for partName, part in pairs(bodyParts) do
+            if part and part:IsA("BasePart") then
+                local key = tostring(model) .. "_" .. partName
+                if not originalBodySizes[key] then
+                    originalBodySizes[key] = part.Size
+                end
+                if hitboxSettings.BodyExpandEnabled then
+                    local baseSize = hitboxSettings.BodySize
+                    local variation = hitboxSettings.Variation * (math.random() - 0.5) * 2
+                    local newSize = math.clamp(baseSize + variation, 1, 10)
+                    local targetSize = Vector3.new(newSize, newSize, newSize)
+                    if part.Size ~= targetSize then
+                        part.Size = targetSize
+                        part.CFrame = part.CFrame
+                    end
+                else
+                    local originalSize = originalBodySizes[key] or Vector3.new(4, 2, 1)
+                    if part.Size ~= originalSize then
+                        part.Size = originalSize
+                        part.CFrame = part.CFrame
+                    end
+                end
+            end
+        end
+    end
+
+    local function restoreHitbox(model)
+        if originalHeadSizes[model] then
+            local head = model:FindFirstChild("Head")
+            if head then
+                head.Size = originalHeadSizes[model] or Vector3.new(2, 1, 1)
+                head.CFrame = head.CFrame
+                if originalHeadProperties[model] then
+                    head.CanCollide = originalHeadProperties[model].CanCollide
+                    head.Transparency = originalHeadProperties[model].Transparency
+                end
+            end
+            originalHeadSizes[model] = nil
+            originalHeadProperties[model] = nil
+        end
+        local bodyParts = {
+            UpperTorso = model:FindFirstChild("UpperTorso"),
+            LowerTorso = model:FindFirstChild("LowerTorso")
+        }
+        for partName, part in pairs(bodyParts) do
+            if part then
+                local key = tostring(model) .. "_" .. partName
+                if originalBodySizes[key] then
+                    part.Size = originalBodySizes[key] or Vector3.new(4, 2, 1)
+                    part.CFrame = part.CFrame
+                    originalBodySizes[key] = nil
+                end
+            end
+        end
+        trackedModels[model] = nil -- Удаляем из отслеживаемых моделей
+    end
+
+    local function updateTransparency()
+        for model, _ in pairs(trackedModels) do
+            local head = model:FindFirstChild("Head")
+            if head and head:IsA("BasePart") then
+                local currentTransparency = head.Transparency
+                local targetTransparency = hitboxSettings.Transparency
+                if math.abs(currentTransparency - targetTransparency) > 0.01 then
+                    head.Transparency = currentTransparency + (targetTransparency - currentTransparency) * 0.1
+                end
+            end
+        end
+    end
+
+    local function checkModelsForHitbox()
+        for _, model in pairs(Workspace:GetDescendants()) do
+            if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") and hasRequiredParts(model) then
+                if not trackedModels[model] then
+                    trackedModels[model] = true
+                    applyHitboxChanges(model)
+                end
+            end
+        end
+    end
+
+    -- Инициализация: проверяем существующие модели
+    checkModelsForHitbox()
+
+    -- Обновляем при добавлении новых моделей
+    Workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Model") and descendant ~= LocalPlayer.Character and descendant:FindFirstChild("HumanoidRootPart") and hasRequiredParts(descendant) then
+            trackedModels[descendant] = true
+            applyHitboxChanges(descendant)
+        end
+    end)
+
+    -- Восстанавливаем при удалении моделей
+    Workspace.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Model") then
+            restoreHitbox(descendant)
+        end
+    end)
+
+    -- Обновляем размеры при изменении настроек
+    local function onSettingsChanged()
+        for model, _ in pairs(trackedModels) do
+            applyHitboxChanges(model)
+        end
+    end
+
+    -- Подписываемся на изменения настроек
+    hitboxExpandEnabledToggle:OnChanged(function(value)
+        hitboxSettings.HitboxExpandEnabled = value
+        onSettingsChanged()
+    end)
+    hitboxSizeSlider:OnChanged(function(value)
+        hitboxSettings.HitboxSize = value
+        onSettingsChanged()
+    end)
+    bodyExpandEnabledToggle:OnChanged(function(value)
+        hitboxSettings.BodyExpandEnabled = value
+        onSettingsChanged()
+    end)
+    bodySizeSlider:OnChanged(function(value)
+        hitboxSettings.BodySize = value
+        onSettingsChanged()
+    end)
+    variationSlider:OnChanged(function(value)
+        hitboxSettings.Variation = value
+        onSettingsChanged()
+    end)
+
+    -- Обновляем прозрачность через Heartbeat (реже, чем RenderStepped)
+    RunService.Heartbeat:Connect(updateTransparency)
+end
+
+HitboxExpander()
