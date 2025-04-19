@@ -1,0 +1,294 @@
+-- Простая UI-библиотека для Roblox
+local SimpleUILib = {}
+
+-- Ссылки на сервисы Roblox
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+-- Получаем локального игрока
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Создание главного объекта библиотеки
+function SimpleUILib:CreateWindow(options)
+    local window = {}
+    window.Title = options.Title or "Simple UI"
+    window.ScreenGui = Instance.new("ScreenGui")
+    window.ScreenGui.Parent = PlayerGui
+    window.ScreenGui.ResetOnSpawn = false
+
+    -- Главный Frame окна
+    window.MainFrame = Instance.new("Frame")
+    window.MainFrame.Size = UDim2.new(0, 300, 0, 400)
+    window.MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    window.MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    window.MainFrame.BorderSizePixel = 0
+    window.MainFrame.Parent = window.ScreenGui
+
+    -- Заголовок окна
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Text = window.Title
+    titleLabel.TextSize = 16
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.Parent = window.MainFrame
+
+    -- Контейнер для вкладок
+    window.TabContainer = Instance.new("Frame")
+    window.TabContainer.Size = UDim2.new(1, 0, 1, -30)
+    window.TabContainer.Position = UDim2.new(0, 0, 0, 30)
+    window.TabContainer.BackgroundTransparency = 1
+    window.TabContainer.Parent = window.MainFrame
+
+    window.Tabs = {}
+
+    -- Функция для добавления вкладки
+    function window:AddTab(tabName)
+        local tab = {}
+        tab.Name = tabName
+
+        -- Frame вкладки
+        tab.Frame = Instance.new("Frame")
+        tab.Frame.Size = UDim2.new(1, 0, 1, 0)
+        tab.Frame.BackgroundTransparency = 1
+        tab.Frame.Parent = window.TabContainer
+
+        -- Прокручиваемый контейнер для элементов
+        tab.ScrollingFrame = Instance.new("ScrollingFrame")
+        tab.ScrollingFrame.Size = UDim2.new(1, -10, 1, -10)
+        tab.ScrollingFrame.Position = UDim2.new(0, 5, 0, 5)
+        tab.ScrollingFrame.BackgroundTransparency = 1
+        tab.ScrollingFrame.ScrollBarThickness = 4
+        tab.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        tab.ScrollingFrame.Parent = tab.Frame
+
+        -- UIListLayout для элементов
+        local layout = Instance.new("UIListLayout")
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0, 5)
+        layout.Parent = tab.ScrollingFrame
+
+        -- Текущая позиция для добавления элементов
+        local currentY = 0
+
+        -- Функция для добавления группы (GroupBox)
+        function tab:AddGroupbox(groupName)
+            local groupbox = {}
+
+            -- Frame группы
+            local groupFrame = Instance.new("Frame")
+            groupFrame.Size = UDim2.new(1, -10, 0, 0)
+            groupFrame.Position = UDim2.new(0, 5, 0, currentY)
+            groupFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            groupFrame.BorderSizePixel = 0
+            groupFrame.Parent = tab.ScrollingFrame
+
+            -- Заголовок группы
+            local groupLabel = Instance.new("TextLabel")
+            groupLabel.Size = UDim2.new(1, 0, 0, 20)
+            groupLabel.BackgroundTransparency = 1
+            groupLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            groupLabel.Text = groupName
+            groupLabel.TextSize = 14
+            groupLabel.Font = Enum.Font.SourceSans
+            groupLabel.TextXAlignment = Enum.TextXAlignment.Left
+            groupLabel.Parent = groupFrame
+
+            -- Контейнер для элементов группы
+            local elementContainer = Instance.new("Frame")
+            elementContainer.Size = UDim2.new(1, 0, 1, -20)
+            elementContainer.Position = UDim2.new(0, 0, 0, 20)
+            elementContainer.BackgroundTransparency = 1
+            elementContainer.Parent = groupFrame
+
+            local elementLayout = Instance.new("UIListLayout")
+            elementLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            elementLayout.Padding = UDim.new(0, 5)
+            elementLayout.Parent = elementContainer
+
+            local elementY = 0
+
+            -- Функция для добавления метки
+            function groupbox:AddLabel(labelText)
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(0, 60, 0, 20)
+                label.Position = UDim2.new(0, 5, 0, elementY)
+                label.BackgroundTransparency = 1
+                label.TextColor3 = Color3.fromRGB(255, 255, 255)
+                label.Text = labelText
+                label.TextSize = 14
+                label.TextXAlignment = Enum.TextXAlignment.Left
+                label.Parent = elementContainer
+
+                elementY = elementY + 25
+
+                -- Обновляем размеры
+                groupFrame.Size = UDim2.new(1, -10, 0, elementY + 20)
+                currentY = currentY + groupFrame.Size.Y.Offset + 10
+                tab.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, currentY)
+
+                local labelObj = {}
+                function labelObj:AddColorPicker(id, options)
+                    local colorPicker = {}
+                    colorPicker.Value = options.Default or Color3.new(1, 1, 1)
+                    colorPicker.Transparency = options.Transparency or 0
+                    Options[id] = colorPicker -- Сохраняем в глобальную таблицу Options
+
+                    -- Frame для ColorPicker
+                    local pickerFrame = Instance.new("Frame")
+                    pickerFrame.Size = UDim2.new(0, 80, 0, 20)
+                    pickerFrame.Position = UDim2.new(1, -85, 0, elementY - 20)
+                    pickerFrame.BackgroundColor3 = colorPicker.Value
+                    pickerFrame.BorderSizePixel = 1
+                    pickerFrame.Parent = elementContainer
+
+                    -- Простой ColorPicker через три ползунка (R, G, B)
+                    local rSlider = Instance.new("TextBox")
+                    rSlider.Size = UDim2.new(0, 60, 0, 20)
+                    rSlider.Position = UDim2.new(0, 5, 0, elementY)
+                    rSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    rSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    rSlider.Text = tostring(math.floor(colorPicker.Value.R * 255))
+                    rSlider.TextSize = 14
+                    rSlider.Parent = elementContainer
+
+                    local gSlider = Instance.new("TextBox")
+                    gSlider.Size = UDim2.new(0, 60, 0, 20)
+                    gSlider.Position = UDim2.new(0, 70, 0, elementY)
+                    gSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    gSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    gSlider.Text = tostring(math.floor(colorPicker.Value.G * 255))
+                    gSlider.TextSize = 14
+                    gSlider.Parent = elementContainer
+
+                    local bSlider = Instance.new("TextBox")
+                    bSlider.Size = UDim2.new(0, 60, 0, 20)
+                    bSlider.Position = UDim2.new(0, 135, 0, elementY)
+                    bSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    bSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    bSlider.Text = tostring(math.floor(colorPicker.Value.B * 255))
+                    bSlider.TextSize = 14
+                    bSlider.Parent = elementContainer
+
+                    -- Обновление цвета
+                    local function updateColor()
+                        local r = tonumber(rSlider.Text) or 0
+                        local g = tonumber(gSlider.Text) or 0
+                        local b = tonumber(bSlider.Text) or 0
+                        r = math.clamp(r, 0, 255)
+                        g = math.clamp(g, 0, 255)
+                        b = math.clamp(b, 0, 255)
+                        colorPicker.Value = Color3.fromRGB(r, g, b)
+                        pickerFrame.BackgroundColor3 = colorPicker.Value
+                        if options.Callback then
+                            options.Callback(colorPicker.Value)
+                        end
+                    end
+
+                    rSlider.FocusLost:Connect(updateColor)
+                    gSlider.FocusLost:Connect(updateColor)
+                    bSlider.FocusLost:Connect(updateColor)
+
+                    elementY = elementY + 25
+                    groupFrame.Size = UDim2.new(1, -10, 0, elementY + 20)
+                    currentY = currentY + 25
+                    tab.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, currentY)
+
+                    function colorPicker:SetValueRGB(newColor)
+                        colorPicker.Value = newColor
+                        rSlider.Text = tostring(math.floor(newColor.R * 255))
+                        gSlider.Text = tostring(math.floor(newColor.G * 255))
+                        bSlider.Text = tostring(math.floor(newColor.B * 255))
+                        pickerFrame.BackgroundColor3 = newColor
+                        if options.Callback then
+                            options.Callback(newColor)
+                        end
+                    end
+
+                    return colorPicker
+                end
+
+                function labelObj:AddKeyPicker(id, options)
+                    local keyPicker = {}
+                    keyPicker.Value = options.Default or Enum.KeyCode.Unknown
+                    keyPicker.Mode = options.Mode or "Toggle"
+                    keyPicker.State = false
+                    Options[id] = keyPicker
+
+                    -- Кнопка для выбора клавиши
+                    local keyButton = Instance.new("TextButton")
+                    keyButton.Size = UDim2.new(0, 80, 0, 20)
+                    keyButton.Position = UDim2.new(1, -85, 0, elementY - 20)
+                    keyButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    keyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    keyButton.Text = tostring(keyPicker.Value)
+                    keyButton.TextSize = 14
+                    keyButton.Parent = elementContainer
+
+                    -- Ожидание нажатия клавиши
+                    local waitingForKey = false
+                    keyButton.MouseButton1Click:Connect(function()
+                        waitingForKey = true
+                        keyButton.Text = "Press a key..."
+                    end)
+
+                    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                        if waitingForKey and not gameProcessed then
+                            waitingForKey = false
+                            keyPicker.Value = input.KeyCode
+                            keyButton.Text = tostring(keyPicker.Value)
+                            if options.ChangedCallback then
+                                options.ChangedCallback(keyPicker.Value)
+                            end
+                        elseif input.KeyCode == keyPicker.Value and not waitingForKey then
+                            if keyPicker.Mode == "Toggle" then
+                                keyPicker.State = not keyPicker.State
+                                if options.Callback then
+                                    options.Callback(keyPicker.State)
+                                end
+                            elseif keyPicker.Mode == "Hold" then
+                                keyPicker.State = true
+                                if options.Callback then
+                                    options.Callback(true)
+                                end
+                            end
+                        end
+                    end)
+
+                    UserInputService.InputEnded:Connect(function(input)
+                        if keyPicker.Mode == "Hold" and input.KeyCode == keyPicker.Value then
+                            keyPicker.State = false
+                            if options.Callback then
+                                options.Callback(false)
+                            end
+                        end
+                    end)
+
+                    elementY = elementY + 25
+                    groupFrame.Size = UDim2.new(1, -10, 0, elementY + 20)
+                    currentY = currentY + 25
+                    tab.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, currentY)
+
+                    return keyPicker
+                end
+
+                return labelObj
+            end
+
+            return groupbox
+        end
+
+        window.Tabs[tabName] = tab
+        return tab
+    end
+
+    return window
+end
+
+-- Глобальная таблица для хранения настроек
+Options = {}
+
+return SimpleUILib
