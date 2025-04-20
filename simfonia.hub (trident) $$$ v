@@ -8,8 +8,9 @@ local Workspace = game:GetService("Workspace")
 local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Lighting = game:GetService("Lighting")
--- Сохраняем исходное FOV камеры
 local defaultFOV = Camera.FieldOfView
+local Ignore = Workspace:WaitForChild("Ignore")
+local FPSArms = Ignore:WaitForChild("FPSArms")
 
 -- Список частей для проверки моделей (для ESP и Skeleton)
 local requiredParts = {
@@ -73,6 +74,78 @@ local FullbrightState = {
     Enabled = false,
     OriginalBrightness = Lighting.Brightness, -- Сохраняем исходную яркость
     OriginalClockTime = Lighting.ClockTime -- Сохраняем исходное время суток
+}
+
+-- Добавляем состояние для Custom Arm (добавляем после ShadowsState)
+local CustomArmState = {
+    Enabled = false,
+    Material = "None", -- По умолчанию None
+    Color = Color3.fromRGB(255, 255, 255) -- Белый по умолчанию
+}
+
+-- Список доступных материалов
+local availableMaterials = {
+    "Neon",
+    "Plastic",
+    "None",
+    "Stone",
+    "Magma",
+    "Air"
+}
+
+-- Список доступных цветов
+local availableColors = {
+    {Name = "White", Color = Color3.fromRGB(255, 255, 255)},
+    {Name = "Red", Color = Color3.fromRGB(255, 0, 0)},
+    {Name = "Green", Color = Color3.fromRGB(0, 255, 0)},
+    {Name = "Blue", Color = Color3.fromRGB(0, 0, 255)},
+    {Name = "Yellow", Color = Color3.fromRGB(255, 255, 0)},
+    {Name = "Cyan", Color = Color3.fromRGB(0, 255, 255)},
+    {Name = "Magenta", Color = Color3.fromRGB(255, 0, 255)},
+    {Name = "Orange", Color = Color3.fromRGB(255, 165, 0)},
+    {Name = "Purple", Color = Color3.fromRGB(128, 0, 128)},
+    {Name = "Black", Color = Color3.fromRGB(0, 0, 0)}
+}
+
+-- Состояние для Crosshair
+local CrosshairState = {
+    Enabled = false,
+    Style = "Cross", -- Стиль прицела по умолчанию
+    Size = 10, -- Размер прицела (от 5 до 50)
+    Thickness = 2, -- Толщина линий (от 1 до 10)
+    Transparency = 0, -- Прозрачность (от 0 до 1)
+    Color = Color3.fromRGB(255, 255, 255), -- Цвет по умолчанию (белый)
+    RGBEnabled = false, -- Включён ли RGB-режим
+    SpinEnabled = false, -- Включено ли вращение
+    SpinSpeed = 1 -- Скорость вращения (от 0.1 до 5)
+}
+
+-- Доступные стили прицела
+local crosshairStyles = {
+    "Cross", -- Крест
+    "Dot", -- Точка
+    "Circle", -- Круг
+    "Square", -- Квадрат
+    "Triangle", -- Треугольник
+    "X", -- Буква X
+    "Diamond", -- Ромб
+    "Star", -- Звезда
+    "Plus", -- Плюс
+    "Arrow" -- Стрелка
+}
+
+-- Доступные цвета
+local crosshairColors = {
+    {Name = "White", Color = Color3.fromRGB(255, 255, 255)},
+    {Name = "Red", Color = Color3.fromRGB(255, 0, 0)},
+    {Name = "Green", Color = Color3.fromRGB(0, 255, 0)},
+    {Name = "Blue", Color = Color3.fromRGB(0, 0, 255)},
+    {Name = "Yellow", Color = Color3.fromRGB(255, 255, 0)},
+    {Name = "Cyan", Color = Color3.fromRGB(0, 255, 255)},
+    {Name = "Magenta", Color = Color3.fromRGB(255, 0, 255)},
+    {Name = "Orange", Color = Color3.fromRGB(255, 165, 0)},
+    {Name = "Purple", Color = Color3.fromRGB(128, 0, 128)},
+    {Name = "Black", Color = Color3.fromRGB(0, 0, 0)}
 }
 
 -- === UI ===
@@ -307,6 +380,168 @@ local viewModelFOVSlider = MiscGroup:AddSlider("ViewModelFOV", {
 })
 viewModelFOVSlider:OnChanged(function(value)
     VisualState.FOV = value
+end)
+
+-- Добавляем группу Extra Visuals в правую часть вкладки Misc
+local ExtraVisualsGroup = Tabs.Misc:AddRightGroupbox("Extra Visuals")
+
+-- Переключатель для включения/выключения Custom Arm
+local customArmEnabledToggle = ExtraVisualsGroup:AddToggle("CustomArmEnabled", {
+    Text = "Enable Custom Arm",
+    Default = CustomArmState.Enabled,
+    Tooltip = "Включить/выключить кастомизацию рук"
+})
+customArmEnabledToggle:OnChanged(function(value)
+    CustomArmState.Enabled = value
+    Library:Notify("Custom Arm " .. (CustomArmState.Enabled and "включён" or "выключен"))
+end)
+
+-- Выпадающий список для выбора материала
+local materialSelection = ExtraVisualsGroup:AddDropdown("MaterialSelection", {
+    Values = availableMaterials,
+    Default = CustomArmState.Material,
+    Text = "Arm Material",
+    Tooltip = "Выберите материал для рук"
+})
+materialSelection:OnChanged(function(value)
+    CustomArmState.Material = value
+    Library:Notify("Материал рук изменён на: " .. value)
+end)
+
+-- Выпадающий список для выбора цвета
+local colorSelection = ExtraVisualsGroup:AddDropdown("ColorSelection", {
+    Values = {availableColors[1].Name, availableColors[2].Name, availableColors[3].Name, availableColors[4].Name, availableColors[5].Name, availableColors[6].Name, availableColors[7].Name, availableColors[8].Name, availableColors[9].Name, availableColors[10].Name},
+    Default = availableColors[1].Name,
+    Text = "Arm Color",
+    Tooltip = "Выберите цвет для рук"
+})
+colorSelection:OnChanged(function(value)
+    for _, colorData in pairs(availableColors) do
+        if colorData.Name == value then
+            CustomArmState.Color = colorData.Color
+            Library:Notify("Цвет рук изменён на: " .. value)
+            break
+        end
+    end
+end)
+
+-- Добавляем группу Crosshair в правую часть вкладки Misc
+local CrosshairGroup = Tabs.Misc:AddRightGroupbox("Crosshair")
+
+-- Переключатель для включения/выключения прицела
+local crosshairEnabledToggle = CrosshairGroup:AddToggle("CrosshairEnabled", {
+    Text = "Enable Crosshair",
+    Default = CrosshairState.Enabled,
+    Tooltip = "Включить/выключить кастомный прицел"
+})
+crosshairEnabledToggle:OnChanged(function(value)
+    CrosshairState.Enabled = value
+    Library:Notify("Crosshair " .. (CrosshairState.Enabled and "включён" or "выключен"))
+end)
+
+-- Выпадающий список для выбора стиля прицела
+local crosshairStyleSelection = CrosshairGroup:AddDropdown("CrosshairStyleSelection", {
+    Values = crosshairStyles,
+    Default = CrosshairState.Style,
+    Text = "Crosshair Style",
+    Tooltip = "Выберите стиль прицела"
+})
+crosshairStyleSelection:OnChanged(function(value)
+    CrosshairState.Style = value
+    Library:Notify("Стиль прицела изменён на: " .. value)
+end)
+
+-- Слайдер для настройки размера прицела
+local crosshairSizeSlider = CrosshairGroup:AddSlider("CrosshairSize", {
+    Text = "Crosshair Size",
+    Default = CrosshairState.Size,
+    Min = 5,
+    Max = 50,
+    Rounding = 0,
+    Tooltip = "Размер прицела (от 5 до 50)"
+})
+crosshairSizeSlider:OnChanged(function(value)
+    CrosshairState.Size = value
+end)
+
+-- Слайдер для настройки толщины прицела
+local crosshairThicknessSlider = CrosshairGroup:AddSlider("CrosshairThickness", {
+    Text = "Crosshair Thickness",
+    Default = CrosshairState.Thickness,
+    Min = 1,
+    Max = 10,
+    Rounding = 0,
+    Tooltip = "Толщина линий прицела (от 1 до 10)"
+})
+crosshairThicknessSlider:OnChanged(function(value)
+    CrosshairState.Thickness = value
+end)
+
+-- Слайдер для настройки прозрачности
+local crosshairTransparencySlider = CrosshairGroup:AddSlider("CrosshairTransparency", {
+    Text = "Crosshair Transparency",
+    Default = CrosshairState.Transparency,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Прозрачность прицела (от 0 до 1)"
+})
+crosshairTransparencySlider:OnChanged(function(value)
+    CrosshairState.Transparency = value
+end)
+
+-- Выпадающий список для выбора цвета
+local crosshairColorSelection = CrosshairGroup:AddDropdown("CrosshairColorSelection", {
+    Values = {crosshairColors[1].Name, crosshairColors[2].Name, crosshairColors[3].Name, crosshairColors[4].Name, crosshairColors[5].Name, crosshairColors[6].Name, crosshairColors[7].Name, crosshairColors[8].Name, crosshairColors[9].Name, crosshairColors[10].Name},
+    Default = crosshairColors[1].Name,
+    Text = "Crosshair Color",
+    Tooltip = "Выберите цвет прицела"
+})
+crosshairColorSelection:OnChanged(function(value)
+    if not CrosshairState.RGBEnabled then
+        for _, colorData in pairs(crosshairColors) do
+            if colorData.Name == value then
+                CrosshairState.Color = colorData.Color
+                Library:Notify("Цвет прицела изменён на: " .. value)
+                break
+            end
+        end
+    end
+end)
+
+-- Переключатель для RGB-режима
+local crosshairRGBToggle = CrosshairGroup:AddToggle("CrosshairRGBEnabled", {
+    Text = "RGB Crosshair",
+    Default = CrosshairState.RGBEnabled,
+    Tooltip = "Включить/выключить RGB-режим для прицела"
+})
+crosshairRGBToggle:OnChanged(function(value)
+    CrosshairState.RGBEnabled = value
+    Library:Notify("RGB-режим прицела " .. (CrosshairState.RGBEnabled and "включён" or "выключен"))
+end)
+
+-- Переключатель для вращения прицела
+local crosshairSpinToggle = CrosshairGroup:AddToggle("CrosshairSpinEnabled", {
+    Text = "Spin Crosshair",
+    Default = CrosshairState.SpinEnabled,
+    Tooltip = "Включить/выключить вращение прицела"
+})
+crosshairSpinToggle:OnChanged(function(value)
+    CrosshairState.SpinEnabled = value
+    Library:Notify("Вращение прицела " .. (CrosshairState.SpinEnabled and "включено" or "выключено"))
+end)
+
+-- Слайдер для скорости вращения
+local crosshairSpinSpeedSlider = CrosshairGroup:AddSlider("CrosshairSpinSpeed", {
+    Text = "Spin Speed",
+    Default = CrosshairState.SpinSpeed,
+    Min = 0.1,
+    Max = 5,
+    Rounding = 1,
+    Tooltip = "Скорость вращения прицела (от 0.1 до 5)"
+})
+crosshairSpinSpeedSlider:OnChanged(function(value)
+    CrosshairState.SpinSpeed = value
 end)
 
 -- Settings
@@ -1027,3 +1262,459 @@ local function HitboxExpander()
 end
 
 HitboxExpander()
+
+-- Список частей рук
+local armParts = {
+    "LeftHand",
+    "LeftLowerArm",
+    "LeftUpperArm",
+    "RightHand",
+    "RightLowerArm",
+    "RightUpperArm"
+}
+
+-- Храним оригинальные свойства для всех частей рук
+local originalArmProperties = {}
+for _, partName in pairs(armParts) do
+    originalArmProperties[partName] = {
+        Material = nil,
+        Color = nil,
+        Transparency = nil
+    }
+end
+
+local function CustomArm()
+    -- Проверяем наличие всех частей рук
+    local parts = {}
+    for _, partName in pairs(armParts) do
+        local part = FPSArms:FindFirstChild(partName)
+        if part and part:IsA("BasePart") then
+            parts[partName] = part
+        end
+    end
+
+    -- Если не найдены все части, выходим
+    if not next(parts) then return end
+
+    -- Сохраняем оригинальные свойства, если ещё не сохранены
+    for partName, part in pairs(parts) do
+        if not originalArmProperties[partName].Material then
+            originalArmProperties[partName].Material = part.Material
+            originalArmProperties[partName].Color = part.Color
+            originalArmProperties[partName].Transparency = part.Transparency
+        end
+    end
+
+    -- Применяем изменения каждый кадр через RunService.RenderStepped
+    RunService.RenderStepped:Connect(function()
+        if CustomArmState.Enabled then
+            -- Применяем материал и прозрачность
+            if CustomArmState.Material == "Air" then
+                for _, part in pairs(parts) do
+                    part.Transparency = 1
+                end
+            else
+                for partName, part in pairs(parts) do
+                    part.Transparency = originalArmProperties[partName].Transparency
+                    part.Material = Enum.Material[CustomArmState.Material]
+                end
+            end
+
+            -- Применяем цвет (если материал не Air)
+            if CustomArmState.Material ~= "Air" then
+                for _, part in pairs(parts) do
+                    part.Color = CustomArmState.Color
+                end
+            end
+        else
+            -- Восстанавливаем оригинальные свойства
+            for partName, part in pairs(parts) do
+                part.Material = originalArmProperties[partName].Material
+                part.Color = originalArmProperties[partName].Color
+                part.Transparency = originalArmProperties[partName].Transparency
+            end
+        end
+    end)
+
+    -- Следим за изменениями FPSArms (на случай, если модель будет удалена и создана заново)
+    FPSArms.AncestryChanged:Connect(function()
+        if not FPSArms.Parent then
+            -- Если FPSArms удалён, очищаем оригинальные свойства
+            for partName in pairs(originalArmProperties) do
+                originalArmProperties[partName].Material = nil
+                originalArmProperties[partName].Color = nil
+                originalArmProperties[partName].Transparency = nil
+            end
+        end
+    end)
+end
+
+-- Инициализация Custom Arm
+CustomArm()
+
+-- Объекты Drawing для прицела
+local crosshairObjects = {}
+
+local function Crosshair()
+    -- Функция для очистки текущего прицела
+    local function clearCrosshair()
+        for _, obj in pairs(crosshairObjects) do
+            if obj.Destroy then
+                obj:Destroy() -- Используем Destroy вместо Remove
+            elseif obj.Remove then
+                obj:Remove() -- Для совместимости с версиями, где есть Remove
+            else
+                -- Если ни Destroy, ни Remove не поддерживаются, скрываем объект
+                if obj.Visible ~= nil then
+                    obj.Visible = false
+                end
+            end
+        end
+        crosshairObjects = {}
+    end
+
+    -- Функция для создания прицела в зависимости от стиля
+    local function createCrosshair()
+        clearCrosshair()
+
+        local centerX, centerY = workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2
+        local size = CrosshairState.Size
+        local thickness = CrosshairState.Thickness
+        local transparency = CrosshairState.Transparency
+
+        if CrosshairState.Style == "Cross" then
+            -- Горизонтальная линия
+            local hLine = Drawing.new("Line")
+            hLine.From = Vector2.new(centerX - size, centerY)
+            hLine.To = Vector2.new(centerX + size, centerY)
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, hLine)
+
+            -- Вертикальная линия
+            local vLine = Drawing.new("Line")
+            vLine.From = Vector2.new(centerX, centerY - size)
+            vLine.To = Vector2.new(centerX, centerY + size)
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, vLine)
+
+        elseif CrosshairState.Style == "Dot" then
+            local dot = Drawing.new("Circle")
+            dot.Position = Vector2.new(centerX, centerY)
+            dot.Radius = size / 4
+            dot.Filled = true
+            dot.Thickness = thickness
+            dot.Transparency = 1 - transparency
+            table.insert(crosshairObjects, dot)
+
+        elseif CrosshairState.Style == "Circle" then
+            local circle = Drawing.new("Circle")
+            circle.Position = Vector2.new(centerX, centerY)
+            circle.Radius = size / 2
+            circle.Filled = false
+            circle.Thickness = thickness
+            circle.Transparency = 1 - transparency
+            table.insert(crosshairObjects, circle)
+
+        elseif CrosshairState.Style == "Square" then
+            local square = Drawing.new("Square")
+            square.Position = Vector2.new(centerX - size / 2, centerY - size / 2)
+            square.Size = Vector2.new(size, size)
+            square.Filled = false
+            square.Thickness = thickness
+            square.Transparency = 1 - transparency
+            table.insert(crosshairObjects, square)
+
+        elseif CrosshairState.Style == "Triangle" then
+            local triangle = Drawing.new("Triangle")
+            triangle.PointA = Vector2.new(centerX, centerY - size / 2)
+            triangle.PointB = Vector2.new(centerX - size / 2, centerY + size / 2)
+            triangle.PointC = Vector2.new(centerX + size / 2, centerY + size / 2)
+            triangle.Filled = false
+            triangle.Thickness = thickness
+            triangle.Transparency = 1 - transparency
+            table.insert(crosshairObjects, triangle)
+
+        elseif CrosshairState.Style == "X" then
+            -- Диагональная линия 1
+            local diag1 = Drawing.new("Line")
+            diag1.From = Vector2.new(centerX - size / 2, centerY - size / 2)
+            diag1.To = Vector2.new(centerX + size / 2, centerY + size / 2)
+            diag1.Thickness = thickness
+            diag1.Transparency = 1 - transparency
+            table.insert(crosshairObjects, diag1)
+
+            -- Диагональная линия 2
+            local diag2 = Drawing.new("Line")
+            diag2.From = Vector2.new(centerX + size / 2, centerY - size / 2)
+            diag2.To = Vector2.new(centerX - size / 2, centerY + size / 2)
+            diag2.Thickness = thickness
+            diag2.Transparency = 1 - transparency
+            table.insert(crosshairObjects, diag2)
+
+        elseif CrosshairState.Style == "Diamond" then
+            local diamond = Drawing.new("Quad")
+            diamond.PointA = Vector2.new(centerX, centerY - size / 2)
+            diamond.PointB = Vector2.new(centerX + size / 2, centerY)
+            diamond.PointC = Vector2.new(centerX, centerY + size / 2)
+            diamond.PointD = Vector2.new(centerX - size / 2, centerY)
+            diamond.Filled = false
+            diamond.Thickness = thickness
+            diamond.Transparency = 1 - transparency
+            table.insert(crosshairObjects, diamond)
+
+        elseif CrosshairState.Style == "Star" then
+            -- Создаём звезду из двух крестов (один повёрнутый на 45 градусов)
+            local hLine = Drawing.new("Line")
+            hLine.From = Vector2.new(centerX - size, centerY)
+            hLine.To = Vector2.new(centerX + size, centerY)
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, hLine)
+
+            local vLine = Drawing.new("Line")
+            vLine.From = Vector2.new(centerX, centerY - size)
+            vLine.To = Vector2.new(centerX, centerY + size)
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, vLine)
+
+            local diag1 = Drawing.new("Line")
+            diag1.From = Vector2.new(centerX - size / 2, centerY - size / 2)
+            diag1.To = Vector2.new(centerX + size / 2, centerY + size / 2)
+            diag1.Thickness = thickness
+            diag1.Transparency = 1 - transparency
+            table.insert(crosshairObjects, diag1)
+
+            local diag2 = Drawing.new("Line")
+            diag2.From = Vector2.new(centerX + size / 2, centerY - size / 2)
+            diag2.To = Vector2.new(centerX - size / 2, centerY + size / 2)
+            diag2.Thickness = thickness
+            diag2.Transparency = 1 - transparency
+            table.insert(crosshairObjects, diag2)
+
+        elseif CrosshairState.Style == "Plus" then
+            local hLine = Drawing.new("Line")
+            hLine.From = Vector2.new(centerX - size / 2, centerY)
+            hLine.To = Vector2.new(centerX + size / 2, centerY)
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, hLine)
+
+            local vLine = Drawing.new("Line")
+            vLine.From = Vector2.new(centerX, centerY - size / 2)
+            vLine.To = Vector2.new(centerX, centerY + size / 2)
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            table.insert(crosshairObjects, vLine)
+
+        elseif CrosshairState.Style == "Arrow" then
+            local top = Drawing.new("Line")
+            top.From = Vector2.new(centerX, centerY - size / 2)
+            top.To = Vector2.new(centerX - size / 4, centerY - size / 4)
+            top.Thickness = thickness
+            top.Transparency = 1 - transparency
+            table.insert(crosshairObjects, top)
+
+            local bottom = Drawing.new("Line")
+            bottom.From = Vector2.new(centerX, centerY - size / 2)
+            bottom.To = Vector2.new(centerX + size / 4, centerY - size / 4)
+            bottom.Thickness = thickness
+            bottom.Transparency = 1 - transparency
+            table.insert(crosshairObjects, bottom)
+
+            local shaft = Drawing.new("Line")
+            shaft.From = Vector2.new(centerX, centerY - size / 2)
+            shaft.To = Vector2.new(centerX, centerY + size / 2)
+            shaft.Thickness = thickness
+            shaft.Transparency = 1 - transparency
+            table.insert(crosshairObjects, shaft)
+        end
+    end
+
+    -- Переменная для отслеживания угла вращения
+    local rotationAngle = 0
+
+    -- Функция для обновления RGB-цвета
+    local function getRGBColor()
+        local time = tick() * 2
+        local r = math.sin(time) * 127 + 128
+        local g = math.sin(time + 2) * 127 + 128
+        local b = math.sin(time + 4) * 127 + 128
+        return Color3.fromRGB(r, g, b)
+    end
+
+    -- Основной цикл обновления прицела
+    RunService.RenderStepped:Connect(function(deltaTime)
+        if not CrosshairState.Enabled then
+            clearCrosshair()
+            return
+        end
+
+        -- Создаём или обновляем прицел, если изменились настройки
+        if #crosshairObjects == 0 or CrosshairState.Style ~= crosshairObjects.style then
+            crosshairObjects.style = CrosshairState.Style
+            createCrosshair()
+        end
+
+        -- Обновляем свойства прицела
+        local centerX, centerY = workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2
+        local size = CrosshairState.Size
+        local thickness = CrosshairState.Thickness
+        local transparency = CrosshairState.Transparency
+
+        -- Обновляем вращение, если включено
+        if CrosshairState.SpinEnabled then
+            rotationAngle = rotationAngle + (CrosshairState.SpinSpeed * deltaTime * 60) -- Скорость вращения
+            rotationAngle = rotationAngle % 360 -- Ограничиваем угол до 360 градусов
+        else
+            rotationAngle = 0
+        end
+
+        -- Обновляем цвет (RGB или статический)
+        local color = CrosshairState.RGBEnabled and getRGBColor() or CrosshairState.Color
+
+        -- Применяем изменения в зависимости от стиля
+        if CrosshairState.Style == "Cross" then
+            local hLine, vLine = crosshairObjects[1], crosshairObjects[2]
+            hLine.From = Vector2.new(centerX - size * math.cos(math.rad(rotationAngle)), centerY - size * math.sin(math.rad(rotationAngle)))
+            hLine.To = Vector2.new(centerX + size * math.cos(math.rad(rotationAngle)), centerY + size * math.sin(math.rad(rotationAngle)))
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            hLine.Color = color
+
+            vLine.From = Vector2.new(centerX - size * math.sin(math.rad(rotationAngle)), centerY + size * math.cos(math.rad(rotationAngle)))
+            vLine.To = Vector2.new(centerX + size * math.sin(math.rad(rotationAngle)), centerY - size * math.cos(math.rad(rotationAngle)))
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            vLine.Color = color
+
+        elseif CrosshairState.Style == "Dot" then
+            local dot = crosshairObjects[1]
+            dot.Position = Vector2.new(centerX, centerY)
+            dot.Radius = size / 4
+            dot.Thickness = thickness
+            dot.Transparency = 1 - transparency
+            dot.Color = color
+
+        elseif CrosshairState.Style == "Circle" then
+            local circle = crosshairObjects[1]
+            circle.Position = Vector2.new(centerX, centerY)
+            circle.Radius = size / 2
+            circle.Thickness = thickness
+            circle.Transparency = 1 - transparency
+            circle.Color = color
+
+        elseif CrosshairState.Style == "Square" then
+            local square = crosshairObjects[1]
+            square.Position = Vector2.new(centerX - size / 2, centerY - size / 2)
+            square.Size = Vector2.new(size, size)
+            square.Thickness = thickness
+            square.Transparency = 1 - transparency
+            square.Color = color
+            square.Rotation = rotationAngle
+
+        elseif CrosshairState.Style == "Triangle" then
+            local triangle = crosshairObjects[1]
+            triangle.PointA = Vector2.new(centerX, centerY - size / 2)
+            triangle.PointB = Vector2.new(centerX - size / 2, centerY + size / 2)
+            triangle.PointC = Vector2.new(centerX + size / 2, centerY + size / 2)
+            triangle.Thickness = thickness
+            triangle.Transparency = 1 - transparency
+            triangle.Color = color
+            triangle.Rotation = rotationAngle
+
+        elseif CrosshairState.Style == "X" then
+            local diag1, diag2 = crosshairObjects[1], crosshairObjects[2]
+            diag1.From = Vector2.new(centerX - size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY - size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag1.To = Vector2.new(centerX + size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY + size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag1.Thickness = thickness
+            diag1.Transparency = 1 - transparency
+            diag1.Color = color
+
+            diag2.From = Vector2.new(centerX + size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY - size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag2.To = Vector2.new(centerX - size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY + size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag2.Thickness = thickness
+            diag2.Transparency = 1 - transparency
+            diag2.Color = color
+
+        elseif CrosshairState.Style == "Diamond" then
+            local diamond = crosshairObjects[1]
+            diamond.PointA = Vector2.new(centerX, centerY - size / 2)
+            diamond.PointB = Vector2.new(centerX + size / 2, centerY)
+            diamond.PointC = Vector2.new(centerX, centerY + size / 2)
+            diamond.PointD = Vector2.new(centerX - size / 2, centerY)
+            diamond.Thickness = thickness
+            diamond.Transparency = 1 - transparency
+            diamond.Color = color
+            diamond.Rotation = rotationAngle
+
+        elseif CrosshairState.Style == "Star" then
+            local hLine, vLine, diag1, diag2 = crosshairObjects[1], crosshairObjects[2], crosshairObjects[3], crosshairObjects[4]
+            hLine.From = Vector2.new(centerX - size * math.cos(math.rad(rotationAngle)), centerY - size * math.sin(math.rad(rotationAngle)))
+            hLine.To = Vector2.new(centerX + size * math.cos(math.rad(rotationAngle)), centerY + size * math.sin(math.rad(rotationAngle)))
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            hLine.Color = color
+
+            vLine.From = Vector2.new(centerX - size * math.sin(math.rad(rotationAngle)), centerY + size * math.cos(math.rad(rotationAngle)))
+            vLine.To = Vector2.new(centerX + size * math.sin(math.rad(rotationAngle)), centerY - size * math.cos(math.rad(rotationAngle)))
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            vLine.Color = color
+
+            diag1.From = Vector2.new(centerX - size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY - size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag1.To = Vector2.new(centerX + size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY + size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag1.Thickness = thickness
+            diag1.Transparency = 1 - transparency
+            diag1.Color = color
+
+            diag2.From = Vector2.new(centerX + size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY - size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag2.To = Vector2.new(centerX - size / 2 * math.cos(math.rad(rotationAngle + 45)), centerY + size / 2 * math.sin(math.rad(rotationAngle + 45)))
+            diag2.Thickness = thickness
+            diag2.Transparency = 1 - transparency
+            diag2.Color = color
+
+        elseif CrosshairState.Style == "Plus" then
+            local hLine, vLine = crosshairObjects[1], crosshairObjects[2]
+            hLine.From = Vector2.new(centerX - size / 2 * math.cos(math.rad(rotationAngle)), centerY - size / 2 * math.sin(math.rad(rotationAngle)))
+            hLine.To = Vector2.new(centerX + size / 2 * math.cos(math.rad(rotationAngle)), centerY + size / 2 * math.sin(math.rad(rotationAngle)))
+            hLine.Thickness = thickness
+            hLine.Transparency = 1 - transparency
+            hLine.Color = color
+
+            vLine.From = Vector2.new(centerX - size / 2 * math.sin(math.rad(rotationAngle)), centerY + size / 2 * math.cos(math.rad(rotationAngle)))
+            vLine.To = Vector2.new(centerX + size / 2 * math.sin(math.rad(rotationAngle)), centerY - size / 2 * math.cos(math.rad(rotationAngle)))
+            vLine.Thickness = thickness
+            vLine.Transparency = 1 - transparency
+            vLine.Color = color
+
+        elseif CrosshairState.Style == "Arrow" then
+            local top, bottom, shaft = crosshairObjects[1], crosshairObjects[2], crosshairObjects[3]
+            top.From = Vector2.new(centerX, centerY - size / 2)
+            top.To = Vector2.new(centerX - size / 4, centerY - size / 4)
+            top.Thickness = thickness
+            top.Transparency = 1 - transparency
+            top.Color = color
+            top.Rotation = rotationAngle
+
+            bottom.From = Vector2.new(centerX, centerY - size / 2)
+            bottom.To = Vector2.new(centerX + size / 4, centerY - size / 4)
+            bottom.Thickness = thickness
+            bottom.Transparency = 1 - transparency
+            bottom.Color = color
+            bottom.Rotation = rotationAngle
+
+            shaft.From = Vector2.new(centerX, centerY - size / 2)
+            shaft.To = Vector2.new(centerX, centerY + size / 2)
+            shaft.Thickness = thickness
+            shaft.Transparency = 1 - transparency
+            shaft.Color = color
+            shaft.Rotation = rotationAngle
+        end
+    end)
+end
+
+-- Инициализация Crosshair
+Crosshair()
