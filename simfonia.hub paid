@@ -16,7 +16,7 @@ local dragOffset = Vector2.new(0, 0) -- Смещение при перетаск
 
 -- Создаём окно "Simfonia HUB"
 local Window = Library:CreateWindow({
-    Title = "Simfonia.HUB v2.4 (universal paid)",
+    Title = "Simfonia.HUB v2.5 (paid)",
     Center = true,
     AutoShow = true
 })
@@ -206,6 +206,21 @@ local FPSState = {
     ExitGameEnabled = false,  -- Добавляем тоггл для Exit Game
     ExitGameKeyBind = nil,
     ExitGameMouseBind = nil
+}
+
+local TriggerBotState = {
+    Enabled = false,
+    Delay = 0.1,          -- Задержка между выстрелами (0-1 секунда)
+    ActivationKey = nil,  -- Клавиша для активации (если не выбрана, работает всегда)
+    MouseButton = "MouseButton1" -- Кнопка мыши для срабатывания
+}
+
+local NoclipState = {
+    Enabled = false,
+    Mode = "Noclip",      -- Режим: "Noclip" или "ToggleClip"
+    Speed = 4,            -- Скорость для обычного Noclip (4-12)
+    ToggleClipSpeed = 5,  -- Скорость прохождения сквозь стены в ToggleClip (фиксированная)
+    DefaultWalkSpeed = 16 -- Сохраняем изначальную скорость (по умолчанию 16, но обновим при включении)
 }
 
 -- Хранилище оригинальных свойств текстур
@@ -847,6 +862,75 @@ Options.TwisterSpeed:OnChanged(function()
     HWHState.TwisterSpeed = Options.TwisterSpeed.Value
 end)
 
+-- UI для Triggers, Macros в Legit
+local TriggerMacrosGroup = Tabs.Legit:AddLeftGroupbox("Triggers, Macros")
+
+-- Trigger Bot
+TriggerMacrosGroup:AddToggle("TriggerBotEnabled", {
+    Text = "Trigger Bot",
+    Default = TriggerBotState.Enabled,
+    Tooltip = "Автоматически стреляет, когда прицел на враге"
+})
+Toggles.TriggerBotEnabled:OnChanged(function()
+    TriggerBotState.Enabled = Toggles.TriggerBotEnabled.Value
+    Library:Notify("Trigger Bot " .. (TriggerBotState.Enabled and "включён" or "выключен"))
+end)
+
+-- Задержка между выстрелами
+TriggerMacrosGroup:AddSlider("TriggerBotDelay", {
+    Text = "Задержка между выстрелами (с)",
+    Default = TriggerBotState.Delay,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Tooltip = "Задержка между автоматическими выстрелами (0-1 сек)"
+})
+Options.TriggerBotDelay:OnChanged(function()
+    TriggerBotState.Delay = Options.TriggerBotDelay.Value
+end)
+
+-- Выбор кнопки мыши для срабатывания
+TriggerMacrosGroup:AddDropdown("TriggerBotMouseButton", {
+    Text = "Кнопка мыши",
+    Default = TriggerBotState.MouseButton,
+    Values = {"MouseButton1", "MouseButton2", "MouseButton3"},
+    Tooltip = "Выберите кнопку мыши для срабатывания триггер бота"
+})
+Options.TriggerBotMouseButton:OnChanged(function()
+    TriggerBotState.MouseButton = Options.TriggerBotMouseButton.Value
+    Library:Notify("Кнопка мыши для Trigger Bot установлена: " .. TriggerBotState.MouseButton)
+end)
+
+-- Назначить клавишу активации
+TriggerMacrosGroup:AddButton({
+    Text = "Назначить клавишу активации",
+    Func = function()
+        Library:Notify("Нажми клавишу чтобы забиндить активацию Trigger Bot")
+        task.wait(0.1) -- Задержка для уведомления
+        local binding = true
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                TriggerBotState.ActivationKey = input.KeyCode
+                Library:Notify("Клавиша активации Trigger Bot установлена: " .. input.KeyCode.Name)
+                binding = false
+                connection:Disconnect()
+            end
+        end)
+    end,
+    Tooltip = "Назначить клавишу для активации Trigger Bot"
+})
+
+-- Удалить клавишу активации
+TriggerMacrosGroup:AddButton({
+    Text = "Удалить клавишу активации",
+    Func = function()
+        TriggerBotState.ActivationKey = nil
+        Library:Notify("Клавиша активации Trigger Bot удалена")
+    end,
+    Tooltip = "Удаляет текущую клавишу активации Trigger Bot"
+})
+
 -- UI для ESP в Render (слева)
 local RenderGroupESP = Tabs.Render:AddLeftGroupbox("ESP")
 
@@ -1183,6 +1267,45 @@ HacksGroup:AddButton({
     end,
     Tooltip = "Включает удаление стен при зажатии Alt + ЛКМ"
 })
+
+-- UI для Noclip в группе Hacks (предполагается, что Tabs.Hacks уже существует)
+local HacksGroup = Tabs.Hacks:AddLeftGroupbox("Hacks")
+
+-- Noclip
+HacksGroup:AddToggle("NoclipEnabled", {
+    Text = "Noclip",
+    Default = NoclipState.Enabled,
+    Tooltip = "Включает Noclip или ToggleClip"
+})
+Toggles.NoclipEnabled:OnChanged(function()
+    NoclipState.Enabled = Toggles.NoclipEnabled.Value
+    Library:Notify("Noclip " .. (NoclipState.Enabled and "включён" or "выключен"))
+end)
+
+-- Выбор режима Noclip
+HacksGroup:AddDropdown("NoclipMode", {
+    Text = "Режим Noclip",
+    Default = NoclipState.Mode,
+    Values = {"Noclip", "ToggleClip"},
+    Tooltip = "Выберите режим: Noclip (прохождение сквозь стены) или ToggleClip (медленное прохождение при столкновении)"
+})
+Options.NoclipMode:OnChanged(function()
+    NoclipState.Mode = Options.NoclipMode.Value
+    Library:Notify("Режим Noclip установлен: " .. NoclipState.Mode)
+end)
+
+-- Скорость для обычного Noclip
+HacksGroup:AddSlider("NoclipSpeed", {
+    Text = "Скорость Noclip",
+    Default = NoclipState.Speed,
+    Min = 4,
+    Max = 12,
+    Rounding = 0,
+    Tooltip = "Скорость движения в режиме Noclip (4-12)"
+})
+Options.NoclipSpeed:OnChanged(function()
+    NoclipState.Speed = Options.NoclipSpeed.Value
+end)
 
 -- UI для Manipulations
 local ManipulationsGroup = Tabs.Hacks:AddRightGroupbox("Manipulations")
@@ -2466,7 +2589,155 @@ local function updateHWH(deltaTime)
     end
 end
 
--- Обновляем цикл RenderStepped
+-- Trigger Bot
+local lastShotTime = 0
+local function updateTriggerBot()
+    if not TriggerBotState.Enabled then return end
+
+    -- Проверяем, нажата ли клавиша активации (если она установлена)
+    if TriggerBotState.ActivationKey and not UserInputService:IsKeyDown(TriggerBotState.ActivationKey) then
+        return
+    end
+
+    -- Проверяем задержку между выстрелами
+    local currentTime = tick()
+    if currentTime - lastShotTime < TriggerBotState.Delay then
+        return
+    end
+
+    -- Проверяем, есть ли персонаж и камера
+    local camera = workspace.CurrentCamera
+    if not camera or not LocalPlayer.Character then return end
+
+    -- Получаем позицию прицела на экране
+    local screenCenter = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    local ray = camera:ScreenPointToRay(screenCenter.X, screenCenter.Y)
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+
+    -- Проверяем, попал ли луч в игрока
+    if raycastResult and raycastResult.Instance then
+        local hitPart = raycastResult.Instance
+        local character = hitPart:FindFirstAncestorOfClass("Model")
+        if character and character ~= LocalPlayer.Character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoid and rootPart and humanoid.Health > 0 then
+                -- Симулируем нажатие выбранной кнопки мыши
+                if TriggerBotState.MouseButton == "MouseButton1" then
+                    mouse1press()
+                    task.wait()
+                    mouse1release()
+                elseif TriggerBotState.MouseButton == "MouseButton2" then
+                    mouse2press()
+                    task.wait()
+                    mouse2release()
+                elseif TriggerBotState.MouseButton == "MouseButton3" then
+                    UserInputService:SendMouseButtonEvent(Enum.UserInputType.MouseButton3, true)
+                    task.wait()
+                    UserInputService:SendMouseButtonEvent(Enum.UserInputType.MouseButton3, false)
+                end
+                lastShotTime = currentTime
+            end
+        end
+    end
+end
+
+-- Noclip
+local function updateNoclip(deltaTime)
+    if not NoclipState.Enabled or not LocalPlayer.Character then return end
+
+    local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+    if not rootPart or not humanoid then return end
+
+    if NoclipState.Mode == "Noclip" then
+        -- Обычный Noclip: отключаем коллизии и устанавливаем скорость
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+        humanoid.WalkSpeed = NoclipState.Speed
+    elseif NoclipState.Mode == "ToggleClip" then
+        -- ToggleClip: по умолчанию включаем коллизии и восстанавливаем изначальную скорость
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+        humanoid.WalkSpeed = NoclipState.DefaultWalkSpeed
+
+        -- Проверяем столкновение со стенами
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+        local directions = {
+            rootPart.CFrame.LookVector,   -- Вперед
+            -rootPart.CFrame.LookVector,  -- Назад
+            rootPart.CFrame.RightVector,  -- Вправо
+            -rootPart.CFrame.RightVector, -- Влево
+            Vector3.new(0, 1, 0),         -- Вверх (для потолка)
+            Vector3.new(0, -1, 0)         -- Вниз (для пола)
+        }
+
+        local isColliding = false
+        for _, direction in pairs(directions) do
+            local raycastResult = workspace:Raycast(rootPart.Position, direction * 3, raycastParams)
+            if raycastResult and (raycastResult.Instance:IsA("BasePart") or raycastResult.Instance:IsA("MeshPart")) then
+                isColliding = true
+                Library:Notify("Столкновение обнаружено, замедляем до " .. NoclipState.ToggleClipSpeed)
+                break
+            end
+        end
+
+        if isColliding then
+            -- Медленно проходим сквозь стену
+            humanoid.WalkSpeed = NoclipState.ToggleClipSpeed
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        else
+            -- Если нет столкновения, возвращаем изначальную скорость и включаем коллизии
+            humanoid.WalkSpeed = NoclipState.DefaultWalkSpeed
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+-- При включении Noclip сохраняем изначальную скорость, при выключении восстанавливаем
+Toggles.NoclipEnabled:OnChanged(function()
+    NoclipState.Enabled = Toggles.NoclipEnabled.Value
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            if NoclipState.Enabled then
+                -- Сохраняем изначальную скорость при включении Noclip
+                NoclipState.DefaultWalkSpeed = humanoid.WalkSpeed
+            else
+                -- Восстанавливаем изначальную скорость при выключении
+                humanoid.WalkSpeed = NoclipState.DefaultWalkSpeed
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true -- Восстанавливаем коллизии
+                    end
+                end
+            end
+        end
+    end
+    Library:Notify("Noclip " .. (NoclipState.Enabled and "включён" or "выключен"))
+end)
+
+-- Обновляем цикл RenderStepped (с Trigger Bot)
 RunService.RenderStepped:Connect(function(deltaTime)
     updateViewModel()
     updateJumpCircle()
@@ -2488,6 +2759,8 @@ RunService.RenderStepped:Connect(function(deltaTime)
     updateLegitReset()
     updateHWH(deltaTime)
     updateFPS()
+    updateTriggerBot()
+    updateNoclip(deltaTime)
 end)
 
 -- Visual Tool
