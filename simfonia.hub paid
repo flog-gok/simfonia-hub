@@ -816,7 +816,7 @@ HitboxExpanderGroup:AddSlider("HitboxExpanderSize", {
     Text = "Размер хитбокса",
     Default = HitboxExpanderState.Size,
     Min = 1,
-    Max = 8,
+    Max = 40,
     Rounding = 1,
     Tooltip = "Размер хитбокса (1-8 studs)"
 })
