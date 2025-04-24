@@ -1,0 +1,894 @@
+-- Глобальные переменные
+local Workspace = cloneref(game:GetService("Workspace"))
+local RunService = cloneref(game:GetService("RunService"))
+local Players = cloneref(game:GetService("Players"))
+local CoreGui = game:GetService("CoreGui")
+local Lighting = cloneref(game:GetService("Lighting"))
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local RotationAngle, Tick = -45, tick()
+
+-- Состояния (конфигурация ESP)
+local ESP = {
+    Enabled = false, -- Выключено по умолчанию
+    TeamCheck = true,
+    MaxDistance = 10000,
+    FontSize = 13,
+    FadeOut = {
+        OnDistance = true,
+        OnDeath = false,
+        OnLeave = false,
+    },
+    Options = { 
+        Teamcheck = false, 
+        TeamcheckRGB = Color3.fromRGB(0, 255, 0),
+        Friendcheck = false, 
+        FriendcheckRGB = Color3.fromRGB(0, 255, 0),
+        Highlight = true, 
+        HighlightRGB = Color3.fromRGB(255, 0, 0),
+    },
+    Drawing = {
+        Names = {
+            Enabled = false, -- Выключено по умолчанию
+            RGB = Color3.new(0.980392, 0.980392, 0.980392),
+        },
+        Flags = {
+            Enabled = false, -- Выключено по умолчанию
+        },
+        Distances = {
+            Enabled = false, -- Выключено по умолчанию
+            Position = "Text",
+            RGB = Color3.fromRGB(121, 7, 252),
+        },
+        Weapons = {
+            Enabled = false, -- Выключено по умолчанию
+            WeaponTextRGB = Color3.fromRGB(119, 120, 255),
+            Outlined = false,
+            Gradient = false,
+            GradientRGB1 = Color3.fromRGB(255, 255, 255), 
+            GradientRGB2 = Color3.fromRGB(119, 120, 255),
+        },
+        Healthbar = {
+            Enabled = false, -- Выключено по умолчанию
+            HealthText = true, 
+            Lerp = false, 
+            HealthTextRGB = Color3.new(1.000000, 1.000000, 1.000000),
+            Width = 2.5,
+            Gradient = true, 
+            GradientRGB1 = Color3.new(0.000000, 1.000000, 0.133333), 
+            GradientRGB2 = Color3.new(0.117647, 1.000000, 0.000000), 
+            GradientRGB3 = Color3.new(0.000000, 0.992157, 0.380392), 
+        },
+        Boxes = {
+            Animate = false,
+            RotationSpeed = 300,
+            Gradient = false, 
+            GradientRGB1 = Color3.new(0.376471, 0.000000, 0.988235), 
+            GradientRGB2 = Color3.fromRGB(0, 0, 0), 
+            GradientFill = true, 
+            GradientFillRGB1 = Color3.new(0.474510, 0.196078, 0.988235), 
+            GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
+            Filled = {
+                Enabled = true,
+                Transparency = 0.75,
+                RGB = Color3.fromRGB(0, 0, 0),
+            },
+            Full = {
+                Enabled = false, -- Выключено по умолчанию
+                RGB = Color3.fromRGB(255, 255, 255),
+            },
+            Corner = {
+                Enabled = false, -- Выключено по умолчанию
+                RGB = Color3.fromRGB(255, 255, 255),
+            },
+        },
+    },
+    EntityESP = {
+        Enabled = false, -- Выключено по умолчанию
+        MaxDistance = 10000,
+        FontSize = 13,
+        FadeOut = {
+            OnDistance = true,
+        },
+        NPCs = {
+            Akira = true, -- По умолчанию включено
+            ["Akira Bodyguard"] = true,
+            ["Military Sniper"] = true,
+            ["Military Soldier"] = true,
+        },
+        Drawing = {
+            Names = {
+                Enabled = false, -- Выключено по умолчанию
+                RGB = Color3.new(0.980392, 0.980392, 0.980392),
+            },
+            Distances = {
+                Enabled = false, -- Выключено по умолчанию
+                Position = "Text",
+                RGB = Color3.fromRGB(121, 7, 252),
+            },
+            Healthbar = {
+                Enabled = false, -- Выключено по умолчанию
+                HealthText = true, 
+                Lerp = false, 
+                HealthTextRGB = Color3.new(1.000000, 1.000000, 1.000000),
+                Width = 2.5,
+                Gradient = true, 
+                GradientRGB1 = Color3.new(0.000000, 1.000000, 0.133333), 
+                GradientRGB2 = Color3.new(0.117647, 1.000000, 0.000000), 
+                GradientRGB3 = Color3.new(0.000000, 0.992157, 0.380392), 
+            },
+            Boxes = {
+                Animate = false,
+                RotationSpeed = 300,
+                Gradient = false, 
+                GradientRGB1 = Color3.new(0.376471, 0.000000, 0.988235), 
+                GradientRGB2 = Color3.fromRGB(0, 0, 0), 
+                GradientFill = true, 
+                GradientFillRGB1 = Color3.new(0.474510, 0.196078, 0.988235), 
+                GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
+                Filled = {
+                    Enabled = true,
+                    Transparency = 0.75,
+                    RGB = Color3.fromRGB(0, 0, 0),
+                },
+                Full = {
+                    Enabled = false, -- Выключено по умолчанию
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+                Corner = {
+                    Enabled = false, -- Выключено по умолчанию
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+            },
+        },
+    },
+    ObjectESP = {
+        Enabled = false, -- Выключено по умолчанию
+        MaxDistance = 10000,
+        FontSize = 13,
+        FadeOut = {
+            OnDistance = true,
+        },
+        Folders = {
+            DroppedPacks = true, -- По умолчанию включено
+            Dropped = true, -- По умолчанию включено
+        },
+        Drawing = {
+            Names = {
+                Enabled = true, -- Всегда включено для отображения названия объекта
+                RGB = Color3.new(0.980392, 0.980392, 0.980392),
+            },
+            Boxes = {
+                Animate = false,
+                RotationSpeed = 300,
+                Gradient = false, 
+                GradientRGB1 = Color3.new(0.376471, 0.000000, 0.988235), 
+                GradientRGB2 = Color3.fromRGB(0, 0, 0), 
+                GradientFill = true, 
+                GradientFillRGB1 = Color3.new(0.474510, 0.196078, 0.988235), 
+                GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
+                Filled = {
+                    Enabled = true,
+                    Transparency = 0.75,
+                    RGB = Color3.fromRGB(0, 0, 0),
+                },
+                Full = {
+                    Enabled = false, -- Выключено по умолчанию
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+                Corner = {
+                    Enabled = false, -- Выключено по умолчанию
+                    RGB = Color3.fromRGB(255, 255, 255),
+                },
+            },
+        },
+    },
+    Connections = {
+        RunService = RunService,
+    },
+    Fonts = {},
+}
+
+-- UI (Splix UI Library)
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/Splix"))()
+
+local Window = Library:new({
+    textsize = 13.5,
+    font = Enum.Font.RobotoMono,
+    name = "WallHack UI",
+    color = Color3.fromRGB(225, 58, 81)
+})
+
+-- Вкладка Main (пустая, для будущих функций, например, Aimbot)
+local MainTab = Window:page({name = "Main"})
+local MainSection = MainTab:section({name = "Main", side = "left", size = 100})
+
+-- Вкладка ESPs (содержит все настройки ESP)
+local ESPsTab = Window:page({name = "ESPs"})
+local ESPsSection = ESPsTab:section({name = "ESP Controls", side = "left", size = 300})
+
+-- UI элементы для управления ESP
+ESPsSection:toggle({
+    name = "Enable ESP",
+    def = ESP.Enabled,
+    callback = function(value)
+        ESP.Enabled = value
+    end
+})
+
+ESPsSection:toggle({
+    name = "Team Check",
+    def = ESP.TeamCheck,
+    callback = function(value)
+        ESP.TeamCheck = value
+    end
+})
+
+ESPsSection:slider({
+    name = "Max Distance",
+    def = ESP.MaxDistance,
+    max = 20000,
+    min = 100,
+    rounding = true,
+    measuring = "m",
+    callback = function(value)
+        ESP.MaxDistance = value
+    end
+})
+
+ESPsSection:toggle({
+    name = "Fade Out on Distance",
+    def = ESP.FadeOut.OnDistance,
+    callback = function(value)
+        ESP.FadeOut.OnDistance = value
+    end
+})
+
+ESPsSection:toggle({
+    name = "Names Enabled",
+    def = ESP.Drawing.Names.Enabled,
+    callback = function(value)
+        ESP.Drawing.Names.Enabled = value
+    end
+})
+
+ESPsSection:toggle({
+    name = "Healthbar Enabled",
+    def = ESP.Drawing.Healthbar.Enabled,
+    callback = function(value)
+        ESP.Drawing.Healthbar.Enabled = value
+    end
+})
+
+ESPsSection:toggle({
+    name = "Boxes Enabled",
+    def = ESP.Drawing.Boxes.Full.Enabled,
+    callback = function(value)
+        ESP.Drawing.Boxes.Full.Enabled = value
+    end
+})
+
+-- Секция Entity ESP в ESPs
+local EntityESPSection = ESPsTab:section({name = "Entity ESP", side = "right", size = 300})
+
+EntityESPSection:toggle({
+    name = "Enable Entity ESP",
+    def = ESP.EntityESP.Enabled,
+    callback = function(value)
+        ESP.EntityESP.Enabled = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Show Akira",
+    def = ESP.EntityESP.NPCs.Akira,
+    callback = function(value)
+        ESP.EntityESP.NPCs.Akira = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Show Akira Bodyguard",
+    def = ESP.EntityESP.NPCs["Akira Bodyguard"],
+    callback = function(value)
+        ESP.EntityESP.NPCs["Akira Bodyguard"] = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Show Military Sniper",
+    def = ESP.EntityESP.NPCs["Military Sniper"],
+    callback = function(value)
+        ESP.EntityESP.NPCs["Military Sniper"] = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Show Military Soldier",
+    def = ESP.EntityESP.NPCs["Military Soldier"],
+    callback = function(value)
+        ESP.EntityESP.NPCs["Military Soldier"] = value
+    end
+})
+
+EntityESPSection:slider({
+    name = "Max Distance",
+    def = ESP.EntityESP.MaxDistance,
+    max = 20000,
+    min = 100,
+    rounding = true,
+    measuring = "m",
+    callback = function(value)
+        ESP.EntityESP.MaxDistance = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Fade Out on Distance",
+    def = ESP.EntityESP.FadeOut.OnDistance,
+    callback = function(value)
+        ESP.EntityESP.FadeOut.OnDistance = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Names Enabled",
+    def = ESP.EntityESP.Drawing.Names.Enabled,
+    callback = function(value)
+        ESP.EntityESP.Drawing.Names.Enabled = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Healthbar Enabled",
+    def = ESP.EntityESP.Drawing.Healthbar.Enabled,
+    callback = function(value)
+        ESP.EntityESP.Drawing.Healthbar.Enabled = value
+    end
+})
+
+EntityESPSection:toggle({
+    name = "Boxes Enabled",
+    def = ESP.EntityESP.Drawing.Boxes.Full.Enabled,
+    callback = function(value)
+        ESP.EntityESP.Drawing.Boxes.Full.Enabled = value
+    end
+})
+
+-- Новая секция Object ESP в ESPs
+local ObjectESPSection = ESPsTab:section({name = "Object ESP", side = "left", size = 200})
+
+ObjectESPSection:toggle({
+    name = "Enable Object ESP",
+    def = ESP.ObjectESP.Enabled,
+    callback = function(value)
+        ESP.ObjectESP.Enabled = value
+    end
+})
+
+ObjectESPSection:toggle({
+    name = "Show DroppedPacks",
+    def = ESP.ObjectESP.Folders.DroppedPacks,
+    callback = function(value)
+        ESP.ObjectESP.Folders.DroppedPacks = value
+    end
+})
+
+ObjectESPSection:toggle({
+    name = "Show Dropped",
+    def = ESP.ObjectESP.Folders.Dropped,
+    callback = function(value)
+        ESP.ObjectESP.Folders.Dropped = value
+    end
+})
+
+ObjectESPSection:slider({
+    name = "Max Distance",
+    def = ESP.ObjectESP.MaxDistance,
+    max = 20000,
+    min = 100,
+    rounding = true,
+    measuring = "m",
+    callback = function(value)
+        ESP.ObjectESP.MaxDistance = value
+    end
+})
+
+ObjectESPSection:toggle({
+    name = "Fade Out on Distance",
+    def = ESP.ObjectESP.FadeOut.OnDistance,
+    callback = function(value)
+        ESP.ObjectESP.FadeOut.OnDistance = value
+    end
+})
+
+ObjectESPSection:toggle({
+    name = "Boxes Enabled",
+    def = ESP.ObjectESP.Drawing.Boxes.Full.Enabled,
+    callback = function(value)
+        ESP.ObjectESP.Drawing.Boxes.Full.Enabled = value
+    end
+})
+
+-- Вкладка Visuals (пустая, для будущих визуальных настроек)
+local VisualsTab = Window:page({name = "Visuals"})
+local VisualsSection = VisualsTab:section({name = "Visual Settings", side = "left", size = 100})
+
+-- Вкладка Misc (пустая, для прочих настроек)
+local MiscTab = Window:page({name = "Misc"})
+local MiscSection = MiscTab:section({name = "Miscellaneous", side = "left", size = 100})
+
+-- Логика функций
+local Functions = {}
+
+-- Создание объектов
+function Functions:Create(Class, Properties)
+    local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
+    for Property, Value in pairs(Properties) do
+        _Instance[Property] = Value
+    end
+    return _Instance
+end
+
+-- Эффект затухания на расстоянии
+function Functions:FadeOutOnDist(element, distance, maxDistance)
+    local transparency = math.max(0.1, 1 - (distance / maxDistance))
+    if element:IsA("TextLabel") then
+        element.TextTransparency = 1 - transparency
+    elseif element:IsA("ImageLabel") then
+        element.ImageTransparency = 1 - transparency
+    elseif element:IsA("UIStroke") then
+        element.Transparency = 1 - transparency
+    elseif element:IsA("Frame") then
+        element.BackgroundTransparency = 1 - transparency
+    end
+end
+
+-- Инициализация ESP
+local function InitializeESP()
+    local ScreenGui = Functions:Create("ScreenGui", {
+        Parent = CoreGui,
+        Name = "ESPHolder",
+    })
+
+    local function DupeCheck(obj)
+        if ScreenGui:FindFirstChild(tostring(obj)) then
+            ScreenGui[tostring(obj)]:Destroy()
+        end
+    end
+
+    local function CreateESP(obj, isPlayer, isNPC, isObject)
+        if isPlayer and obj == LocalPlayer then return end
+        coroutine.wrap(DupeCheck)(obj)
+
+        local espSettings = isPlayer and ESP or (isNPC and ESP.EntityESP or ESP.ObjectESP)
+        local drawingSettings = espSettings.Drawing
+
+        -- Создание элементов ESP
+        local Name = Functions:Create("TextLabel", {
+            Parent = ScreenGui,
+            Position = UDim2.new(0.5, 0, 0, -11),
+            Size = UDim2.new(0, 100, 0, 20),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            Font = Enum.Font.Code,
+            TextSize = espSettings.FontSize,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+            RichText = true
+        })
+
+        local Distance = Functions:Create("TextLabel", {
+            Parent = ScreenGui,
+            Position = UDim2.new(0.5, 0, 0, 11),
+            Size = UDim2.new(0, 100, 0, 20),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            TextColor3 = drawingSettings.Distances and drawingSettings.Distances.RGB or Color3.fromRGB(121, 7, 252),
+            Font = Enum.Font.Code,
+            TextSize = espSettings.FontSize,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+            RichText = true
+        })
+
+        local Box = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Filled.RGB,
+            BackgroundTransparency = drawingSettings.Boxes.Filled.Transparency,
+            BorderSizePixel = 0
+        })
+
+        local Gradient1 = Functions:Create("UIGradient", {
+            Parent = Box,
+            Enabled = drawingSettings.Boxes.GradientFill,
+            Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, drawingSettings.Boxes.GradientFillRGB1),
+                ColorSequenceKeypoint.new(1, drawingSettings.Boxes.GradientFillRGB2)
+            }
+        })
+
+        local Outline = Functions:Create("UIStroke", {
+            Parent = Box,
+            Enabled = drawingSettings.Boxes.Gradient,
+            Transparency = 0,
+            Color = drawingSettings.Boxes.Full.RGB,
+            LineJoinMode = Enum.LineJoinMode.Miter
+        })
+
+        local Gradient2 = Functions:Create("UIGradient", {
+            Parent = Outline,
+            Enabled = drawingSettings.Boxes.Gradient,
+            Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, drawingSettings.Boxes.GradientRGB1),
+                ColorSequenceKeypoint.new(1, drawingSettings.Boxes.GradientRGB2)
+            }
+        })
+
+        local Healthbar = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+            BackgroundTransparency = 0
+        })
+
+        local BehindHealthbar = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            ZIndex = -1,
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = 0
+        })
+
+        local HealthbarGradient = Functions:Create("UIGradient", {
+            Parent = Healthbar,
+            Enabled = drawingSettings.Healthbar and drawingSettings.Healthbar.Gradient,
+            Rotation = -90,
+            Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, drawingSettings.Healthbar and drawingSettings.Healthbar.GradientRGB1 or Color3.new(0, 1, 0)),
+                ColorSequenceKeypoint.new(0.5, drawingSettings.Healthbar and drawingSettings.Healthbar.GradientRGB2 or Color3.new(0, 1, 0)),
+                ColorSequenceKeypoint.new(1, drawingSettings.Healthbar and drawingSettings.Healthbar.GradientRGB3 or Color3.new(0, 1, 0))
+            }
+        })
+
+        local HealthText = Functions:Create("TextLabel", {
+            Parent = ScreenGui,
+            Position = UDim2.new(0.5, 0, 0, 31),
+            Size = UDim2.new(0, 100, 0, 20),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            TextColor3 = drawingSettings.Healthbar and drawingSettings.Healthbar.HealthTextRGB or Color3.new(1, 1, 1),
+            Font = Enum.Font.Code,
+            TextSize = espSettings.FontSize,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        })
+
+        local LeftTop = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local LeftSide = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local RightTop = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local RightSide = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local BottomSide = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local BottomDown = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local BottomRightSide = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        local BottomRightDown = Functions:Create("Frame", {
+            Parent = ScreenGui,
+            BackgroundColor3 = drawingSettings.Boxes.Corner.RGB,
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+
+        -- Обновление ESP
+        local function UpdateESP()
+            local Connection
+            local function HideESP()
+                Box.Visible = false
+                Name.Visible = false
+                Distance.Visible = false
+                Healthbar.Visible = false
+                BehindHealthbar.Visible = false
+                HealthText.Visible = false
+                LeftTop.Visible = false
+                LeftSide.Visible = false
+                BottomSide.Visible = false
+                BottomDown.Visible = false
+                RightTop.Visible = false
+                RightSide.Visible = false
+                BottomRightSide.Visible = false
+                BottomRightDown.Visible = false
+                if not obj then
+                    ScreenGui:Destroy()
+                    Connection:Disconnect()
+                end
+            end
+
+            Connection = ESP.Connections.RunService.RenderStepped:Connect(function()
+                if not espSettings.Enabled then
+                    HideESP()
+                    return
+                end
+
+                local primaryPart = obj:IsA("Model") and obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart") or obj
+                if not primaryPart then
+                    HideESP()
+                    return
+                end
+
+                local Pos, OnScreen = Camera:WorldToScreenPoint(primaryPart.Position)
+                local Dist = (Camera.CFrame.Position - primaryPart.Position).Magnitude / 3.5714285714
+
+                if OnScreen and Dist <= espSettings.MaxDistance then
+                    local Size = primaryPart.Size.Y
+                    local scaleFactor = (Size * Camera.ViewportSize.Y) / (Pos.Z * 2)
+                    local w, h = 3 * scaleFactor, 4.5 * scaleFactor
+
+                    -- Fade-out эффект
+                    if espSettings.FadeOut.OnDistance then
+                        Functions:FadeOutOnDist(Box, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(Outline, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(Name, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(Distance, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(Healthbar, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(BehindHealthbar, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(HealthText, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(LeftTop, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(LeftSide, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(BottomSide, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(BottomDown, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(RightTop, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(RightSide, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(BottomRightSide, Dist, espSettings.MaxDistance)
+                        Functions:FadeOutOnDist(BottomRightDown, Dist, espSettings.MaxDistance)
+                    end
+
+                    -- TeamCheck (только для игроков)
+                    local shouldShow = true
+                    if isPlayer then
+                        shouldShow = espSettings.TeamCheck and obj ~= LocalPlayer and ((LocalPlayer.Team ~= obj.Team and obj.Team) or (not LocalPlayer.Team and not obj.Team))
+                    end
+
+                    if shouldShow then
+                        -- Corner Boxes
+                        LeftTop.Visible = drawingSettings.Boxes.Corner.Enabled
+                        LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
+                        LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
+
+                        LeftSide.Visible = drawingSettings.Boxes.Corner.Enabled
+                        LeftSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
+                        LeftSide.Size = UDim2.new(0, 1, 0, h / 5)
+
+                        BottomSide.Visible = drawingSettings.Boxes.Corner.Enabled
+                        BottomSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2)
+                        BottomSide.Size = UDim2.new(0, 1, 0, h / 5)
+                        BottomSide.AnchorPoint = Vector2.new(0, 5)
+
+                        BottomDown.Visible = drawingSettings.Boxes.Corner.Enabled
+                        BottomDown.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2)
+                        BottomDown.Size = UDim2.new(0, w / 5, 0, 1)
+                        BottomDown.AnchorPoint = Vector2.new(0, 1)
+
+                        RightTop.Visible = drawingSettings.Boxes.Corner.Enabled
+                        RightTop.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y - h / 2)
+                        RightTop.Size = UDim2.new(0, w / 5, 0, 1)
+                        RightTop.AnchorPoint = Vector2.new(1, 0)
+
+                        RightSide.Visible = drawingSettings.Boxes.Corner.Enabled
+                        RightSide.Position = UDim2.new(0, Pos.X + w / 2 - 1, 0, Pos.Y - h / 2)
+                        RightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                        RightSide.AnchorPoint = Vector2.new(0, 0)
+
+                        BottomRightSide.Visible = drawingSettings.Boxes.Corner.Enabled
+                        BottomRightSide.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2)
+                        BottomRightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                        BottomRightSide.AnchorPoint = Vector2.new(1, 1)
+
+                        BottomRightDown.Visible = drawingSettings.Boxes.Corner.Enabled
+                        BottomRightDown.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2)
+                        BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
+                        BottomRightDown.AnchorPoint = Vector2.new(1, 1)
+
+                        -- Boxes
+                        Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
+                        Box.Size = UDim2.new(0, w, 0, h)
+                        Box.Visible = drawingSettings.Boxes.Full.Enabled
+                        if drawingSettings.Boxes.Filled.Enabled then
+                            Box.BackgroundTransparency = drawingSettings.Boxes.Filled.Transparency
+                        else
+                            Box.BackgroundTransparency = 1
+                        end
+                        RotationAngle = RotationAngle + (tick() - Tick) * drawingSettings.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
+                        if drawingSettings.Boxes.Animate then
+                            Gradient1.Rotation = RotationAngle
+                            Gradient2.Rotation = RotationAngle
+                        else
+                            Gradient1.Rotation = -45
+                            Gradient2.Rotation = -45
+                        end
+                        Tick = tick()
+
+                        -- Healthbar (только для игроков и NPC)
+                        if not isObject then
+                            local Humanoid = obj:FindFirstChild("Humanoid")
+                            local health = Humanoid and (Humanoid.Health / Humanoid.MaxHealth) or 1
+                            Healthbar.Visible = drawingSettings.Healthbar and drawingSettings.Healthbar.Enabled
+                            Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
+                            Healthbar.Size = UDim2.new(0, drawingSettings.Healthbar and drawingSettings.Healthbar.Width or 2.5, 0, h * health)
+
+                            BehindHealthbar.Visible = drawingSettings.Healthbar and drawingSettings.Healthbar.Enabled
+                            BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
+                            BehindHealthbar.Size = UDim2.new(0, drawingSettings.Healthbar and drawingSettings.Healthbar.Width or 2.5, 0, h)
+
+                            if drawingSettings.Healthbar and drawingSettings.Healthbar.HealthText and Humanoid then
+                                local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
+                                HealthText.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
+                                HealthText.Text = tostring(healthPercentage)
+                                HealthText.Visible = Humanoid.Health < Humanoid.MaxHealth
+                                if drawingSettings.Healthbar.Lerp then
+                                    local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or health >= 0.5 and Color3.fromRGB(255, 255, 0) or health >= 0.25 and Color3.fromRGB(255, 170, 0) or Color3.fromRGB(255, 0, 0)
+                                    HealthText.TextColor3 = color
+                                else
+                                    HealthText.TextColor3 = drawingSettings.Healthbar.HealthTextRGB
+                                end
+                            else
+                                HealthText.Visible = false
+                            end
+                        else
+                            Healthbar.Visible = false
+                            BehindHealthbar.Visible = false
+                            HealthText.Visible = false
+                        end
+
+                        -- Names
+                        Name.Visible = drawingSettings.Names.Enabled
+                        if isObject then
+                            -- Для объектов просто отображаем их название
+                            Name.Text = obj.Name
+                        elseif isPlayer and espSettings.Options.Friendcheck and LocalPlayer:IsFriendsWith(obj.UserId) then
+                            Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s', espSettings.Options.FriendcheckRGB.R * 255, espSettings.Options.FriendcheckRGB.G * 255, espSettings.Options.FriendcheckRGB.B * 255, obj.Name)
+                        else
+                            Name.Text = string.format('(<font color="rgb(%d, %d, %d)">E</font>) %s', 255, 0, 0, obj.Name)
+                        end
+                        Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
+
+                        -- Distance (только для игроков и NPC, если включено)
+                        if drawingSettings.Distances and drawingSettings.Distances.Enabled then
+                            if drawingSettings.Distances.Position == "Bottom" then
+                                Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
+                                Distance.Text = string.format("%d meters", math.floor(Dist))
+                                Distance.Visible = true
+                            elseif drawingSettings.Distances.Position == "Text" then
+                                Distance.Visible = false
+                                if isPlayer and espSettings.Options.Friendcheck and LocalPlayer:IsFriendsWith(obj.UserId) then
+                                    Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s [%d]', espSettings.Options.FriendcheckRGB.R * 255, espSettings.Options.FriendcheckRGB.G * 255, espSettings.Options.FriendcheckRGB.B * 255, obj.Name, math.floor(Dist))
+                                else
+                                    Name.Text = string.format('(<font color="rgb(%d, %d, %d)">E</font>) %s [%d]', 255, 0, 0, obj.Name, math.floor(Dist))
+                                end
+                                Name.Visible = drawingSettings.Names.Enabled
+                            end
+                        else
+                            Distance.Visible = false
+                        end
+                    else
+                        HideESP()
+                    end
+                else
+                    HideESP()
+                end
+            end)
+        end
+        coroutine.wrap(UpdateESP)()
+    end
+
+    -- Применение ESP ко всем игрокам
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            coroutine.wrap(CreateESP)(v, true, false, false)
+        end
+    end
+
+    Players.PlayerAdded:Connect(function(v)
+        coroutine.wrap(CreateESP)(v, true, false, false)
+    end)
+
+    -- Применение Entity ESP ко всем NPC
+    local function InitializeEntityESP()
+        local npcNames = {"Akira", "Akira Bodyguard", "Military Sniper", "Military Soldier"}
+        local function ApplyESPToNPC(npc)
+            if ESP.EntityESP.NPCs[npc.Name] then
+                coroutine.wrap(CreateESP)(npc, false, true, false)
+            end
+        end
+
+        -- Проверяем существующих NPC
+        for _, npcName in pairs(npcNames) do
+            for _, npc in pairs(Workspace:GetDescendants()) do
+                if npc.Name == npcName and npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") then
+                    ApplyESPToNPC(npc)
+                end
+            end
+        end
+
+        -- Отслеживаем новых NPC
+        Workspace.DescendantAdded:Connect(function(descendant)
+            if descendant:IsA("Model") and table.find(npcNames, descendant.Name) and descendant:FindFirstChild("HumanoidRootPart") then
+                ApplyESPToNPC(descendant)
+            end
+        end)
+    end
+
+    -- Применение Object ESP ко всем объектам
+    local function InitializeObjectESP()
+        local function ApplyESPToObject(obj)
+            local parentFolder = obj.Parent.Name
+            if (parentFolder == "DroppedPacks" and ESP.ObjectESP.Folders.DroppedPacks) or (parentFolder == "Dropped" and ESP.ObjectESP.Folders.Dropped) then
+                coroutine.wrap(CreateESP)(obj, false, false, true)
+            end
+        end
+
+        -- Проверяем существующие объекты
+        local droppedPacksFolder = Workspace:FindFirstChild("DroppedPacks")
+        local droppedFolder = Workspace:FindFirstChild("Dropped")
+
+        if droppedPacksFolder then
+            for _, obj in pairs(droppedPacksFolder:GetChildren()) do
+                if obj:IsA("Model") and obj.PrimaryPart then
+                    ApplyESPToObject(obj)
+                end
+            end
+        end
+
+        if droppedFolder then
+            for _, obj in pairs(droppedFolder:GetChildren()) do
+                if obj:IsA("Model") and obj.PrimaryPart then
+                    ApplyESPToObject(obj)
+                end
+            end
+        end
+
+        -- Отслеживаем новые объекты
+        Workspace.DescendantAdded:Connect(function(descendant)
+            if descendant:IsA("Model") and descendant.PrimaryPart and (descendant.Parent.Name == "DroppedPacks" or descendant.Parent.Name == "Dropped") then
+                ApplyESPToObject(descendant)
+            end
+        end)
+    end
+
+    InitializeEntityESP()
+    InitializeObjectESP()
+end
+
+-- Запуск ESP
+InitializeESP()
