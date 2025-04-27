@@ -370,3 +370,11 @@ for _, category in ipairs(categories) do
         print(category .. ": New color: " .. tostring(color))
     end)
 end
+
+local isVisible = true
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        isVisible = not isVisible
+        menu.UI.ScreenGui.Enabled = isVisible
+    end
+end)
