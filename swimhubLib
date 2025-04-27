@@ -1,8 +1,8 @@
--- UILib.lua
--- A Roblox UI library for creating tabbed menus with customizable categories and interactive elements
--- Designed for cheat menus or other interfaces
--- Usage: local UILib = require(path.to.UILib)
+-- Source
+-- SwimHub UI Library and Menu Implementation
+-- Contains UILib and creates a cheat menu with categories, sections, and interactive elements
 
+-- UILib Definition
 local UILib = {}
 UILib.__index = UILib
 
@@ -11,50 +11,36 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
 -- Creates a new UI menu
--- @param config Table with optional settings:
---   - size: UDim2 (default: UDim2.new(0, 800, 0, 600))
---   - backgroundColor: Color3 (default: RGB(50, 50, 50))
---   - borderColor: Color3 (default: RGB(30, 30, 30))
---   - categoryButtonColor: Color3 (default: RGB(60, 60, 60))
---   - categoryFrameColor: Color3 (default: RGB(45, 45, 45))
--- @return UILib instance
 function UILib.new(config)
     config = config or {}
     local self = setmetatable({}, UILib)
     
-    -- Default settings
     self.Size = config.size or UDim2.new(0, 800, 0, 600)
     self.BackgroundColor = config.backgroundColor or Color3.fromRGB(50, 50, 50)
     self.BorderColor = config.borderColor or Color3.fromRGB(30, 30, 30)
     self.CategoryButtonColor = config.categoryButtonColor or Color3.fromRGB(60, 60, 60)
     self.CategoryFrameColor = config.categoryFrameColor or Color3.fromRGB(45, 45, 45)
     
-    -- Internal UI storage
     self.UI = {}
     self.Categories = {}
     self.CategoryButtons = {}
     self.CategoryFrames = {}
     self.SeparatorLines = {}
-    self.Sections = {} -- Stores sections (Left/Right) per category
+    self.Sections = {}
+    self.ElementPositions = {}
     self.ActiveCategory = nil
-    self.ElementPositions = {} -- Tracks Y position for elements in each frame/section
     
-    -- Initialize UI
     self:Initialize()
-    
     return self
 end
 
--- Initializes the base UI structure
 function UILib:Initialize()
-    -- Create ScreenGui
     self.UI.ScreenGui = Instance.new("ScreenGui")
-    self.UI.ScreenGui.Name = "UILibMenu"
+    self.UI.ScreenGui.Name = "SwimHubMenu"
     self.UI.ScreenGui.Parent = CoreGui
     self.UI.ScreenGui.ResetOnSpawn = false
     self.UI.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-    -- Create Main Frame
     self.UI.Frame = Instance.new("Frame")
     self.UI.Frame.Name = "MainFrame"
     self.UI.Frame.Size = self.Size
@@ -63,13 +49,11 @@ function UILib:Initialize()
     self.UI.Frame.BorderSizePixel = 0
     self.UI.Frame.Parent = self.UI.ScreenGui
 
-    -- Add UIStroke
     self.UI.Stroke = Instance.new("UIStroke")
     self.UI.Stroke.Thickness = 2
     self.UI.Stroke.Color = self.BorderColor
     self.UI.Stroke.Parent = self.UI.Frame
 
-    -- Create Top Line
     self.UI.TopLine = Instance.new("Frame")
     self.UI.TopLine.Name = "TopLine"
     self.UI.TopLine.Size = UDim2.new(1, 0, 0, 2)
@@ -78,7 +62,6 @@ function UILib:Initialize()
     self.UI.TopLine.BorderSizePixel = 0
     self.UI.TopLine.Parent = self.UI.Frame
 
-    -- Create Category Container
     self.UI.CategoryContainer = Instance.new("Frame")
     self.UI.CategoryContainer.Name = "CategoryContainer"
     self.UI.CategoryContainer.Size = UDim2.new(1, 0, 0, 50)
@@ -87,20 +70,15 @@ function UILib:Initialize()
     self.UI.CategoryContainer.Parent = self.UI.Frame
 end
 
--- Adds a category to the menu
--- @param categoryName string: Name of the category (e.g., "COMBAT")
--- @return Frame: The frame associated with the category
 function UILib:AddCategory(categoryName)
     table.insert(self.Categories, categoryName)
-    self.ElementPositions[categoryName] = 10 -- Initial Y position for elements
+    self.ElementPositions[categoryName] = 10
     self.Sections[categoryName] = {Left = nil, Right = nil}
     
-    -- Calculate button width (accounting for separators)
     local totalWidth = self.Size.X.Offset
     local separatorCount = math.max(0, #self.Categories - 1)
     local buttonWidth = (totalWidth - separatorCount * 2) / #self.Categories
 
-    -- Create Category Button
     self.CategoryButtons[categoryName] = Instance.new("TextButton")
     local button = self.CategoryButtons[categoryName]
     button.Name = categoryName .. "Button"
@@ -114,7 +92,6 @@ function UILib:AddCategory(categoryName)
     button.Font = Enum.Font.SourceSansBold
     button.Parent = self.UI.CategoryContainer
 
-    -- Create Category Frame
     self.CategoryFrames[categoryName] = Instance.new("Frame")
     local frame = self.CategoryFrames[categoryName]
     frame.Name = categoryName .. "Frame"
@@ -122,10 +99,9 @@ function UILib:AddCategory(categoryName)
     frame.Position = UDim2.new(0, 10, 0, 65)
     frame.BackgroundColor3 = self.CategoryFrameColor
     frame.BorderSizePixel = 0
-    frame.Visible = (#self.Categories == 1) -- First category visible by default
+    frame.Visible = (#self.Categories == 1)
     frame.Parent = self.UI.Frame
 
-    -- Update separator lines
     for i, sep in ipairs(self.SeparatorLines) do
         sep:Destroy()
     end
@@ -140,7 +116,6 @@ function UILib:AddCategory(categoryName)
         self.SeparatorLines[i].Parent = self.UI.CategoryContainer
     end
 
-    -- Button click handler
     button.MouseButton1Click:Connect(function()
         if self.ActiveCategory ~= categoryName then
             if self.ActiveCategory then
@@ -154,13 +129,9 @@ function UILib:AddCategory(categoryName)
     return frame
 end
 
--- Adds a section (Left or Right) to a category frame
--- @param category string: Category name
--- @param side string: "Left" or "Right"
--- @return Frame: The section frame
 function UILib:AddSection(category, side)
     if not self.CategoryFrames[category] then return end
-    side = side:lower():gsub("^%l", string.upper) -- Normalize to "Left" or "Right"
+    side = side:lower():gsub("^%l", string.upper)
     if side ~= "Left" and side ~= "Right" then return end
 
     local section = Instance.new("Frame")
@@ -171,16 +142,11 @@ function UILib:AddSection(category, side)
     section.Parent = self.CategoryFrames[category]
     
     self.Sections[category][side] = section
-    self.ElementPositions[category .. side] = 10 -- Initial Y position for section elements
+    self.ElementPositions[category .. side] = 10
     
     return section
 end
 
--- Adds a button to a category frame or section
--- @param category string: Category name
--- @param name string: Button text
--- @param callback function: Function to call when clicked
--- @return TextButton
 function UILib:AddButton(category, name, callback)
     if not self.CategoryFrames[category] then return end
     
@@ -201,7 +167,7 @@ function UILib:AddButton(category, name, callback)
     button.Font = Enum.Font.SourceSans
     button.Parent = parent
     
-    self.ElementPositions[positionKey] = yPos + 40 -- Update Y position
+    self.ElementPositions[positionKey] = yPos + 40
     
     if callback then
         button.MouseButton1Click:Connect(callback)
@@ -210,12 +176,6 @@ function UILib:AddButton(category, name, callback)
     return button
 end
 
--- Adds a toggle to a category frame or section
--- @param category string: Category name
--- @param name string: Toggle text
--- @param default boolean: Initial state
--- @param callback function: Function to call with new state
--- @return Frame, TextButton
 function UILib:AddToggle(category, name, default, callback)
     if not self.CategoryFrames[category] then return end
     
@@ -261,12 +221,6 @@ function UILib:AddToggle(category, name, default, callback)
     return frame, toggle
 end
 
--- Adds a keybind to a category frame or section
--- @param category string: Category name
--- @param name string: Keybind text
--- @param default Enum.KeyCode: Initial key
--- @param callback function: Function to call with new key
--- @return Frame, TextButton
 function UILib:AddKeybind(category, name, default, callback)
     if not self.CategoryFrames[category] then return end
     
@@ -322,12 +276,6 @@ function UILib:AddKeybind(category, name, default, callback)
     return frame, keybind
 end
 
--- Adds a color picker to a category frame or section
--- @param category string: Category name
--- @param name string: Color picker text
--- @param default Color3: Initial color
--- @param callback function: Function to call with new color
--- @return Frame, TextButton
 function UILib:AddColorPicker(category, name, default, callback)
     if not self.CategoryFrames[category] then return end
     
@@ -364,8 +312,6 @@ function UILib:AddColorPicker(category, name, default, callback)
     self.ElementPositions[positionKey] = yPos + 40
     
     colorButton.MouseButton1Click:Connect(function()
-        -- Simulate color picker (Roblox doesn't have native color picker)
-        -- In a real implementation, you might open a custom color selection UI
         local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
         colorButton.BackgroundColor3 = newColor
         if callback then callback(newColor) end
@@ -374,14 +320,10 @@ function UILib:AddColorPicker(category, name, default, callback)
     return frame, colorButton
 end
 
--- Gets the frame for a specific category
--- @param categoryName string: Name of the category
--- @return Frame or nil
 function UILib:GetCategoryFrame(categoryName)
     return self.CategoryFrames[categoryName]
 end
 
--- Destroys the menu
 function UILib:Destroy()
     if self.UI.ScreenGui then
         self.UI.ScreenGui:Destroy()
@@ -394,4 +336,37 @@ function UILib:Destroy()
     self.Sections = {}
     self.ElementPositions = {}
     self.ActiveCategory = nil
+end
+
+-- Create and Populate Menu
+local menu = UILib.new({
+    size = UDim2.new(0, 800, 0, 600),
+    backgroundColor = Color3.fromRGB(50, 50, 50),
+    borderColor = Color3.fromRGB(30, 30, 30),
+    categoryButtonColor = Color3.fromRGB(60, 60, 60),
+    categoryFrameColor = Color3.fromRGB(45, 45, 45)
+})
+
+local categories = {"COMBAT", "VISUALS", "HACKS", "LOCAL", "UI"}
+for _, category in ipairs(categories) do
+    local frame = menu:AddCategory(category)
+    
+    local leftSection = menu:AddSection(category, "Left")
+    local rightSection = menu:AddSection(category, "Right")
+    
+    menu:AddButton(category, "Activate " .. category, function()
+        print(category .. ": Button clicked!")
+    end)
+    
+    menu:AddToggle(category, category .. " Enabled", false, function(state)
+        print(category .. ": Toggle state: " .. tostring(state))
+    end)
+    
+    menu:AddKeybind(category, category .. " Key", Enum.KeyCode[category:sub(1, 1)], function(key)
+        print(category .. ": New keybind: " .. key.Name)
+    end)
+    
+    menu:AddColorPicker(category, category .. " Color", Color3.fromRGB(255, 255, 255), function(color)
+        print(category .. ": New color: " .. tostring(color))
+    end)
 end
