@@ -1,5 +1,5 @@
 -- CoreGui Cheat UI Library
--- A UI library for Roblox cheats, styled like CoreGui with keybind and color picker, optimized with tables
+-- A UI library for Roblox cheats, styled like the provided screenshot
 
 local CoreGuiCheatLibrary = {}
 local UserInputService = game:GetService("UserInputService")
@@ -8,12 +8,15 @@ local CoreGui = game:GetService("CoreGui")
 -- Create a new UI instance in CoreGui
 function CoreGuiCheatLibrary:CreateUI(title)
     local ui = {
-        elements = {}, -- Table to store UI elements
-        keybind = nil, -- Store keybind
+        elements = {},
+        keybind = nil,
         dragging = false,
         dragInput = nil,
         dragStart = nil,
-        startPos = nil
+        startPos = nil,
+        tabs = {"combat", "visuals", "entity visuals", "local", "ui"},
+        currentTab = "entity visuals",
+        toggles = {}
     }
 
     -- ScreenGui
@@ -27,57 +30,103 @@ function CoreGuiCheatLibrary:CreateUI(title)
     ui.elements.mainFrame = Instance.new("Frame")
     ui.elements.mainFrame.Size = UDim2.new(0, 800, 0, 500)
     ui.elements.mainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
-    ui.elements.mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    ui.elements.mainFrame.BackgroundTransparency = 0.2
+    ui.elements.mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    ui.elements.mainFrame.BackgroundTransparency = 0.4
     ui.elements.mainFrame.BorderSizePixel = 0
     ui.elements.mainFrame.ClipsDescendants = true
     ui.elements.mainFrame.Parent = ui.elements.screenGui
     ui.elements.mainFrame.Visible = false
 
     ui.elements.mainFrameCorner = Instance.new("UICorner")
-    ui.elements.mainFrameCorner.CornerRadius = UDim.new(0, 8)
+    ui.elements.mainFrameCorner.CornerRadius = UDim.new(0, 10)
     ui.elements.mainFrameCorner.Parent = ui.elements.mainFrame
 
-    -- Title Bar
-    ui.elements.titleBar = Instance.new("Frame")
-    ui.elements.titleBar.Size = UDim2.new(1, 0, 0, 30)
-    ui.elements.titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    ui.elements.titleBar.BackgroundTransparency = 0.1
-    ui.elements.titleBar.BorderSizePixel = 0
-    ui.elements.titleBar.Parent = ui.elements.mainFrame
+    -- Tabs Area
+    ui.elements.tabFrame = Instance.new("Frame")
+    ui.elements.tabFrame.Size = UDim2.new(1, 0, 0, 40)
+    ui.elements.tabFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    ui.elements.tabFrame.BackgroundTransparency = 0.4
+    ui.elements.tabFrame.BorderSizePixel = 0
+    ui.elements.tabFrame.Parent = ui.elements.mainFrame
 
-    ui.elements.titleBarCorner = Instance.new("UICorner")
-    ui.elements.titleBarCorner.CornerRadius = UDim.new(0, 8)
-    ui.elements.titleBarCorner.Parent = ui.elements.titleBar
+    ui.elements.tabFrameCorner = Instance.new("UICorner")
+    ui.elements.tabFrameCorner.CornerRadius = UDim.new(0, 10)
+    ui.elements.tabFrameCorner.Parent = ui.elements.tabFrame
 
-    ui.elements.titleLabel = Instance.new("TextLabel")
-    ui.elements.titleLabel.Size = UDim2.new(1, -10, 1, 0)
-    ui.elements.titleLabel.Position = UDim2.new(0, 5, 0, 0)
-    ui.elements.titleLabel.Text = title or "Cheat Menu"
-    ui.elements.titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ui.elements.titleLabel.BackgroundTransparency = 1
-    ui.elements.titleLabel.TextScaled = true
-    ui.elements.titleLabel.Font = Enum.Font.GothamBold
-    ui.elements.titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    ui.elements.titleLabel.Parent = ui.elements.titleBar
+    ui.elements.tabLayout = Instance.new("UIListLayout")
+    ui.elements.tabLayout.FillDirection = Enum.FillDirection.Horizontal
+    ui.elements.tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ui.elements.tabLayout.Padding = UDim.new(0, 5)
+    ui.elements.tabLayout.Parent = ui.elements.tabFrame
+
+    ui.elements.tabPadding = Instance.new("UIPadding")
+    ui.elements.tabPadding.PaddingLeft = UDim.new(0, 5)
+    ui.elements.tabPadding.Parent = ui.elements.tabFrame
+
+    -- Create Tabs
+    for _, tabName in ipairs(ui.tabs) do
+        local tabButton = Instance.new("TextButton")
+        tabButton.Size = UDim2.new(0, 120, 1, 0)
+        tabButton.BackgroundColor3 = ui.currentTab == tabName and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(30, 30, 30)
+        tabButton.BackgroundTransparency = 0.4
+        tabButton.Text = tabName
+        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabButton.TextScaled = true
+        tabButton.Font = Enum.Font.Gotham
+        tabButton.BorderSizePixel = 0
+        tabButton.Parent = ui.elements.tabFrame
+
+        local tabCorner = Instance.new("UICorner")
+        tabCorner.CornerRadius = UDim.new(0, 5)
+        tabCorner.Parent = tabButton
+
+        tabButton.MouseButton1Click:Connect(function()
+            ui.currentTab = tabName
+            for _, btn in pairs(ui.elements.tabFrame:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = btn.Text == ui.currentTab and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(30, 30, 30)
+                end
+            end
+            for _, section in pairs(ui.elements.contentFrame:GetChildren()) do
+                if section:IsA("Frame") then
+                    section.Visible = section.Name == ui.currentTab
+                end
+            end
+        end)
+    end
 
     -- Content Area
     ui.elements.contentFrame = Instance.new("Frame")
-    ui.elements.contentFrame.Size = UDim2.new(1, 0, 1, -30)
-    ui.elements.contentFrame.Position = UDim2.new(0, 0, 0, 30)
+    ui.elements.contentFrame.Size = UDim2.new(1, 0, 1, -40)
+    ui.elements.contentFrame.Position = UDim2.new(0, 0, 0, 40)
     ui.elements.contentFrame.BackgroundTransparency = 1
     ui.elements.contentFrame.Parent = ui.elements.mainFrame
 
-    ui.elements.uiListLayout = Instance.new("UIListLayout")
-    ui.elements.uiListLayout.Padding = UDim.new(0, 5)
-    ui.elements.uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ui.elements.uiListLayout.Parent = ui.elements.contentFrame
+    -- Left Section (entity visuals)
+    ui.elements.leftSection = Instance.new("Frame")
+    ui.elements.leftSection.Name = "entity visuals"
+    ui.elements.leftSection.Size = UDim2.new(0.5, -5, 1, 0)
+    ui.elements.leftSection.Position = UDim2.new(0, 5, 0, 0)
+    ui.elements.leftSection.BackgroundTransparency = 1
+    ui.elements.leftSection.Parent = ui.elements.contentFrame
 
-    ui.elements.uiPadding = Instance.new("UIPadding")
-    ui.elements.uiPadding.PaddingLeft = UDim.new(0, 10)
-    ui.elements.uiPadding.PaddingRight = UDim.new(0, 10)
-    ui.elements.uiPadding.PaddingTop = UDim.new(0, 10)
-    ui.elements.uiPadding.Parent = ui.elements.contentFrame
+    ui.elements.leftListLayout = Instance.new("UIListLayout")
+    ui.elements.leftListLayout.Padding = UDim.new(0, 5)
+    ui.elements.leftListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ui.elements.leftListLayout.Parent = ui.elements.leftSection
+
+    ui.elements.leftPadding = Instance.new("UIPadding")
+    ui.elements.leftPadding.PaddingLeft = UDim.new(0, 5)
+    ui.elements.leftPadding.PaddingTop = UDim.new(0, 5)
+    ui.elements.leftPadding.Parent = ui.elements.leftSection
+
+    -- Right Section (placeholder for other tabs)
+    ui.elements.rightSection = Instance.new("Frame")
+    ui.elements.rightSection.Name = "rightSection"
+    ui.elements.rightSection.Size = UDim2.new(0.5, -5, 1, 0)
+    ui.elements.rightSection.Position = UDim2.new(0.5, 0, 0, 0)
+    ui.elements.rightSection.BackgroundTransparency = 1
+    ui.elements.rightSection.Parent = ui.elements.contentFrame
 
     -- Dragging functionality
     local function updateInput(input)
@@ -85,7 +134,7 @@ function CoreGuiCheatLibrary:CreateUI(title)
         ui.elements.mainFrame.Position = UDim2.new(ui.startPos.X.Scale, ui.startPos.X.Offset + delta.X, ui.startPos.Y.Scale, ui.startPos.Y.Offset + delta.Y)
     end
 
-    ui.elements.titleBar.InputBegan:Connect(function(input)
+    ui.elements.tabFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             ui.dragging = true
             ui.dragStart = input.Position
@@ -98,7 +147,7 @@ function CoreGuiCheatLibrary:CreateUI(title)
         end
     end)
 
-    ui.elements.titleBar.InputChanged:Connect(function(input)
+    ui.elements.tabFrame.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement and ui.dragging then
             ui.dragInput = input
         end
@@ -129,124 +178,127 @@ function CoreGuiCheatLibrary:CreateUI(title)
         ui.keybind = keyCode
     end
 
-    -- Add Button
-    function uiInstance:AddButton(text, callback)
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(1, 0, 0, 40)
-        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        button.BackgroundTransparency = 0.3
-        button.Text = text or "Button"
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        button.TextScaled = true
-        button.Font = Enum.Font.Gotham
-        button.BorderSizePixel = 0
-        button.Parent = ui.elements.contentFrame
+    -- Add Toggle (Checkbox)
+    function uiInstance:AddToggle(text, defaultValue, callback)
+        local toggleFrame = Instance.new("Frame")
+        toggleFrame.Size = UDim2.new(1, 0, 0, 30)
+        toggleFrame.BackgroundTransparency = 1
+        toggleFrame.Parent = ui.elements.leftSection
 
-        local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = UDim.new(0, 6)
-        buttonCorner.Parent = button
+        local toggleLabel = Instance.new("TextLabel")
+        toggleLabel.Size = UDim2.new(0.8, 0, 1, 0)
+        toggleLabel.BackgroundTransparency = 1
+        toggleLabel.Text = text or "Toggle"
+        toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        toggleLabel.TextScaled = true
+        toggleLabel.Font = Enum.Font.Gotham
+        toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        toggleLabel.Parent = toggleFrame
 
-        button.MouseEnter:Connect(function()
-            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-        end)
+        local toggleButton = Instance.new("TextButton")
+        toggleButton.Size = UDim2.new(0, 20, 0, 20)
+        toggleButton.Position = UDim2.new(0.9, 0, 0.5, -10)
+        toggleButton.BackgroundColor3 = defaultValue and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(50, 50, 50)
+        toggleButton.Text = ""
+        toggleButton.BorderSizePixel = 0
+        toggleButton.Parent = toggleFrame
 
-        button.MouseLeave:Connect(function()
-            button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        end)
+        local toggleCorner = Instance.new("UICorner")
+        toggleCorner.CornerRadius = UDim.new(0, 5)
+        toggleCorner.Parent = toggleButton
 
-        button.MouseButton1Click:Connect(function()
+        local toggleState = defaultValue or false
+        ui.toggles[text] = toggleState
+
+        toggleButton.MouseButton1Click:Connect(function()
+            toggleState = not toggleState
+            ui.toggles[text] = toggleState
+            toggleButton.BackgroundColor3 = toggleState and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(50, 50, 50)
             if callback then
-                callback()
+                callback(toggleState)
             end
         end)
 
-        return button
+        return toggleFrame
     end
 
-    -- Add Label
-    function uiInstance:AddLabel(text)
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 0, 30)
-        label.BackgroundTransparency = 1
-        label.Text = text or "Label"
-        label.TextColor3 = Color3.fromRGB(200, 200, 200)
-        label.TextScaled = true
-        label.Font = Enum.Font.Gotham
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = ui.elements.contentFrame
+    -- Add Slider
+    function uiInstance:AddSlider(text, minValue, maxValue, defaultValue, callback)
+        local sliderFrame = Instance.new("Frame")
+        sliderFrame.Size = UDim2.new(1, 0, 0, 50)
+        sliderFrame.BackgroundTransparency = 1
+        sliderFrame.Parent = ui.elements.leftSection
 
-        return label
-    end
+        local sliderLabel = Instance.new("TextLabel")
+        sliderLabel.Size = UDim2.new(1, 0, 0, 20)
+        sliderLabel.BackgroundTransparency = 1
+        sliderLabel.Text = text or "Slider"
+        sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        sliderLabel.TextScaled = true
+        sliderLabel.Font = Enum.Font.Gotham
+        sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+        sliderLabel.Parent = sliderFrame
 
-    -- Add ColorPicker
-    function uiInstance:AddColorPicker(labelText, defaultColor, callback)
-        local colorPickerFrame = Instance.new("Frame")
-        colorPickerFrame.Size = UDim2.new(1, 0, 0, 50)
-        colorPickerFrame.BackgroundTransparency = 1
-        colorPickerFrame.Parent = ui.elements.contentFrame
+        local sliderBar = Instance.new("Frame")
+        sliderBar.Size = UDim2.new(1, 0, 0, 10)
+        sliderBar.Position = UDim2.new(0, 0, 0, 30)
+        sliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        sliderBar.BorderSizePixel = 0
+        sliderBar.Parent = sliderFrame
 
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0.4, 0, 0, 30)
-        label.BackgroundTransparency = 1
-        label.Text = labelText or "Color Picker"
-        label.TextColor3 = Color3.fromRGB(200, 200, 200)
-        label.TextScaled = true
-        label.Font = Enum.Font.Gotham
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = colorPickerFrame
+        local sliderBarCorner = Instance.new("UICorner")
+        sliderBarCorner.CornerRadius = UDim.new(0, 5)
+        sliderBarCorner.Parent = sliderBar
 
-        local rgbInput = Instance.new("TextBox")
-        rgbInput.Size = UDim2.new(0.4, 0, 0, 30)
-        rgbInput.Position = UDim2.new(0.4, 5, 0, 0)
-        rgbInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        rgbInput.BackgroundTransparency = 0.3
-        rgbInput.Text = string.format("%d, %d, %d", defaultColor.R * 255, defaultColor.G * 255, defaultColor.B * 255)
-        rgbInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-        rgbInput.TextScaled = true
-        rgbInput.Font = Enum.Font.Gotham
-        rgbInput.Parent = colorPickerFrame
+        local sliderFill = Instance.new("Frame")
+        sliderFill.Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0)
+        sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        sliderFill.BorderSizePixel = 0
+        sliderFill.Parent = sliderBar
 
-        local rgbInputCorner = Instance.new("UICorner")
-        rgbInputCorner.CornerRadius = UDim.new(0, 6)
-        rgbInputCorner.Parent = rgbInput
+        local sliderFillCorner = Instance.new("UICorner")
+        sliderFillCorner.CornerRadius = UDim.new(0, 5)
+        sliderFillCorner.Parent = sliderFill
 
-        local confirmButton = Instance.new("TextButton")
-        confirmButton.Size = UDim2.new(0.15, 0, 0, 30)
-        confirmButton.Position = UDim2.new(0.85, 5, 0, 0)
-        confirmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        confirmButton.BackgroundTransparency = 0.3
-        confirmButton.Text = "Set"
-        confirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        confirmButton.TextScaled = true
-        confirmButton.Font = Enum.Font.Gotham
-        confirmButton.Parent = colorPickerFrame
+        local sliderValue = Instance.new("TextLabel")
+        sliderValue.Size = UDim2.new(0, 100, 0, 20)
+        sliderValue.Position = UDim2.new(1, -100, 0, 5)
+        sliderValue.BackgroundTransparency = 1
+        sliderValue.Text = tostring(defaultValue) .. " studs"
+        sliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+        sliderValue.TextScaled = true
+        sliderValue.Font = Enum.Font.Gotham
+        sliderValue.Parent = sliderFrame
 
-        local confirmButtonCorner = Instance.new("UICorner")
-        confirmButtonCorner.CornerRadius = UDim.new(0, 6)
-        confirmButtonCorner.Parent = confirmButton
-
-        confirmButton.MouseEnter:Connect(function()
-            confirmButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        local sliderDragging = false
+        sliderBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliderDragging = true
+            end
         end)
 
-        confirmButton.MouseLeave:Connect(function()
-            confirmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        sliderBar.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliderDragging = false
+            end
         end)
 
-        confirmButton.MouseButton1Click:Connect(function()
-            local r, g, b = rgbInput.Text:match("(%d+), (%d+), (%d+)")
-            if r and g and b then
-                r, g, b = tonumber(r), tonumber(g), tonumber(b)
-                if r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255 then
-                    local newColor = Color3.fromRGB(r, g, b)
-                    if callback then
-                        callback(newColor)
-                    end
+        UserInputService.InputChanged:Connect(function(input)
+            if sliderDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mousePos = UserInputService:GetMouseLocation()
+                local relativePos = mousePos.X - sliderBar.AbsolutePosition.X
+                local fraction = math.clamp(relativePos / sliderBar.AbsoluteSize.X, 0, 1)
+                local value = minValue + (maxValue - minValue) * fraction
+                value = math.floor(value)
+                sliderFill.Size = UDim2.new(fraction, 0, 1, 0)
+                sliderValue.Text = tostring(value) .. " studs"
+                if callback then
+                    callback(value)
                 end
             end
         end)
 
-        return colorPickerFrame
+        return sliderFrame
     end
 
     return uiInstance
