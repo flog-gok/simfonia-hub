@@ -1,307 +1,397 @@
--- CoreGui Cheat UI Library
--- A UI library for Roblox cheats, styled like the provided screenshot
+-- UILib.lua
+-- A Roblox UI library for creating tabbed menus with customizable categories and interactive elements
+-- Designed for cheat menus or other interfaces
+-- Usage: local UILib = require(path.to.UILib)
 
-local CoreGuiCheatLibrary = {}
-local UserInputService = game:GetService("UserInputService")
+local UILib = {}
+UILib.__index = UILib
+
+-- Services
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
--- Create a new UI instance in CoreGui
-function CoreGuiCheatLibrary:CreateUI(title)
-    local ui = {
-        elements = {},
-        keybind = nil,
-        dragging = false,
-        dragInput = nil,
-        dragStart = nil,
-        startPos = nil,
-        tabs = {"combat", "visuals", "entity visuals", "local", "ui"},
-        currentTab = "entity visuals",
-        toggles = {}
-    }
-
-    -- ScreenGui
-    ui.elements.screenGui = Instance.new("ScreenGui")
-    ui.elements.screenGui.Name = "CheatCoreUI"
-    ui.elements.screenGui.Parent = CoreGui
-    ui.elements.screenGui.ResetOnSpawn = false
-    ui.elements.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    -- Main Frame
-    ui.elements.mainFrame = Instance.new("Frame")
-    ui.elements.mainFrame.Size = UDim2.new(0, 800, 0, 500)
-    ui.elements.mainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
-    ui.elements.mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    ui.elements.mainFrame.BackgroundTransparency = 0.4
-    ui.elements.mainFrame.BorderSizePixel = 0
-    ui.elements.mainFrame.ClipsDescendants = true
-    ui.elements.mainFrame.Parent = ui.elements.screenGui
-    ui.elements.mainFrame.Visible = false
-
-    ui.elements.mainFrameCorner = Instance.new("UICorner")
-    ui.elements.mainFrameCorner.CornerRadius = UDim.new(0, 10)
-    ui.elements.mainFrameCorner.Parent = ui.elements.mainFrame
-
-    -- Tabs Area
-    ui.elements.tabFrame = Instance.new("Frame")
-    ui.elements.tabFrame.Size = UDim2.new(1, 0, 0, 40)
-    ui.elements.tabFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    ui.elements.tabFrame.BackgroundTransparency = 0.4
-    ui.elements.tabFrame.BorderSizePixel = 0
-    ui.elements.tabFrame.Parent = ui.elements.mainFrame
-
-    ui.elements.tabFrameCorner = Instance.new("UICorner")
-    ui.elements.tabFrameCorner.CornerRadius = UDim.new(0, 10)
-    ui.elements.tabFrameCorner.Parent = ui.elements.tabFrame
-
-    ui.elements.tabLayout = Instance.new("UIListLayout")
-    ui.elements.tabLayout.FillDirection = Enum.FillDirection.Horizontal
-    ui.elements.tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ui.elements.tabLayout.Padding = UDim.new(0, 5)
-    ui.elements.tabLayout.Parent = ui.elements.tabFrame
-
-    ui.elements.tabPadding = Instance.new("UIPadding")
-    ui.elements.tabPadding.PaddingLeft = UDim.new(0, 5)
-    ui.elements.tabPadding.Parent = ui.elements.tabFrame
-
-    -- Create Tabs
-    for _, tabName in ipairs(ui.tabs) do
-        local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(0, 120, 1, 0)
-        tabButton.BackgroundColor3 = ui.currentTab == tabName and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(30, 30, 30)
-        tabButton.BackgroundTransparency = 0.4
-        tabButton.Text = tabName
-        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.TextScaled = true
-        tabButton.Font = Enum.Font.Gotham
-        tabButton.BorderSizePixel = 0
-        tabButton.Parent = ui.elements.tabFrame
-
-        local tabCorner = Instance.new("UICorner")
-        tabCorner.CornerRadius = UDim.new(0, 5)
-        tabCorner.Parent = tabButton
-
-        tabButton.MouseButton1Click:Connect(function()
-            ui.currentTab = tabName
-            for _, btn in pairs(ui.elements.tabFrame:GetChildren()) do
-                if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = btn.Text == ui.currentTab and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(30, 30, 30)
-                end
-            end
-            for _, section in pairs(ui.elements.contentFrame:GetChildren()) do
-                if section:IsA("Frame") then
-                    section.Visible = section.Name == ui.currentTab
-                end
-            end
-        end)
-    end
-
-    -- Content Area
-    ui.elements.contentFrame = Instance.new("Frame")
-    ui.elements.contentFrame.Size = UDim2.new(1, 0, 1, -40)
-    ui.elements.contentFrame.Position = UDim2.new(0, 0, 0, 40)
-    ui.elements.contentFrame.BackgroundTransparency = 1
-    ui.elements.contentFrame.Parent = ui.elements.mainFrame
-
-    -- Left Section (entity visuals)
-    ui.elements.leftSection = Instance.new("Frame")
-    ui.elements.leftSection.Name = "entity visuals"
-    ui.elements.leftSection.Size = UDim2.new(0.5, -5, 1, 0)
-    ui.elements.leftSection.Position = UDim2.new(0, 5, 0, 0)
-    ui.elements.leftSection.BackgroundTransparency = 1
-    ui.elements.leftSection.Parent = ui.elements.contentFrame
-
-    ui.elements.leftListLayout = Instance.new("UIListLayout")
-    ui.elements.leftListLayout.Padding = UDim.new(0, 5)
-    ui.elements.leftListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ui.elements.leftListLayout.Parent = ui.elements.leftSection
-
-    ui.elements.leftPadding = Instance.new("UIPadding")
-    ui.elements.leftPadding.PaddingLeft = UDim.new(0, 5)
-    ui.elements.leftPadding.PaddingTop = UDim.new(0, 5)
-    ui.elements.leftPadding.Parent = ui.elements.leftSection
-
-    -- Right Section (placeholder for other tabs)
-    ui.elements.rightSection = Instance.new("Frame")
-    ui.elements.rightSection.Name = "rightSection"
-    ui.elements.rightSection.Size = UDim2.new(0.5, -5, 1, 0)
-    ui.elements.rightSection.Position = UDim2.new(0.5, 0, 0, 0)
-    ui.elements.rightSection.BackgroundTransparency = 1
-    ui.elements.rightSection.Parent = ui.elements.contentFrame
-
-    -- Dragging functionality
-    local function updateInput(input)
-        local delta = input.Position - ui.dragStart
-        ui.elements.mainFrame.Position = UDim2.new(ui.startPos.X.Scale, ui.startPos.X.Offset + delta.X, ui.startPos.Y.Scale, ui.startPos.Y.Offset + delta.Y)
-    end
-
-    ui.elements.tabFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            ui.dragging = true
-            ui.dragStart = input.Position
-            ui.startPos = ui.elements.mainFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    ui.dragging = false
-                end
-            end)
-        end
-    end)
-
-    ui.elements.tabFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and ui.dragging then
-            ui.dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == ui.dragInput and ui.dragging then
-            updateInput(input)
-        end
-    end)
-
-    -- Keybind functionality
-    local function toggleUI()
-        ui.elements.mainFrame.Visible = not ui.elements.mainFrame.Visible
-    end
-
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed and ui.keybind and input.KeyCode == ui.keybind then
-            toggleUI()
-        end
-    end)
-
-    -- UI Methods
-    local uiInstance = {}
-
-    -- Set Keybind
-    function uiInstance:SetKeybind(keyCode)
-        ui.keybind = keyCode
-    end
-
-    -- Add Toggle (Checkbox)
-    function uiInstance:AddToggle(text, defaultValue, callback)
-        local toggleFrame = Instance.new("Frame")
-        toggleFrame.Size = UDim2.new(1, 0, 0, 30)
-        toggleFrame.BackgroundTransparency = 1
-        toggleFrame.Parent = ui.elements.leftSection
-
-        local toggleLabel = Instance.new("TextLabel")
-        toggleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-        toggleLabel.BackgroundTransparency = 1
-        toggleLabel.Text = text or "Toggle"
-        toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        toggleLabel.TextScaled = true
-        toggleLabel.Font = Enum.Font.Gotham
-        toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        toggleLabel.Parent = toggleFrame
-
-        local toggleButton = Instance.new("TextButton")
-        toggleButton.Size = UDim2.new(0, 20, 0, 20)
-        toggleButton.Position = UDim2.new(0.9, 0, 0.5, -10)
-        toggleButton.BackgroundColor3 = defaultValue and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(50, 50, 50)
-        toggleButton.Text = ""
-        toggleButton.BorderSizePixel = 0
-        toggleButton.Parent = toggleFrame
-
-        local toggleCorner = Instance.new("UICorner")
-        toggleCorner.CornerRadius = UDim.new(0, 5)
-        toggleCorner.Parent = toggleButton
-
-        local toggleState = defaultValue or false
-        ui.toggles[text] = toggleState
-
-        toggleButton.MouseButton1Click:Connect(function()
-            toggleState = not toggleState
-            ui.toggles[text] = toggleState
-            toggleButton.BackgroundColor3 = toggleState and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(50, 50, 50)
-            if callback then
-                callback(toggleState)
-            end
-        end)
-
-        return toggleFrame
-    end
-
-    -- Add Slider
-    function uiInstance:AddSlider(text, minValue, maxValue, defaultValue, callback)
-        local sliderFrame = Instance.new("Frame")
-        sliderFrame.Size = UDim2.new(1, 0, 0, 50)
-        sliderFrame.BackgroundTransparency = 1
-        sliderFrame.Parent = ui.elements.leftSection
-
-        local sliderLabel = Instance.new("TextLabel")
-        sliderLabel.Size = UDim2.new(1, 0, 0, 20)
-        sliderLabel.BackgroundTransparency = 1
-        sliderLabel.Text = text or "Slider"
-        sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        sliderLabel.TextScaled = true
-        sliderLabel.Font = Enum.Font.Gotham
-        sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-        sliderLabel.Parent = sliderFrame
-
-        local sliderBar = Instance.new("Frame")
-        sliderBar.Size = UDim2.new(1, 0, 0, 10)
-        sliderBar.Position = UDim2.new(0, 0, 0, 30)
-        sliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        sliderBar.BorderSizePixel = 0
-        sliderBar.Parent = sliderFrame
-
-        local sliderBarCorner = Instance.new("UICorner")
-        sliderBarCorner.CornerRadius = UDim.new(0, 5)
-        sliderBarCorner.Parent = sliderBar
-
-        local sliderFill = Instance.new("Frame")
-        sliderFill.Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0)
-        sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        sliderFill.BorderSizePixel = 0
-        sliderFill.Parent = sliderBar
-
-        local sliderFillCorner = Instance.new("UICorner")
-        sliderFillCorner.CornerRadius = UDim.new(0, 5)
-        sliderFillCorner.Parent = sliderFill
-
-        local sliderValue = Instance.new("TextLabel")
-        sliderValue.Size = UDim2.new(0, 100, 0, 20)
-        sliderValue.Position = UDim2.new(1, -100, 0, 5)
-        sliderValue.BackgroundTransparency = 1
-        sliderValue.Text = tostring(defaultValue) .. " studs"
-        sliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
-        sliderValue.TextScaled = true
-        sliderValue.Font = Enum.Font.Gotham
-        sliderValue.Parent = sliderFrame
-
-        local sliderDragging = false
-        sliderBar.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                sliderDragging = true
-            end
-        end)
-
-        sliderBar.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                sliderDragging = false
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if sliderDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local mousePos = UserInputService:GetMouseLocation()
-                local relativePos = mousePos.X - sliderBar.AbsolutePosition.X
-                local fraction = math.clamp(relativePos / sliderBar.AbsoluteSize.X, 0, 1)
-                local value = minValue + (maxValue - minValue) * fraction
-                value = math.floor(value)
-                sliderFill.Size = UDim2.new(fraction, 0, 1, 0)
-                sliderValue.Text = tostring(value) .. " studs"
-                if callback then
-                    callback(value)
-                end
-            end
-        end)
-
-        return sliderFrame
-    end
-
-    return uiInstance
+-- Creates a new UI menu
+-- @param config Table with optional settings:
+--   - size: UDim2 (default: UDim2.new(0, 800, 0, 600))
+--   - backgroundColor: Color3 (default: RGB(50, 50, 50))
+--   - borderColor: Color3 (default: RGB(30, 30, 30))
+--   - categoryButtonColor: Color3 (default: RGB(60, 60, 60))
+--   - categoryFrameColor: Color3 (default: RGB(45, 45, 45))
+-- @return UILib instance
+function UILib.new(config)
+    config = config or {}
+    local self = setmetatable({}, UILib)
+    
+    -- Default settings
+    self.Size = config.size or UDim2.new(0, 800, 0, 600)
+    self.BackgroundColor = config.backgroundColor or Color3.fromRGB(50, 50, 50)
+    self.BorderColor = config.borderColor or Color3.fromRGB(30, 30, 30)
+    self.CategoryButtonColor = config.categoryButtonColor or Color3.fromRGB(60, 60, 60)
+    self.CategoryFrameColor = config.categoryFrameColor or Color3.fromRGB(45, 45, 45)
+    
+    -- Internal UI storage
+    self.UI = {}
+    self.Categories = {}
+    self.CategoryButtons = {}
+    self.CategoryFrames = {}
+    self.SeparatorLines = {}
+    self.Sections = {} -- Stores sections (Left/Right) per category
+    self.ActiveCategory = nil
+    self.ElementPositions = {} -- Tracks Y position for elements in each frame/section
+    
+    -- Initialize UI
+    self:Initialize()
+    
+    return self
 end
 
-return CoreGuiCheatLibrary
+-- Initializes the base UI structure
+function UILib:Initialize()
+    -- Create ScreenGui
+    self.UI.ScreenGui = Instance.new("ScreenGui")
+    self.UI.ScreenGui.Name = "UILibMenu"
+    self.UI.ScreenGui.Parent = CoreGui
+    self.UI.ScreenGui.ResetOnSpawn = false
+    self.UI.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    -- Create Main Frame
+    self.UI.Frame = Instance.new("Frame")
+    self.UI.Frame.Name = "MainFrame"
+    self.UI.Frame.Size = self.Size
+    self.UI.Frame.Position = UDim2.new(0.5, -self.Size.X.Offset / 2, 0.5, -self.Size.Y.Offset / 2)
+    self.UI.Frame.BackgroundColor3 = self.BackgroundColor
+    self.UI.Frame.BorderSizePixel = 0
+    self.UI.Frame.Parent = self.UI.ScreenGui
+
+    -- Add UIStroke
+    self.UI.Stroke = Instance.new("UIStroke")
+    self.UI.Stroke.Thickness = 2
+    self.UI.Stroke.Color = self.BorderColor
+    self.UI.Stroke.Parent = self.UI.Frame
+
+    -- Create Top Line
+    self.UI.TopLine = Instance.new("Frame")
+    self.UI.TopLine.Name = "TopLine"
+    self.UI.TopLine.Size = UDim2.new(1, 0, 0, 2)
+    self.UI.TopLine.Position = UDim2.new(0, 0, 0, 55)
+    self.UI.TopLine.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    self.UI.TopLine.BorderSizePixel = 0
+    self.UI.TopLine.Parent = self.UI.Frame
+
+    -- Create Category Container
+    self.UI.CategoryContainer = Instance.new("Frame")
+    self.UI.CategoryContainer.Name = "CategoryContainer"
+    self.UI.CategoryContainer.Size = UDim2.new(1, 0, 0, 50)
+    self.UI.CategoryContainer.Position = UDim2.new(0, 0, 0, 5)
+    self.UI.CategoryContainer.BackgroundTransparency = 1
+    self.UI.CategoryContainer.Parent = self.UI.Frame
+end
+
+-- Adds a category to the menu
+-- @param categoryName string: Name of the category (e.g., "COMBAT")
+-- @return Frame: The frame associated with the category
+function UILib:AddCategory(categoryName)
+    table.insert(self.Categories, categoryName)
+    self.ElementPositions[categoryName] = 10 -- Initial Y position for elements
+    self.Sections[categoryName] = {Left = nil, Right = nil}
+    
+    -- Calculate button width (accounting for separators)
+    local totalWidth = self.Size.X.Offset
+    local separatorCount = math.max(0, #self.Categories - 1)
+    local buttonWidth = (totalWidth - separatorCount * 2) / #self.Categories
+
+    -- Create Category Button
+    self.CategoryButtons[categoryName] = Instance.new("TextButton")
+    local button = self.CategoryButtons[categoryName]
+    button.Name = categoryName .. "Button"
+    button.Size = UDim2.new(0, buttonWidth, 0, 50)
+    button.Position = UDim2.new(0, (#self.Categories - 1) * (buttonWidth + 2), 0, 0)
+    button.BackgroundColor3 = self.CategoryButtonColor
+    button.BorderSizePixel = 0
+    button.Text = categoryName
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 18
+    button.Font = Enum.Font.SourceSansBold
+    button.Parent = self.UI.CategoryContainer
+
+    -- Create Category Frame
+    self.CategoryFrames[categoryName] = Instance.new("Frame")
+    local frame = self.CategoryFrames[categoryName]
+    frame.Name = categoryName .. "Frame"
+    frame.Size = UDim2.new(1, -20, 0, self.Size.Y.Offset - 65)
+    frame.Position = UDim2.new(0, 10, 0, 65)
+    frame.BackgroundColor3 = self.CategoryFrameColor
+    frame.BorderSizePixel = 0
+    frame.Visible = (#self.Categories == 1) -- First category visible by default
+    frame.Parent = self.UI.Frame
+
+    -- Update separator lines
+    for i, sep in ipairs(self.SeparatorLines) do
+        sep:Destroy()
+    end
+    self.SeparatorLines = {}
+    for i = 1, #self.Categories - 1 do
+        self.SeparatorLines[i] = Instance.new("Frame")
+        self.SeparatorLines[i].Name = "Separator" .. i
+        self.SeparatorLines[i].Size = UDim2.new(0, 2, 1, 0)
+        self.SeparatorLines[i].Position = UDim2.new(0, i * (buttonWidth + 2) - 2, 0, 0)
+        self.SeparatorLines[i].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        self.SeparatorLines[i].BorderSizePixel = 0
+        self.SeparatorLines[i].Parent = self.UI.CategoryContainer
+    end
+
+    -- Button click handler
+    button.MouseButton1Click:Connect(function()
+        if self.ActiveCategory ~= categoryName then
+            if self.ActiveCategory then
+                self.CategoryFrames[self.ActiveCategory].Visible = false
+            end
+            self.CategoryFrames[categoryName].Visible = true
+            self.ActiveCategory = categoryName
+        end
+    end)
+
+    return frame
+end
+
+-- Adds a section (Left or Right) to a category frame
+-- @param category string: Category name
+-- @param side string: "Left" or "Right"
+-- @return Frame: The section frame
+function UILib:AddSection(category, side)
+    if not self.CategoryFrames[category] then return end
+    side = side:lower():gsub("^%l", string.upper) -- Normalize to "Left" or "Right"
+    if side ~= "Left" and side ~= "Right" then return end
+
+    local section = Instance.new("Frame")
+    section.Name = side .. "Section"
+    section.Size = UDim2.new(0.5, -15, 1, -10)
+    section.Position = UDim2.new(side == "Left" and 0 or 0.5, side == "Left" and 5 or 10, 0, 5)
+    section.BackgroundTransparency = 1
+    section.Parent = self.CategoryFrames[category]
+    
+    self.Sections[category][side] = section
+    self.ElementPositions[category .. side] = 10 -- Initial Y position for section elements
+    
+    return section
+end
+
+-- Adds a button to a category frame or section
+-- @param category string: Category name
+-- @param name string: Button text
+-- @param callback function: Function to call when clicked
+-- @return TextButton
+function UILib:AddButton(category, name, callback)
+    if not self.CategoryFrames[category] then return end
+    
+    local parent = self.Sections[category].Right or self.Sections[category].Left or self.CategoryFrames[category]
+    local positionKey = self.Sections[category].Right and (category .. "Right") or
+                        self.Sections[category].Left and (category .. "Left") or category
+    local yPos = self.ElementPositions[positionKey]
+    
+    local button = Instance.new("TextButton")
+    button.Name = name .. "Button"
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.Position = UDim2.new(0, 5, 0, yPos)
+    button.BackgroundColor3 = self.CategoryButtonColor
+    button.BorderSizePixel = 0
+    button.Text = name
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 16
+    button.Font = Enum.Font.SourceSans
+    button.Parent = parent
+    
+    self.ElementPositions[positionKey] = yPos + 40 -- Update Y position
+    
+    if callback then
+        button.MouseButton1Click:Connect(callback)
+    end
+    
+    return button
+end
+
+-- Adds a toggle to a category frame or section
+-- @param category string: Category name
+-- @param name string: Toggle text
+-- @param default boolean: Initial state
+-- @param callback function: Function to call with new state
+-- @return Frame, TextButton
+function UILib:AddToggle(category, name, default, callback)
+    if not self.CategoryFrames[category] then return end
+    
+    local parent = self.Sections[category].Right or self.Sections[category].Left or self.CategoryFrames[category]
+    local positionKey = self.Sections[category].Right and (category .. "Right") or
+                        self.Sections[category].Left and (category .. "Left") or category
+    local yPos = self.ElementPositions[positionKey]
+    
+    local frame = Instance.new("Frame")
+    frame.Name = name .. "Toggle"
+    frame.Size = UDim2.new(1, -10, 0, 30)
+    frame.Position = UDim2.new(0, 5, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 16
+    label.Font = Enum.Font.SourceSans
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 30, 0, 30)
+    toggle.Position = UDim2.new(1, -30, 0, 0)
+    toggle.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    toggle.BorderSizePixel = 0
+    toggle.Text = ""
+    toggle.Parent = frame
+    
+    self.ElementPositions[positionKey] = yPos + 40
+    
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.BackgroundColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        if callback then callback(state) end
+    end)
+    
+    return frame, toggle
+end
+
+-- Adds a keybind to a category frame or section
+-- @param category string: Category name
+-- @param name string: Keybind text
+-- @param default Enum.KeyCode: Initial key
+-- @param callback function: Function to call with new key
+-- @return Frame, TextButton
+function UILib:AddKeybind(category, name, default, callback)
+    if not self.CategoryFrames[category] then return end
+    
+    local parent = self.Sections[category].Right or self.Sections[category].Left or self.CategoryFrames[category]
+    local positionKey = self.Sections[category].Right and (category .. "Right") or
+                        self.Sections[category].Left and (category .. "Left") or category
+    local yPos = self.ElementPositions[positionKey]
+    
+    local frame = Instance.new("Frame")
+    frame.Name = name .. "Keybind"
+    frame.Size = UDim2.new(1, -10, 0, 30)
+    frame.Position = UDim2.new(0, 5, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 16
+    label.Font = Enum.Font.SourceSans
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    local keybind = Instance.new("TextButton")
+    keybind.Size = UDim2.new(0, 60, 0, 30)
+    keybind.Position = UDim2.new(1, -60, 0, 0)
+    keybind.BackgroundColor3 = self.CategoryButtonColor
+    keybind.BorderSizePixel = 0
+    keybind.Text = default and default.Name or "None"
+    keybind.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keybind.TextSize = 16
+    keybind.Font = Enum.Font.SourceSans
+    keybind.Parent = frame
+    
+    self.ElementPositions[positionKey] = yPos + 40
+    
+    local waitingForInput = false
+    keybind.MouseButton1Click:Connect(function()
+        waitingForInput = true
+        keybind.Text = "..."
+    end)
+    
+    UserInputService.InputBegan:Connect(function(input)
+        if waitingForInput and input.UserInputType == Enum.UserInputType.Keyboard then
+            waitingForInput = false
+            keybind.Text = input.KeyCode.Name
+            if callback then callback(input.KeyCode) end
+        end
+    end)
+    
+    return frame, keybind
+end
+
+-- Adds a color picker to a category frame or section
+-- @param category string: Category name
+-- @param name string: Color picker text
+-- @param default Color3: Initial color
+-- @param callback function: Function to call with new color
+-- @return Frame, TextButton
+function UILib:AddColorPicker(category, name, default, callback)
+    if not self.CategoryFrames[category] then return end
+    
+    local parent = self.Sections[category].Right or self.Sections[category].Left or self.CategoryFrames[category]
+    local positionKey = self.Sections[category].Right and (category .. "Right") or
+                        self.Sections[category].Left and (category .. "Left") or category
+    local yPos = self.ElementPositions[positionKey]
+    
+    local frame = Instance.new("Frame")
+    frame.Name = name .. "ColorPicker"
+    frame.Size = UDim2.new(1, -10, 0, 30)
+    frame.Position = UDim2.new(0, 5, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 16
+    label.Font = Enum.Font.SourceSans
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    local colorButton = Instance.new("TextButton")
+    colorButton.Size = UDim2.new(0, 30, 0, 30)
+    colorButton.Position = UDim2.new(1, -30, 0, 0)
+    colorButton.BackgroundColor3 = default or Color3.fromRGB(255, 255, 255)
+    colorButton.BorderSizePixel = 0
+    colorButton.Text = ""
+    colorButton.Parent = frame
+    
+    self.ElementPositions[positionKey] = yPos + 40
+    
+    colorButton.MouseButton1Click:Connect(function()
+        -- Simulate color picker (Roblox doesn't have native color picker)
+        -- In a real implementation, you might open a custom color selection UI
+        local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+        colorButton.BackgroundColor3 = newColor
+        if callback then callback(newColor) end
+    end)
+    
+    return frame, colorButton
+end
+
+-- Gets the frame for a specific category
+-- @param categoryName string: Name of the category
+-- @return Frame or nil
+function UILib:GetCategoryFrame(categoryName)
+    return self.CategoryFrames[categoryName]
+end
+
+-- Destroys the menu
+function UILib:Destroy()
+    if self.UI.ScreenGui then
+        self.UI.ScreenGui:Destroy()
+    end
+    self.UI = {}
+    self.Categories = {}
+    self.CategoryButtons = {}
+    self.CategoryFrames = {}
+    self.SeparatorLines = {}
+    self.Sections = {}
+    self.ElementPositions = {}
+    self.ActiveCategory = nil
+end
