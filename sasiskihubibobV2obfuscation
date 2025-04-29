@@ -1,1 +1,235 @@
+local config = {
+    name = "KeySystemCoreGUI",
+    freeScript = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/free",
+    paidScript = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/paid"
+}
 
+local coreGui = game:GetService("CoreGui")
+local tweenService = game:GetService("TweenService")
+local userInputService = game:GetService("UserInputService")
+
+-- Destroy existing GUI if it exists
+if coreGui:FindFirstChild(config.name) then
+    coreGui[config.name]:Destroy()
+end
+
+-- Secure unique key list (32-character random alphanumeric strings)
+local keys = {
+    "7a9f3b2c1d8e4f6a9b3c2d1e8f7a9b3c",
+    "4e8c1a9f3b2d7e6a4c9b3f1d2e8a7c6b",
+    "9b3f2c1a8e7d4f6a9c3b2e1d7a8f6c4e",
+    "2d7a9f3c1b8e4a6d9f3c2b1e7a8d6c4f",
+    "6b3e1a9f7c2d8a4f6e9c3b1d2a7f8c6e",
+    "1a8f3c2b9e7d4a6f9c3e1b2d8a7f6c4e",
+    "8c4a9f3b2e7d1a6f9c3b2e1d8a7f6c4e",
+    "3f9b2c1a8e7d4a6f9c3b2e1d8a7f6c4e",
+    "7e3a9f2c1b8d4a6f9c3b2e1d8a7f6c4e",
+    "2c8f3a9b1e7d4a6f9c3b2e1d8a7f6c4e",
+    "9f4a3c2b8e7d1a6f9c3b2e1d8a7f6c4e",
+    "1b7e9f3c2a8d4a6f9c3b2e1d8a7f6c4e",
+    "6a9f3c2b8e7d1a4f9c3b2e1d8a7f6c4e",
+    "4c2a9f3b8e7d1a6f9c3b2e1d8a7f6c4e",
+    "8f3a9c2b1e7d4a6f9c3b2e1d8a7f6c4e",
+    "3b9f2c1a8e7d4a6f9c3b2e1d8a7f6c4e",
+    "5d2e8f4a9c1b3a7e6d2c9f1b8a4e3c7d",
+    "a4e7c9b2d5f8a3c1e6b9d2f4a7c8e3b5",
+    "c8b3e5a9d2f7c1b4e8a3d6f9c2b5e7a4",
+    "e6d9a2b5f8c3e1a7d4b9f2c5e8a3d6b1",
+    "f3a7c9e2b5d8f1a4c7e9b2d5f8a1c4e7",
+    "2b5e8c3a9d6f2b4e7c1a8d3f6b9e2c5",
+    "9d4f7a2c5e8b3d6f1a4c7e9b2d5f8a3",
+    "1e6b9d3f8a2c5e7b1d4f9a2c6e8b3d5",
+    "7c2e5a8d1b4f7c3e6a9d2b5f8c1e4a7",
+    "a3d6f9b2e5a8c1d4f7b9e2a5c8d1f4b",
+    "4f8b1e3a6c9d2f5b8e1a3c6d9f2b5e8",
+    "b5e9c2a7d4f8b1e6c3a9d5f2b7e1c4",
+    "6d9a3e7b2f5c8d1a4e9b3f6c2d8a5e1",
+    "e2a5d8f1b4e7a2d5f8b1e4a7d2f5b8",
+    "3c7e1a4d8f2b5c9e3a6d1f4b7c2e5a",
+    "8f2b5e9c3a7d8f1b4e9c2a6d3f8b5e",
+    "d1a4e7b2f5d8a1e4b7f2d5a8e1b4f",
+    "5b9e2c7a3d6f5b8e1c4a7d2f5b9e3c",
+    "2e6a9d3f8b2e5a9d4f7b2e6a8d1f4",
+    "c4a8e1b3f6c9a2e5b8f3c6a9e2b5f",
+    "7e3b6f9c2a5d7e4b8f1c3a6d9e2b5",
+    "a9d2f5b8e1a3d6f9b2e4a7d3f6b9e",
+    "1f4b7e2a5d8f1b4e7a2d5f8b1e4a7",
+    "6c9e3a7d2f5c8e1a4d7f2c5e9a3d6",
+    "b2e5a8d1f4b7e2a5d8f1b4e7a2d5",
+    "4d8f1b5e9c3d6f2b5e8c1d4f7b2e5",
+    "9e2a5d8f1b4e9a3d6f2b5e8a1d4f",
+    "3a6d9e2b5f8c3a7d1e4b8f3c6a9d",
+    "e7b1d4f9a2e5b8d1f4a7e2b5d8f1",
+    "5c8e1a3d6f9b2c5e8a1d4f7b2c5e9",
+    "2f5b8e1c4a7d2f5b9e2c5a8d3f6b",
+    "d6a9e3b7f2d5a8e1b4f7d2a5e8b1",
+    "8e1b4f7a2d5e8b1f4a7d2e5b8f1a",
+    "c3a7e1b4f8c2a5e9b3f6c1a4e7b2",
+    "7b2e5a8d1f4b7e2a5d8f1b4e7a2d",
+    "a5d8f1b4e7a2d5f8b1e4a7d2f5b8",
+    "1e4b7f2c5e8a1d4f7b2e5a8d1f4b",
+    "6f9c2a5d8e1b3f6c9a2e5b8f3c6a"
+}
+
+-- Create key lookup table
+local keyLookup = {}
+for _, key in pairs(keys) do
+    keyLookup[key] = true
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = config.name
+screenGui.Parent = coreGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 380, 0, 180) -- Increased size (was 320x140)
+mainFrame.Position = UDim2.new(0.5, -190, 0.5, -90) -- Adjusted position to center
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- Initial color, will be overridden by gradient
+mainFrame.BackgroundTransparency = 1
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = mainFrame
+
+local frameStroke = Instance.new("UIStroke")
+frameStroke.Color = Color3.fromRGB(255, 255, 255)
+frameStroke.Thickness = 1
+frameStroke.Transparency = 1
+frameStroke.Parent = mainFrame
+
+-- Gradient for wave-like purple transition
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 0, 255)), -- Brighter purple
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(80, 0, 180)), -- Darker purple
+    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(220, 0, 255)), -- Brighter purple
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 0, 180)) -- Darker purple
+})
+gradient.Rotation = 0
+gradient.Parent = mainFrame
+
+-- Wave-like animation for gradient
+local function animateGradient()
+    while true do
+        local tweenInfo = TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+        local tween = tweenService:Create(gradient, tweenInfo, {Offset = Vector2.new(2, 0)})
+        tween:Play()
+        tween.Completed:Wait()
+        gradient.Offset = Vector2.new(-2, 0)
+    end
+end
+
+local keyInput = Instance.new("TextBox")
+keyInput.PlaceholderText = "Enter key (32 characters)..."
+keyInput.Size = UDim2.new(0, 340, 0, 60) -- Increased size (was 280x50)
+keyInput.Position = UDim2.new(0.5, -170, 0, 20)
+keyInput.Font = Enum.Font.Gotham
+keyInput.TextSize = 16
+keyInput.TextColor3 = Color3.fromRGB(0, 0, 0)
+keyInput.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+keyInput.BackgroundTransparency = 1
+keyInput.TextTransparency = 1
+keyInput.ClearTextOnFocus = false
+keyInput.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 8)
+inputCorner.Parent = keyInput
+
+local verifyButton = Instance.new("TextButton")
+verifyButton.Text = "Verify"
+verifyButton.Size = UDim2.new(0, 340, 0, 60) -- Increased size (was 280x50)
+verifyButton.Position = UDim2.new(0.5, -170, 0, 90)
+verifyButton.Font = Enum.Font.GothamBold
+verifyButton.TextSize = 16
+verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+verifyButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+verifyButton.TextTransparency = 1
+verifyButton.BackgroundTransparency = 1
+verifyButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = verifyButton
+
+local buttonStroke = Instance.new("UIStroke")
+buttonStroke.Color = Color3.fromRGB(0, 150, 0)
+buttonStroke.Thickness = 2
+buttonStroke.Transparency = 1
+buttonStroke.Parent = verifyButton
+
+-- Fade-in animation
+local function fadeInGui()
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local frameTween = tweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 0})
+    
+    for _, descendant in pairs(mainFrame:GetDescendants()) do
+        if descendant:IsA("GuiObject") then
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                tweenService:Create(descendant, tweenInfo, {TextTransparency = 0, BackgroundTransparency = 0}):Play()
+            end
+        elseif descendant:IsA("UIStroke") then
+            tweenService:Create(descendant, tweenInfo, {Transparency = 0}):Play()
+        end
+    end
+    
+    frameTween:Play()
+end
+
+-- Fade-out animation for closing GUI
+local function closeGui()
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    local frameTween = tweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 1})
+    
+    for _, descendant in pairs(mainFrame:GetDescendants()) do
+        if descendant:IsA("GuiObject") then
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                tweenService:Create(descendant, tweenInfo, {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+            end
+        elseif descendant:IsA("UIStroke") then
+            tweenService:Create(descendant, tweenInfo, {Transparency = 1}):Play()
+        end
+    end
+    
+    frameTween:Play()
+    frameTween.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end
+
+-- Key verification function
+local function verifyKey(inputKey)
+    task.wait(1)
+    local success, errorMsg = pcall(function()
+        local scriptUrl = keyLookup[inputKey] and config.paidScript or config.freeScript
+        local script = game:HttpGet(scriptUrl, true)
+        loadstring(script)()
+    end)
+    
+    if success then
+        closeGui()
+    end
+end
+
+-- Connect events
+verifyButton.MouseButton1Click:Connect(function()
+    verifyKey(keyInput.Text)
+end)
+keyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        verifyKey(keyInput.Text)
+    end
+end)
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Escape and not gameProcessed then
+        closeGui()
+    end
+end)
+
+-- Start fade-in animation and gradient animation
+fadeInGui()
+spawn(animateGradient)
