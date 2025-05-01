@@ -1,1 +1,228 @@
-local _0x1={n="CheatSelectionMenu",s3="https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/Simfonia.hub%20FREE"}local _0x2=game:GetService("CoreGui")local _0x3=game:GetService("TweenService")local _0x4=game:GetService("UserInputService")local _0x5={z={y={x={w={v={u={t={}}}}}}},d={x1="dummy1",x2="dummy2",x3="dummy3"}}if _0x2:FindFirstChild(_0x1.n)then _0x2[_0x1.n]:Destroy()end local _0x6=Instance.new("ScreenGui")_0x6.Name=_0x1.n _0x6.Parent=_0x2 _0x6.ZIndexBehavior=Enum.ZIndexBehavior.Sibling local _0x7=Instance.new("Frame")_0x7.Size=UDim2.new(0,600,0,400)_0x7.Position=UDim2.new(0.5,-300,0.5,-200)_0x7.AnchorPoint=Vector2.new(0.5,0.5)_0x7.BackgroundColor3=Color3.fromRGB(20,30,50)_0x7.BorderSizePixel=0 _0x7.Parent=_0x6 local _0x8=Instance.new("UICorner")_0x8.CornerRadius=UDim.new(0,12)_0x8.Parent=_0x7 local _0x9=Instance.new("Frame")_0x9.Size=UDim2.new(0,2,0,360)_0x9.Position=UDim2.new(0,150,0,20)_0x9.BackgroundColor3=Color3.fromRGB(60,80,120)_0x9.BorderSizePixel=0 _0x9.Parent=_0x7 local _0x10=Instance.new("Frame")_0x10.Size=UDim2.new(0,140,0,360)_0x10.Position=UDim2.new(0,5,0,20)_0x10.BackgroundTransparency=1 _0x10.Parent=_0x7 local _0x11={[{n="Simfonia Free",u=_0x1.s3,t="FREE",c=Color3.fromRGB(150,150,150)}]=1}local _0x12={}for _0x13,_0x14 in pairs(_0x11)do local _0x15=Instance.new("TextButton")_0x15.Text=_0x13.n _0x15.Size=UDim2.new(0,130,0,40)_0x15.Position=UDim2.new(0,5,0,5+(_0x14-1)*50)_0x15.Font=Enum.Font.GothamBold _0x15.TextSize=14 _0x15.TextColor3=Color3.fromRGB(255,255,255)_0x15.BackgroundColor3=Color3.fromRGB(0,140,255)_0x15.Parent=_0x10 local _0x16=Instance.new("UICorner")_0x16.CornerRadius=UDim.new(0,8)_0x16.Parent=_0x15 local _0x17=Instance.new("TextLabel")_0x17.Text=_0x13.t _0x17.Size=UDim2.new(0,40,0,20)_0x17.Position=UDim2.new(1,-45,0,10)_0x17.Font=Enum.Font.Gotham _0x17.TextSize=12 _0x17.TextColor3=_0x13.c _0x17.BackgroundTransparency=1 _0x17.Parent=_0x15 _0x12[_0x14]={b=_0x15,u=_0x13.u,d="> Basic features\n> Stable performance\n> Regular updates"}end local _0x18=Instance.new("Frame")_0x18.Size=UDim2.new(0,400,0,360)_0x18.Position=UDim2.new(0,160,0,20)_0x18.BackgroundTransparency=1 _0x18.Parent=_0x7 local _0x19=Instance.new("TextLabel")_0x19.Text=""_0x19.Size=UDim2.new(0,380,0,30)_0x19.Position=UDim2.new(0,10,0,10)_0x19.Font=Enum.Font.GothamBold _0x19.TextSize=16 _0x19.TextColor3=Color3.fromRGB(255,255,255)_0x19.BackgroundTransparency=1 _0x19.TextXAlignment=Enum.TextXAlignment.Left _0x19.Parent=_0x18 local _0x20=Instance.new("TextLabel")_0x20.Text=""_0x20.Size=UDim2.new(0,380,0,100)_0x20.Position=UDim2.new(0,10,0,50)_0x20.Font=Enum.Font.Gotham _0x20.TextSize=14 _0x20.TextColor3=Color3.fromRGB(200,200,200)_0x20.BackgroundTransparency=1 _0x20.TextXAlignment=Enum.TextXAlignment.Left _0x20.TextYAlignment=Enum.TextYAlignment.Top _0x20.TextWrapped=true _0x20.Parent=_0x18 local _0x21=Instance.new("TextButton")_0x21.Text="Load"_0x21.Size=UDim2.new(0,100,0,40)_0x21.Position=UDim2.new(0,10,0,160)_0x21.Font=Enum.Font.GothamBold _0x21.TextSize=16 _0x21.TextColor3=Color3.fromRGB(255,255,255)_0x21.BackgroundColor3=Color3.fromRGB(0,140,255)_0x21.Visible=false _0x21.Parent=_0x18 local _0x22=Instance.new("UICorner")_0x22.CornerRadius=UDim.new(0,8)_0x22.Parent=_0x21 local _0x23=Instance.new("TextLabel")_0x23.Text=""_0x23.Size=UDim2.new(0,580,0,30)_0x23.Position=UDim2.new(0.5,-290,0,360)_0x23.Font=Enum.Font.Gotham _0x23.TextSize=14 _0x23.TextColor3=Color3.fromRGB(255,100,100)_0x23.BackgroundTransparency=1 _0x23.TextWrapped=true _0x23.Parent=_0x7 local _0x24=""local function _0x25()local _0x26=TweenInfo.new(0.5,Enum.EasingStyle.Quad,Enum.EasingDirection.In)local _0x27=_0x3:Create(_0x7,_0x26,{BackgroundTransparency=1})for _,_0x28 in pairs(_0x7:GetDescendants())do if _0x28:IsA("GuiObject")then if _0x28:IsA("TextLabel")or _0x28:IsA("TextButton")then _0x3:Create(_0x28,_0x26,{TextTransparency=1,BackgroundTransparency=1}):Play()elseif _0x28:IsA("Frame")and _0x28~=_0x9 then _0x3:Create(_0x28,_0x26,{BackgroundTransparency=1}):Play()end end end _0x3:Create(_0x9,_0x26,{BackgroundTransparency=1}):Play()_0x27:Play()_0x27.Completed:Connect(function()_0x6:Destroy()end)end local function _0x29(_0x30)local _0x31,_0x32=pcall(function()local _0x33=game:HttpGet(_0x30,true)loadstring(_0x33)()end)if _0x31 then _0x25()else _0x23.Text="❌ Error: "..tostring(_0x32)end end for _0x34,_0x35 in pairs(_0x12)do _0x35.b.MouseButton1Click:Connect(function()_0x19.Text=_0x35.b.Text _0x20.Text=_0x35.d _0x21.Visible=true _0x24=_0x35.u end)end _0x21.MouseButton1Click:Connect(function()if _0x24~=""then _0x29(_0x24)end end)_0x4.InputBegan:Connect(function(_0x36,_0x37)if _0x36.KeyCode==Enum.KeyCode.Escape and not _0x37 then _0x25()end end)
+local Config = {
+    Name = "CheatSelectionMenu",
+    Scripts = {
+        {
+            Name = "Simfonia Free",
+            Url = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/Simfonia.hub%20FREE",
+            Tag = "FREE",
+            Color = Color3.fromRGB(150, 150, 150),
+            Description = "> Basic features\n> Stable performance\n> Regular updates"
+        },
+        {
+            Name = "Simfonia Craftblox",
+            Url = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/simfonia%20craftblox%20client",
+            Tag = "CRAFTBLOX",
+            Color = Color3.fromRGB(100, 200, 100),
+            Description = "> Craftblox-specific features\n> Enhanced gameplay\n> Game-specific optimizations",
+            GameId = 115885522198635
+        }
+    }
+}
+
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local PlaceId = game.PlaceId
+
+-- Destroy existing GUI if it exists
+if CoreGui:FindFirstChild(Config.Name) then
+    CoreGui[Config.Name]:Destroy()
+end
+
+-- Create main ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = Config.Name
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = CoreGui
+
+-- Create main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 600, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 30, 50)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- Add corner radius to main frame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- Create divider line
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(0, 2, 0, 360)
+Divider.Position = UDim2.new(0, 150, 0, 20)
+Divider.BackgroundColor3 = Color3.fromRGB(60, 80, 120)
+Divider.BorderSizePixel = 0
+Divider.Parent = MainFrame
+
+-- Create button container
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Size = UDim2.new(0, 140, 0, 360)
+ButtonContainer.Position = UDim2.new(0, 5, 0, 20)
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Parent = MainFrame
+
+local Buttons = {}
+
+-- Create buttons for each script option
+for index, option in ipairs(Config.Scripts) do
+    -- Skip Craftblox script if not in the correct game
+    if option.GameId and option.GameId ~= PlaceId then
+        continue
+    end
+
+    local Button = Instance.new("TextButton")
+    Button.Text = option.Name
+    Button.Size = UDim2.new(0, 130, 0, 40)
+    Button.Position = UDim2.new(0, 5, 0, 5 + (#Buttons * 50))
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 14
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+    Button.Parent = ButtonContainer
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+
+    local TagLabel = Instance.new("TextLabel")
+    TagLabel.Text = option.Tag
+    TagLabel.Size = UDim2.new(0, 40, 0, 20)
+    TagLabel.Position = UDim2.new(1, -45, 0, 10)
+    TagLabel.Font = Enum.Font.Gotham
+    TagLabel.TextSize = 12
+    TagLabel.TextColor3 = option.Color
+    TagLabel.BackgroundTransparency = 1
+    TagLabel.Parent = Button
+
+    table.insert(Buttons, {
+        Button = Button,
+        Url = option.Url,
+        Description = option.Description
+    })
+end
+
+-- Create description container
+local DescriptionContainer = Instance.new("Frame")
+DescriptionContainer.Size = UDim2.new(0, 400, 0, 360)
+DescriptionContainer.Position = UDim2.new(0, 160, 0, 20)
+DescriptionContainer.BackgroundTransparency = 1
+DescriptionContainer.Parent = MainFrame
+
+-- Create title label
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Text = ""
+TitleLabel.Size = UDim2.new(0, 380, 0, 30)
+TitleLabel.Position = UDim2.new(0, 10, 0, 10)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = DescriptionContainer
+
+-- Create description label
+local DescriptionLabel = Instance.new("TextLabel")
+DescriptionLabel.Text = ""
+DescriptionLabel.Size = UDim2.new(0, 380, 0, 100)
+DescriptionLabel.Position = UDim2.new(0, 10, 0, 50)
+DescriptionLabel.Font = Enum.Font.Gotham
+DescriptionLabel.TextSize = 14
+DescriptionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+DescriptionLabel.BackgroundTransparency = 1
+DescriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
+DescriptionLabel.TextYAlignment = Enum.TextYAlignment.Top
+DescriptionLabel.TextWrapped = true
+DescriptionLabel.Parent = DescriptionContainer
+
+-- Create load button
+local LoadButton = Instance.new("TextButton")
+LoadButton.Text = "Load"
+LoadButton.Size = UDim2.new(0, 100, 0, 40)
+LoadButton.Position = UDim2.new(0, 10, 0, 160)
+LoadButton.Font = Enum.Font.GothamBold
+LoadButton.TextSize = 16
+LoadButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadButton.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+LoadButton.Visible = false
+LoadButton.Parent = DescriptionContainer
+
+local LoadButtonCorner = Instance.new("UICorner")
+LoadButtonCorner.CornerRadius = UDim.new(0, 8)
+LoadButtonCorner.Parent = LoadButton
+
+-- Create error label
+local ErrorLabel = Instance.new("TextLabel")
+ErrorLabel.Text = ""
+ErrorLabel.Size = UDim2.new(0, 580, 0, 30)
+ErrorLabel.Position = UDim2.new(0.5, -290, 0, 360)
+ErrorLabel.Font = Enum.Font.Gotham
+ErrorLabel.TextSize = 14
+ErrorLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+ErrorLabel.BackgroundTransparency = 1
+ErrorLabel.TextWrapped = true
+ErrorLabel.Parent = MainFrame
+
+local SelectedUrl = ""
+
+-- Fade out animation
+local function FadeOut()
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    local mainTween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = 1})
+
+    for _, descendant in pairs(MainFrame:GetDescendants()) do
+        if descendant:IsA("GuiObject") then
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") then
+                TweenService:Create(descendant, tweenInfo, {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+            elseif descendant:IsA("Frame") and descendant ~= Divider then
+                TweenService:Create(descendant, tweenInfo, {BackgroundTransparency = 1}):Play()
+            end
+        end
+    end
+
+    TweenService:Create(Divider, tweenInfo, {BackgroundTransparency = 1}):Play()
+    mainTween:Play()
+    mainTween.Completed:Connect(function()
+        ScreenGui:Destroy()
+    end)
+end
+
+-- Load script function
+local function LoadScript(url)
+    local success, errorMsg = pcall(function()
+        local script = game:HttpGet(url, true)
+        loadstring(script)()
+    end)
+
+    if success then
+        FadeOut()
+    else
+        ErrorLabel.Text = "❌ Error: " .. tostring(errorMsg)
+    end
+end
+
+-- Button click handlers
+for _, buttonData in pairs(Buttons) do
+    buttonData.Button.MouseButton1Click:Connect(function()
+        TitleLabel.Text = buttonData.Button.Text
+        DescriptionLabel.Text = buttonData.Description
+        LoadButton.Visible = true
+        SelectedUrl = buttonData.Url
+    end)
+end
+
+-- Load button handler
+LoadButton.MouseButton1Click:Connect(function()
+    if SelectedUrl ~= "" then
+        LoadScript(SelectedUrl)
+    end
+end)
+
+-- Escape key handler
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Escape and not gameProcessed then
+        FadeOut()
+    end
+end)
