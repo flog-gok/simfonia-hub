@@ -26,7 +26,7 @@ local Config = {
         },
         {
             Name = "Simfonia Craftblox",
-            Url = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/simfonia%20craftblox%20client",
+            Url = "https://raw.githubusercontent.com/flog-gok/simfonia-hub/refs/heads/main/simfonia%20client%20(craftblox)%20%24%24%24",
             Tag = "CRAFTBLOX",
             Color = Color3.fromRGB(100, 200, 100),
             Description = "> Craftblox-specific features\n> Enhanced gameplay\n> Game-specific optimizations",
