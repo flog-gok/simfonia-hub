@@ -1,1048 +1,419 @@
--- Глобальные переменные
+-- UILibrary.lua
+-- A reusable UI library for Roblox
+
+-- Services
 local CoreGui = game:GetService("CoreGui")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
-local UI = {}
-local camera = game.Workspace.CurrentCamera
-local localPlayer = Players.LocalPlayer
+-- Library table
+local UILibrary = {}
 
--- Состояния
-local currentHideKey = Enum.KeyCode.RightShift
-local isBinding = false
-
-local flyingTitlesEnabled = false
-local rgbTitlesEnabled = false
-local notTransparencyEnabled = false
-local flyingLabels = {}
-local currentLabelCount = 5
-local minLabelCount = 5
-local maxLabelCount = 25
-
-local isDragging = false
-
--- Состояния для Player ESP
-local playerESPEnabled = false
-local showHP = false
-local showDistance = false
-local showName = false
-local boxesEnabled = false
-local boxColor = Color3.fromRGB(255, 0, 0)
-
-local ESP = {
-    Enabled = false,
-    TeamCheck = true,
-    MaxDistance = 10000,
-    FontSize = 13,
-    Drawing = {
-        Names = {
-            Enabled = false,
-            RGB = Color3.fromRGB(255, 255, 255),
-        },
-        Distances = {
-            Enabled = false,
-            Position = "Text",
-            RGB = Color3.fromRGB(121, 7, 252),
-        },
-        Healthbar = {
-            Enabled = false,
-            HealthText = true,
-            Width = 2.5,
-        },
-        Boxes = {
-            Full = {
-                Enabled = false,
-                RGB = Color3.fromRGB(255, 0, 0),
-            },
-        },
-    },
-}
-
--- UI
--- ScreenGui
-UI.ScreenGui = Instance.new("ScreenGui")
-UI.ScreenGui.Name = "CheatMenu"
-UI.ScreenGui.Parent = CoreGui
-UI.ScreenGui.ResetOnSpawn = false
-UI.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- MainFrame
-UI.Frame = Instance.new("Frame")
-UI.Frame.Name = "MainFrame"
-UI.Frame.Size = UDim2.new(0, 800, 0, 600)
-UI.Frame.Position = UDim2.new(0.5, -400, 0.5, -300)
-UI.Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-UI.Frame.BorderSizePixel = 0
-UI.Frame.Parent = UI.ScreenGui
-UI.Frame.ZIndex = 2
-
-UI.Stroke = Instance.new("UIStroke")
-UI.Stroke.Thickness = 2
-UI.Stroke.Color = Color3.fromRGB(30, 30, 30)
-UI.Stroke.Parent = UI.Frame
-
--- TitleFrame
-UI.TitleFrame = Instance.new("Frame")
-UI.TitleFrame.Name = "TitleFrame"
-UI.TitleFrame.Size = UDim2.new(1, 0, 0, 30)
-UI.TitleFrame.Position = UDim2.new(0, 0, 0, 0)
-UI.TitleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-UI.TitleFrame.BorderSizePixel = 0
-UI.TitleFrame.Parent = UI.Frame
-
--- TitleLabel
-UI.TitleLabel = Instance.new("TextLabel")
-UI.TitleLabel.Name = "TitleLabel"
-UI.TitleLabel.Size = UDim2.new(0, 400, 1, 0)
-UI.TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-UI.TitleLabel.BackgroundTransparency = 1
-UI.TitleLabel.Text = "SimfoniaHub [lone survival legacy]"
-UI.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-UI.TitleLabel.TextSize = 20
-UI.TitleLabel.Font = Enum.Font.SourceSansBold
-UI.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-UI.TitleLabel.Parent = UI.TitleFrame
-
-local titleStroke = Instance.new("UIStroke")
-titleStroke.Transparency = 1
-titleStroke.Color = Color3.fromRGB(0, 0, 0)
-titleStroke.Parent = UI.TitleLabel
-
--- HeaderLine
-UI.HeaderLine = Instance.new("Frame")
-UI.HeaderLine.Name = "HeaderLine"
-UI.HeaderLine.Size = UDim2.new(1, 0, 0, 2)
-UI.HeaderLine.Position = UDim2.new(0, 0, 0, 30)
-UI.HeaderLine.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-UI.HeaderLine.BorderSizePixel = 0
-UI.HeaderLine.Parent = UI.Frame
-
--- CategoryContainer
-UI.CategoryContainer = Instance.new("Frame")
-UI.CategoryContainer.Name = "CategoryContainer"
-UI.CategoryContainer.Size = UDim2.new(1, 0, 0, 50)
-UI.CategoryContainer.Position = UDim2.new(0, 0, 0, 32)
-UI.CategoryContainer.BackgroundTransparency = 1
-UI.CategoryContainer.Parent = UI.Frame
-
--- TopLine
-UI.TopLine = Instance.new("Frame")
-UI.TopLine.Name = "TopLine"
-UI.TopLine.Size = UDim2.new(1, 0, 0, 2)
-UI.TopLine.Position = UDim2.new(0, 0, 0, 82)
-UI.TopLine.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-UI.TopLine.BorderSizePixel = 0
-UI.TopLine.Parent = UI.Frame
-
--- Categories
-local categories = {"COMBAT", "VISUALS", "HACKS", "LOCAL", "UI"}
-UI.CategoryButtons = {}
-UI.SeparatorLines = {}
-UI.CategoryFrames = {}
-UI.SubFrames = {}
-local activeCategory = categories[1]
-
-for i, category in ipairs(categories) do
-    UI.CategoryButtons[category] = Instance.new("TextButton")
-    UI.CategoryButtons[category].Name = category .. "Button"
-    UI.CategoryButtons[category].Size = UDim2.new(0, 158, 0, 50)
-    UI.CategoryButtons[category].Position = UDim2.new(0, (i-1) * 160, 0, 0)
-    UI.CategoryButtons[category].BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    UI.CategoryButtons[category].BorderSizePixel = 0
-    UI.CategoryButtons[category].Text = category
-    UI.CategoryButtons[category].TextColor3 = Color3.fromRGB(255, 255, 255)
-    UI.CategoryButtons[category].TextSize = 18
-    UI.CategoryButtons[category].Font = Enum.Font.SourceSansBold
-    UI.CategoryButtons[category].Parent = UI.CategoryContainer
-
-    local categoryStroke = Instance.new("UIStroke")
-    categoryStroke.Thickness = 1
-    categoryStroke.Color = Color3.fromRGB(0, 0, 0)
-    categoryStroke.Parent = UI.CategoryButtons[category]
-
-    UI.CategoryFrames[category] = Instance.new("Frame")
-    UI.CategoryFrames[category].Name = category .. "Frame"
-    UI.CategoryFrames[category].Size = UDim2.new(1, -20, 0, 508)
-    UI.CategoryFrames[category].Position = UDim2.new(0, 10, 0, 92)
-    UI.CategoryFrames[category].BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    UI.CategoryFrames[category].BorderSizePixel = 0
-    UI.CategoryFrames[category].Visible = (category == activeCategory)
-    UI.CategoryFrames[category].Parent = UI.Frame
-
-    UI.SubFrames[category] = {}
-    
-    UI.SubFrames[category][1] = Instance.new("Frame")
-    UI.SubFrames[category][1].Name = category .. "SubFrame1"
-    UI.SubFrames[category][1].Size = UDim2.new(0.5, -15, 1, -10)
-    UI.SubFrames[category][1].Position = UDim2.new(0, 5, 0, 5)
-    UI.SubFrames[category][1].BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    UI.SubFrames[category][1].BorderSizePixel = 0
-    UI.SubFrames[category][1].Parent = UI.CategoryFrames[category]
-
-    UI.SubFrames[category][2] = Instance.new("Frame")
-    UI.SubFrames[category][2].Name = category .. "SubFrame2"
-    UI.SubFrames[category][2].Size = UDim2.new(0.5, -15, 1, -10)
-    UI.SubFrames[category][2].Position = UDim2.new(0.5, 5, 0, 5)
-    UI.SubFrames[category][2].BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    UI.SubFrames[category][2].BorderSizePixel = 0
-    UI.SubFrames[category][2].Parent = UI.CategoryFrames[category]
-
-    if i < #categories then
-        UI.SeparatorLines[i] = Instance.new("Frame")
-        UI.SeparatorLines[i].Name = "Separator" .. i
-        UI.SeparatorLines[i].Size = UDim2.new(0, 2, 1, 0)
-        UI.SeparatorLines[i].Position = UDim2.new(0, i * 160 - 2, 0, 0)
-        UI.SeparatorLines[i].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        UI.SeparatorLines[i].BorderSizePixel = 0
-        UI.SeparatorLines[i].Parent = UI.CategoryContainer
-    end
+-- Helper function to create a UICorner
+local function createCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 10)
+    corner.Parent = parent
+    return corner
 end
 
--- UI Elements in Category UI
-local uiSubFrame1 = UI.SubFrames["UI"][1]
+-- Helper function to create a UIListLayout
+local function createLayout(parent, direction, padding, hAlign, vAlign)
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, padding or 5)
+    layout.FillDirection = direction or Enum.FillDirection.Vertical
+    layout.HorizontalAlignment = hAlign or Enum.HorizontalAlignment.Center
+    layout.VerticalAlignment = vAlign or Enum.VerticalAlignment.Top
+    layout.Parent = parent
+    return layout
+end
 
--- KeybindLabel
-local keybindLabel = Instance.new("TextLabel")
-keybindLabel.Name = "KeybindLabel"
-keybindLabel.Size = UDim2.new(0, 150, 0, 30)
-keybindLabel.Position = UDim2.new(0, 5, 0, 5)
-keybindLabel.BackgroundTransparency = 1
-keybindLabel.Text = "Hide Menu Keybind"
-keybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-keybindLabel.TextSize = 18
-keybindLabel.Font = Enum.Font.SourceSans
-keybindLabel.TextXAlignment = Enum.TextXAlignment.Left
-keybindLabel.Parent = uiSubFrame1
+-- Create a new window
+function UILibrary:CreateWindow(name)
+    local window = {}
+    window.ScreenGui = Instance.new("ScreenGui")
+    window.ScreenGui.Parent = CoreGui
+    window.ScreenGui.ResetOnSpawn = false
+    window.ScreenGui.Enabled = true
 
-local keybindLabelStroke = Instance.new("UIStroke")
-keybindLabelStroke.Thickness = 1
-keybindLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-keybindLabelStroke.Parent = keybindLabel
+    window.MainFrame = Instance.new("Frame")
+    window.MainFrame.Size = UDim2.new(0, 1000, 0, 700)
+    window.MainFrame.Position = UDim2.new(0.5, -500, 0.5, -350)
+    window.MainFrame.BackgroundTransparency = 1
+    window.MainFrame.BorderSizePixel = 2
+    window.MainFrame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+    window.MainFrame.Parent = window.ScreenGui
 
--- KeybindButton
-local keybindButton = Instance.new("TextButton")
-keybindButton.Name = "KeybindButton"
-keybindButton.Size = UDim2.new(0, 50, 0, 30)
-keybindButton.Position = UDim2.new(0, 160, 0, 5)
-keybindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-keybindButton.BorderSizePixel = 0
-keybindButton.Text = "..."
-keybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-keybindButton.TextSize = 16
-keybindButton.Font = Enum.Font.SourceSans
-keybindButton.Parent = uiSubFrame1
+    createLayout(window.MainFrame, Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center)
 
-local keybindButtonStroke = Instance.new("UIStroke")
-keybindButtonStroke.Thickness = 1
-keybindButtonStroke.Color = Color3.fromRGB(0, 0, 0)
-keybindButtonStroke.Parent = keybindButton
+    window.Sections = {}
 
--- FlyingTitlesLabel
-local flyingTitlesLabel = Instance.new("TextLabel")
-flyingTitlesLabel.Name = "FlyingTitlesLabel"
-flyingTitlesLabel.Size = UDim2.new(0, 150, 0, 30)
-flyingTitlesLabel.Position = UDim2.new(0, 5, 0, 45)
-flyingTitlesLabel.BackgroundTransparency = 1
-flyingTitlesLabel.Text = "Flying Titles"
-flyingTitlesLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-flyingTitlesLabel.TextSize = 18
-flyingTitlesLabel.Font = Enum.Font.SourceSans
-flyingTitlesLabel.TextXAlignment = Enum.TextXAlignment.Left
-flyingTitlesLabel.Parent = uiSubFrame1
+    -- Create a new section
+    function window:CreateSection(name)
+        local section = {}
+        section.Frame = Instance.new("Frame")
+        section.Frame.Size = UDim2.new(0, 180, 0, 600)
+        section.Frame.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+        section.Frame.BackgroundTransparency = 0.2
+        section.Frame.BorderSizePixel = 1
+        section.Frame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+        section.Frame.Parent = window.MainFrame
 
-local flyingTitlesLabelStroke = Instance.new("UIStroke")
-flyingTitlesLabelStroke.Thickness = 1
-flyingTitlesLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-flyingTitlesLabelStroke.Parent = flyingTitlesLabel
+        createCorner(section.Frame, 10)
+        createLayout(section.Frame)
 
--- FlyingTitlesToggle
-local flyingTitlesToggle = Instance.new("TextButton")
-flyingTitlesToggle.Name = "FlyingTitlesToggle"
-flyingTitlesToggle.Size = UDim2.new(0, 30, 0, 30)
-flyingTitlesToggle.Position = UDim2.new(0, 160, 0, 45)
-flyingTitlesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-flyingTitlesToggle.BorderSizePixel = 0
-flyingTitlesToggle.Text = ""
-flyingTitlesToggle.Parent = uiSubFrame1
+        section.Label = Instance.new("TextLabel")
+        section.Label.Size = UDim2.new(1, 0, 0, 30)
+        section.Label.BackgroundTransparency = 1
+        section.Label.Text = name
+        section.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+        section.Label.TextSize = 14
+        section.Label.Font = Enum.Font.Code
+        section.Label.Parent = section.Frame
 
-local flyingTitlesToggleStroke = Instance.new("UIStroke")
-flyingTitlesToggleStroke.Thickness = 1
-flyingTitlesToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-flyingTitlesToggleStroke.Parent = flyingTitlesToggle
+        table.insert(window.Sections, section)
 
--- SliderFrame
-local sliderFrame = Instance.new("Frame")
-sliderFrame.Name = "SliderFrame"
-sliderFrame.Size = UDim2.new(0, 200, 0, 10)
-sliderFrame.Position = UDim2.new(0, 5, 0, 90)
-sliderFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-sliderFrame.BorderSizePixel = 0
-sliderFrame.Parent = uiSubFrame1
+        -- Create a toggle
+        function section:CreateToggle(options)
+            local toggle = {}
+            toggle.Enabled = options.default or false
+            toggle.Callback = options.callback or function() end
 
--- SliderHandle
-local sliderHandle = Instance.new("TextButton")
-sliderHandle.Name = "SliderHandle"
-sliderHandle.Size = UDim2.new(0, 20, 0, 20)
-sliderHandle.Position = UDim2.new(0, 0, 0, -5)
-sliderHandle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-sliderHandle.BorderSizePixel = 0
-sliderHandle.Text = ""
-sliderHandle.Parent = sliderFrame
+            toggle.Button = Instance.new("TextButton")
+            toggle.Button.Size = UDim2.new(0.9, 0, 0, 40)
+            toggle.Button.BackgroundColor3 = toggle.Enabled and Color3.fromRGB(0, 50, 80) or Color3.fromRGB(0, 30, 60)
+            toggle.Button.BackgroundTransparency = 0.2
+            toggle.Button.BorderSizePixel = 1
+            toggle.Button.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            toggle.Button.Text = ""
+            toggle.Button.Parent = section.Frame
 
--- RGBTitlesLabel
-local rgbTitlesLabel = Instance.new("TextLabel")
-rgbTitlesLabel.Name = "RGBTitlesLabel"
-rgbTitlesLabel.Size = UDim2.new(0, 150, 0, 30)
-rgbTitlesLabel.Position = UDim2.new(0, 5, 0, 115)
-rgbTitlesLabel.BackgroundTransparency = 1
-rgbTitlesLabel.Text = "RGB Titles"
-rgbTitlesLabel.TextColor3 = Color3.fromRGB(255, 255, 252)
-rgbTitlesLabel.TextSize = 18
-rgbTitlesLabel.Font = Enum.Font.SourceSans
-rgbTitlesLabel.TextXAlignment = Enum.TextXAlignment.Left
-rgbTitlesLabel.Parent = uiSubFrame1
+            createCorner(toggle.Button, 10)
 
-local rgbTitlesLabelStroke = Instance.new("UIStroke")
-rgbTitlesLabelStroke.Thickness = 1
-rgbTitlesLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-rgbTitlesLabelStroke.Parent = rgbTitlesLabel
+            toggle.Label = Instance.new("TextLabel")
+            toggle.Label.Size = UDim2.new(0.8, 0, 1, 0)
+            toggle.Label.Position = UDim2.new(0.1, 0, 0, 0)
+            toggle.Label.BackgroundTransparency = 1
+            toggle.Label.Text = options.name or "Toggle"
+            toggle.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+            toggle.Label.TextSize = 14
+            toggle.Label.Font = Enum.Font.Code
+            toggle.Label.TextXAlignment = Enum.TextXAlignment.Center
+            toggle.Label.Parent = toggle.Button
 
--- RGBTitlesToggle
-local rgbTitlesToggle = Instance.new("TextButton")
-rgbTitlesToggle.Name = "RGBTitlesToggle"
-rgbTitlesToggle.Size = UDim2.new(0, 30, 0, 30)
-rgbTitlesToggle.Position = UDim2.new(0, 160, 0, 115)
-rgbTitlesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-rgbTitlesToggle.BorderSizePixel = 0
-rgbTitlesToggle.Text = ""
-rgbTitlesToggle.Parent = uiSubFrame1
+            toggle.Dot = Instance.new("TextLabel")
+            toggle.Dot.Size = UDim2.new(0.1, 0, 1, 0)
+            toggle.Dot.Position = UDim2.new(0.85, 0, 0, 0)
+            toggle.Dot.BackgroundTransparency = 1
+            toggle.Dot.Text = "."
+            toggle.Dot.TextColor3 = Color3.fromRGB(0, 255, 0)
+            toggle.Dot.TextSize = 14
+            toggle.Dot.Font = Enum.Font.Code
+            toggle.Dot.TextXAlignment = Enum.TextXAlignment.Right
+            toggle.Dot.Parent = toggle.Button
 
-local rgbTitlesToggleStroke = Instance.new("UIStroke")
-rgbTitlesToggleStroke.Thickness = 1
-rgbTitlesToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-rgbTitlesToggleStroke.Parent = rgbTitlesToggle
+            -- Settings frame for toggle
+            toggle.SettingsFrame = Instance.new("Frame")
+            toggle.SettingsFrame.Size = UDim2.new(0, 200, 0, 0)
+            toggle.SettingsFrame.BackgroundColor3 = Color3.fromRGB(0, 20, 40)
+            toggle.SettingsFrame.BackgroundTransparency = 0
+            toggle.SettingsFrame.BorderSizePixel = 1
+            toggle.SettingsFrame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            toggle.SettingsFrame.Visible = false
+            toggle.SettingsFrame.Parent = window.ScreenGui
 
--- NotTransparencyLabel
-local notTransparencyLabel = Instance.new("TextLabel")
-notTransparencyLabel.Name = "NotTransparencyLabel"
-notTransparencyLabel.Size = UDim2.new(0, 150, 0, 30)
-notTransparencyLabel.Position = UDim2.new(0, 5, 0, 160)
-notTransparencyLabel.BackgroundTransparency = 1
-notTransparencyLabel.Text = "Not Transparency"
-notTransparencyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-notTransparencyLabel.TextSize = 18
-notTransparencyLabel.Font = Enum.Font.SourceSans
-notTransparencyLabel.TextXAlignment = Enum.TextXAlignment.Left
-notTransparencyLabel.Parent = uiSubFrame1
+            createCorner(toggle.SettingsFrame, 10)
+            createLayout(toggle.SettingsFrame)
 
-local notTransparencyLabelStroke = Instance.new("UIStroke")
-notTransparencyLabelStroke.Thickness = 1
-notTransparencyLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-notTransparencyLabelStroke.Parent = notTransparencyLabel
+            toggle.SettingsLabel = Instance.new("TextLabel")
+            toggle.SettingsLabel.Size = UDim2.new(1, 0, 0, 30)
+            toggle.SettingsLabel.BackgroundTransparency = 1
+            toggle.SettingsLabel.Text = options.name .. " Settings"
+            toggle.SettingsLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+            toggle.SettingsLabel.TextSize = 14
+            toggle.SettingsLabel.Font = Enum.Font.Code
+            toggle.SettingsLabel.Parent = toggle.SettingsFrame
 
--- NotTransparencyToggle
-local notTransparencyToggle = Instance.new("TextButton")
-notTransparencyToggle.Name = "NotTransparencyToggle"
-notTransparencyToggle.Size = UDim2.new(0, 30, 0, 30)
-notTransparencyToggle.Position = UDim2.new(0, 160, 0, 160)
-notTransparencyToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-notTransparencyToggle.BorderSizePixel = 0
-notTransparencyToggle.Text = ""
-notTransparencyToggle.Parent = uiSubFrame1
-
-local notTransparencyToggleStroke = Instance.new("UIStroke")
-notTransparencyToggleStroke.Thickness = 1
-notTransparencyToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-notTransparencyToggleStroke.Parent = notTransparencyToggle
-
--- UI Elements in Category VISUALS
-local visualsSubFrame1 = UI.SubFrames["VISUALS"][1]
-local visualsSubFrame2 = UI.SubFrames["VISUALS"][2]
-
--- PLAYER ESP
--- PlayerESPTitleLabel
-local playerESPTitleLabel = Instance.new("TextLabel")
-playerESPTitleLabel.Name = "PlayerESPTitleLabel"
-playerESPTitleLabel.Size = UDim2.new(1, 0, 0, 30)
-playerESPTitleLabel.Position = UDim2.new(0, 0, 0, 0)
-playerESPTitleLabel.BackgroundTransparency = 1
-playerESPTitleLabel.Text = "PLAYER ESP"
-playerESPTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-playerESPTitleLabel.TextSize = 20
-playerESPTitleLabel.Font = Enum.Font.SourceSansBold
-playerESPTitleLabel.TextXAlignment = Enum.TextXAlignment.Center
-playerESPTitleLabel.Parent = visualsSubFrame1
-
-local playerESPTitleLabelStroke = Instance.new("UIStroke")
-playerESPTitleLabelStroke.Thickness = 1
-playerESPTitleLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-playerESPTitleLabelStroke.Parent = playerESPTitleLabel
-
--- EnablePlayerESPLabel
-local enablePlayerESPLabel = Instance.new("TextLabel")
-enablePlayerESPLabel.Name = "EnablePlayerESPLabel"
-enablePlayerESPLabel.Size = UDim2.new(0, 150, 0, 30)
-enablePlayerESPLabel.Position = UDim2.new(0, 5, 0, 35)
-enablePlayerESPLabel.BackgroundTransparency = 1
-enablePlayerESPLabel.Text = "Enable Player ESP"
-enablePlayerESPLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-enablePlayerESPLabel.TextSize = 18
-enablePlayerESPLabel.Font = Enum.Font.SourceSans
-enablePlayerESPLabel.TextXAlignment = Enum.TextXAlignment.Left
-enablePlayerESPLabel.Parent = visualsSubFrame1
-
-local enablePlayerESPLabelStroke = Instance.new("UIStroke")
-enablePlayerESPLabelStroke.Thickness = 1
-enablePlayerESPLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-enablePlayerESPLabelStroke.Parent = enablePlayerESPLabel
-
--- EnablePlayerESPToggle
-local enablePlayerESPToggle = Instance.new("TextButton")
-enablePlayerESPToggle.Name = "EnablePlayerESPToggle"
-enablePlayerESPToggle.Size = UDim2.new(0, 30, 0, 30)
-enablePlayerESPToggle.Position = UDim2.new(0, 160, 0, 35)
-enablePlayerESPToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-enablePlayerESPToggle.BorderSizePixel = 0
-enablePlayerESPToggle.Text = ""
-enablePlayerESPToggle.Parent = visualsSubFrame1
-
-local enablePlayerESPToggleStroke = Instance.new("UIStroke")
-enablePlayerESPToggleStroke.Thickness = 1
-enablePlayerESPToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-enablePlayerESPToggleStroke.Parent = enablePlayerESPToggle
-
--- ShowHPLabel
-local showHPLabel = Instance.new("TextLabel")
-showHPLabel.Name = "ShowHPLabel"
-showHPLabel.Size = UDim2.new(0, 150, 0, 30)
-showHPLabel.Position = UDim2.new(0, 5, 0, 80)
-showHPLabel.BackgroundTransparency = 1
-showHPLabel.Text = "Show HP"
-showHPLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-showHPLabel.TextSize = 18
-showHPLabel.Font = Enum.Font.SourceSans
-showHPLabel.TextXAlignment = Enum.TextXAlignment.Left
-showHPLabel.Parent = visualsSubFrame1
-
-local showHPLabelStroke = Instance.new("UIStroke")
-showHPLabelStroke.Thickness = 1
-showHPLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-showHPLabelStroke.Parent = showHPLabel
-
--- ShowHPToggle
-local showHPToggle = Instance.new("TextButton")
-showHPToggle.Name = "ShowHPToggle"
-showHPToggle.Size = UDim2.new(0, 30, 0, 30)
-showHPToggle.Position = UDim2.new(0, 160, 0, 80)
-showHPToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-showHPToggle.BorderSizePixel = 0
-showHPToggle.Text = ""
-showHPToggle.Parent = visualsSubFrame1
-
-local showHPToggleStroke = Instance.new("UIStroke")
-showHPToggleStroke.Thickness = 1
-showHPToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-showHPToggleStroke.Parent = showHPToggle
-
--- ShowDistanceLabel
-local showDistanceLabel = Instance.new("TextLabel")
-showDistanceLabel.Name = "ShowDistanceLabel"
-showDistanceLabel.Size = UDim2.new(0, 150, 0, 30)
-showDistanceLabel.Position = UDim2.new(0, 5, 0, 125)
-showDistanceLabel.BackgroundTransparency = 1
-showDistanceLabel.Text = "Show Distance"
-showDistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-showDistanceLabel.TextSize = 18
-showDistanceLabel.Font = Enum.Font.SourceSans
-showDistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
-showDistanceLabel.Parent = visualsSubFrame1
-
-local showDistanceLabelStroke = Instance.new("UIStroke")
-showDistanceLabelStroke.Thickness = 1
-showDistanceLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-showDistanceLabelStroke.Parent = showDistanceLabel
-
--- ShowDistanceToggle
-local showDistanceToggle = Instance.new("TextButton")
-showDistanceToggle.Name = "ShowDistanceToggle"
-showDistanceToggle.Size = UDim2.new(0, 30, 0, 30)
-showDistanceToggle.Position = UDim2.new(0, 160, 0, 125)
-showDistanceToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-showDistanceToggle.BorderSizePixel = 0
-showDistanceToggle.Text = ""
-showDistanceToggle.Parent = visualsSubFrame1
-
-local showDistanceToggleStroke = Instance.new("UIStroke")
-showDistanceToggleStroke.Thickness = 1
-showDistanceToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-showDistanceToggleStroke.Parent = showDistanceToggle
-
--- ShowNameLabel
-local showNameLabel = Instance.new("TextLabel")
-showNameLabel.Name = "ShowNameLabel"
-showNameLabel.Size = UDim2.new(0, 150, 0, 30)
-showNameLabel.Position = UDim2.new(0, 5, 0, 170)
-showNameLabel.BackgroundTransparency = 1
-showNameLabel.Text = "Show Name"
-showNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-showNameLabel.TextSize = 18
-showNameLabel.Font = Enum.Font.SourceSans
-showNameLabel.TextXAlignment = Enum.TextXAlignment.Left
-showNameLabel.Parent = visualsSubFrame1
-
-local showNameLabelStroke = Instance.new("UIStroke")
-showNameLabelStroke.Thickness = 1
-showNameLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-showNameLabelStroke.Parent = showNameLabel
-
--- ShowNameToggle
-local showNameToggle = Instance.new("TextButton")
-showNameToggle.Name = "ShowNameToggle"
-showNameToggle.Size = UDim2.new(0, 30, 0, 30)
-showNameToggle.Position = UDim2.new(0, 160, 0, 170)
-showNameToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-showNameToggle.BorderSizePixel = 0
-showNameToggle.Text = ""
-showNameToggle.Parent = visualsSubFrame1
-
-local showNameToggleStroke = Instance.new("UIStroke")
-showNameToggleStroke.Thickness = 1
-showNameToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-showNameToggleStroke.Parent = showNameToggle
-
--- EnableBoxesLabel
-local enableBoxesLabel = Instance.new("TextLabel")
-enableBoxesLabel.Name = "EnableBoxesLabel"
-enableBoxesLabel.Size = UDim2.new(0, 150, 0, 30)
-enableBoxesLabel.Position = UDim2.new(0, 5, 0, 215)
-enableBoxesLabel.BackgroundTransparency = 1
-enableBoxesLabel.Text = "Enable Boxes"
-enableBoxesLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-enableBoxesLabel.TextSize = 18
-enableBoxesLabel.Font = Enum.Font.SourceSans
-enableBoxesLabel.TextXAlignment = Enum.TextXAlignment.Left
-enableBoxesLabel.Parent = visualsSubFrame1
-
-local enableBoxesLabelStroke = Instance.new("UIStroke")
-enableBoxesLabelStroke.Thickness = 1
-enableBoxesLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-enableBoxesLabelStroke.Parent = enableBoxesLabel
-
--- EnableBoxesToggle
-local enableBoxesToggle = Instance.new("TextButton")
-enableBoxesToggle.Name = "EnableBoxesToggle"
-enableBoxesToggle.Size = UDim2.new(0, 30, 0, 30)
-enableBoxesToggle.Position = UDim2.new(0, 160, 0, 215)
-enableBoxesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-enableBoxesToggle.BorderSizePixel = 0
-enableBoxesToggle.Text = ""
-enableBoxesToggle.Parent = visualsSubFrame1
-
-local enableBoxesToggleStroke = Instance.new("UIStroke")
-enableBoxesToggleStroke.Thickness = 1
-enableBoxesToggleStroke.Color = Color3.fromRGB(0, 0, 0)
-enableBoxesToggleStroke.Parent = enableBoxesToggle
-
--- BoxColorLabel
-local boxColorLabel = Instance.new("TextLabel")
-boxColorLabel.Name = "BoxColorLabel"
-boxColorLabel.Size = UDim2.new(0, 150, 0, 30)
-boxColorLabel.Position = UDim2.new(0, 5, 0, 260)
-boxColorLabel.BackgroundTransparency = 1
-boxColorLabel.Text = "Box Color"
-boxColorLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-boxColorLabel.TextSize = 18
-boxColorLabel.Font = Enum.Font.SourceSans
-boxColorLabel.TextXAlignment = Enum.TextXAlignment.Left
-boxColorLabel.Parent = visualsSubFrame1
-
-local boxColorLabelStroke = Instance.new("UIStroke")
-boxColorLabelStroke.Thickness = 1
-boxColorLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-boxColorLabelStroke.Parent = boxColorLabel
-
--- BoxColorButton
-local boxColorButton = Instance.new("TextButton")
-boxColorButton.Name = "BoxColorButton"
-boxColorButton.Size = UDim2.new(0, 30, 0, 30)
-boxColorButton.Position = UDim2.new(0, 160, 0, 260)
-boxColorButton.BackgroundColor3 = boxColor
-boxColorButton.BorderSizePixel = 0
-boxColorButton.Text = ""
-boxColorButton.Parent = visualsSubFrame1
-
-local boxColorButtonStroke = Instance.new("UIStroke")
-boxColorButtonStroke.Thickness = 1
-boxColorButtonStroke.Color = Color3.fromRGB(0, 0, 0)
-boxColorButtonStroke.Parent = boxColorButton
-
--- OBJECT ESP
--- ObjectESPTitleLabel
-local objectESPTitleLabel = Instance.new("TextLabel")
-objectESPTitleLabel.Name = "ObjectESPTitleLabel"
-objectESPTitleLabel.Size = UDim2.new(1, 0, 0, 30)
-objectESPTitleLabel.Position = UDim2.new(0, 0, 0, 0)
-objectESPTitleLabel.BackgroundTransparency = 1
-objectESPTitleLabel.Text = "OBJECT ESP"
-objectESPTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-objectESPTitleLabel.TextSize = 20
-objectESPTitleLabel.Font = Enum.Font.SourceSansBold
-objectESPTitleLabel.TextXAlignment = Enum.TextXAlignment.Center
-objectESPTitleLabel.Parent = visualsSubFrame2
-
-local objectESPTitleLabelStroke = Instance.new("UIStroke")
-objectESPTitleLabelStroke.Thickness = 1
-objectESPTitleLabelStroke.Color = Color3.fromRGB(0, 0, 0)
-objectESPTitleLabelStroke.Parent = objectESPTitleLabel
-
--- Логика
--- createFlyingLabel
-local function createFlyingLabel()
-    local label = Instance.new("TextLabel")
-    
-    local textSize = math.random(40, 250)
-    local baseWidth = 150
-    local baseHeight = 50
-    local scaleFactor = textSize / 40
-    label.Size = UDim2.new(0, baseWidth * scaleFactor, 0, baseHeight * scaleFactor)
-    
-    label.BackgroundTransparency = 1
-    label.Text = "SimfoniaHub"
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.TextSize = textSize
-    label.Font = Enum.Font.SourceSansBold
-    label.TextTransparency = notTransparencyEnabled and 0 or 0.5
-    label.ZIndex = 1
-    label.Parent = UI.ScreenGui
-
-    local labelStroke = Instance.new("UIStroke")
-    labelStroke.Thickness = 1
-    labelStroke.Color = Color3.fromRGB(0, 0, 0)
-    labelStroke.Parent = label
-
-    local screenSize = UI.ScreenGui.AbsoluteSize
-    label.Position = UDim2.new(0, math.random(0, math.max(0, screenSize.X - label.Size.X.Offset)), 0, math.random(0, math.max(0, screenSize.Y - label.Size.Y.Offset)))
-
-    local function animateLabel()
-        if not label.Parent then return end
-        local newX = math.random(0, math.max(0, screenSize.X - label.Size.X.Offset))
-        local newY = math.random(0, math.max(0, screenSize.Y - label.Size.Y.Offset))
-        local tweenInfo = TweenInfo.new(
-            math.random(5, 10),
-            Enum.EasingStyle.Sine,
-            Enum.EasingDirection.InOut
-        )
-        local tween = TweenService:Create(label, tweenInfo, {Position = UDim2.new(0, newX, 0, newY)})
-        tween:Play()
-        tween.Completed:Connect(function()
-            if flyingTitlesEnabled and label.Parent then
-                animateLabel()
+            local function updateSettingsPosition()
+                local buttonAbsPos = toggle.Button.AbsolutePosition
+                local buttonAbsSize = toggle.Button.AbsoluteSize
+                toggle.SettingsFrame.Position = UDim2.new(0, buttonAbsPos.X + buttonAbsSize.X + 10, 0, buttonAbsPos.Y)
             end
-        end)
-    end
 
-    local function animateRGB()
-        if not label.Parent or not rgbTitlesEnabled then return end
+            local function showSettings()
+                toggle.SettingsFrame.Visible = true
+                toggle.SettingsFrame.Size = UDim2.new(0, 0, 0, 0)
+                toggle.SettingsFrame.BackgroundTransparency = 1
 
-        local colors = {
-            Color3.fromRGB(255, 0, 0),
-            Color3.fromRGB(255, 255, 0),
-            Color3.fromRGB(0, 255, 0),
-            Color3.fromRGB(0, 255, 255),
-            Color3.fromRGB(0, 0, 255),
-            Color3.fromRGB(255, 0, 255),
-        }
-
-        if label.TextColor3 == Color3.fromRGB(255, 255, 255) then
-            label.TextColor3 = colors[math.random(1, #colors)]
-        end
-
-        local currentColor = label.TextColor3
-        local possibleColors = {}
-        for i, color in ipairs(colors) do
-            if color ~= currentColor then
-                table.insert(possibleColors, color)
+                local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+                local tween = TweenService:Create(toggle.SettingsFrame, tweenInfo, {
+                    Size = UDim2.new(0, 200, 0, options.settingsHeight or 100),
+                    BackgroundTransparency = 0
+                })
+                tween:Play()
             end
-        end
-        if #possibleColors == 0 then return end
-        local nextColor = possibleColors[math.random(1, #colors)]
 
-        local transitionTime = math.random(5, 20) / 10
-        local tweenInfo = TweenInfo.new(
-            transitionTime,
-            Enum.EasingStyle.Linear,
-            Enum.EasingDirection.InOut
-        )
-        local tween = TweenService:Create(label, tweenInfo, {TextColor3 = nextColor})
-        tween:Play()
-        tween.Completed:Wait()
+            toggle.Button.MouseButton1Click:Connect(function()
+                toggle.Enabled = not toggle.Enabled
+                toggle.Button.BackgroundColor3 = toggle.Enabled and Color3.fromRGB(0, 50, 80) or Color3.fromRGB(0, 30, 60)
+                toggle.Callback(toggle.Enabled)
+            end)
 
-        if not label.Parent or not rgbTitlesEnabled then return end
-        animateRGB()
-    end
-
-    animateLabel()
-
-    if rgbTitlesEnabled then
-        spawn(animateRGB)
-    end
-
-    return label
-end
-
--- updateFlyingLabels
-local function updateFlyingLabels()
-    for _, label in ipairs(flyingLabels) do
-        label:Destroy()
-    end
-    flyingLabels = {}
-
-    if flyingTitlesEnabled then
-        for i = 1, currentLabelCount do
-            table.insert(flyingLabels, createFlyingLabel())
-        end
-    end
-end
-
--- updateTransparency
-local function updateTransparency()
-    for _, label in ipairs(flyingLabels) do
-        if label.Parent then
-            label.TextTransparency = notTransparencyEnabled and 0 or 0.5
-        end
-    end
-end
-
--- ESP Logic
-local ESPHolder = Instance.new("ScreenGui")
-ESPHolder.Name = "ESPHolder"
-ESPHolder.Parent = CoreGui
-ESPHolder.ResetOnSpawn = false
-
-local function createESP(plr)
-    if plr == localPlayer then return end
-
-    if ESPHolder:FindFirstChild(plr.Name) then
-        ESPHolder[plr.Name]:Destroy()
-    end
-
-    local Name = Instance.new("TextLabel")
-    Name.Parent = ESPHolder
-    Name.Position = UDim2.new(0.5, 0, 0, -11)
-    Name.Size = UDim2.new(0, 100, 0, 20)
-    Name.AnchorPoint = Vector2.new(0.5, 0.5)
-    Name.BackgroundTransparency = 1
-    Name.TextColor3 = ESP.Drawing.Names.RGB
-    Name.Font = Enum.Font.Code
-    Name.TextSize = ESP.FontSize
-    Name.TextStrokeTransparency = 0
-    Name.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    Name.RichText = true
-
-    local Distance = Instance.new("TextLabel")
-    Distance.Parent = ESPHolder
-    Distance.Position = UDim2.new(0.5, 0, 0, 11)
-    Distance.Size = UDim2.new(0, 100, 0, 20)
-    Distance.AnchorPoint = Vector2.new(0.5, 0.5)
-    Distance.BackgroundTransparency = 1
-    Distance.TextColor3 = ESP.Drawing.Distances.RGB
-    Distance.Font = Enum.Font.Code
-    Distance.TextSize = ESP.FontSize
-    Distance.TextStrokeTransparency = 0
-    Distance.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    Distance.RichText = true
-
-    local Box = Instance.new("Frame")
-    Box.Parent = ESPHolder
-    Box.BackgroundColor3 = ESP.Drawing.Boxes.Full.RGB
-    Box.BackgroundTransparency = 0.75
-    Box.BorderSizePixel = 0
-
-    local Healthbar = Instance.new("Frame")
-    Healthbar.Parent = ESPHolder
-    Healthbar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Healthbar.BackgroundTransparency = 0
-
-    local BehindHealthbar = Instance.new("Frame")
-    BehindHealthbar.Parent = ESPHolder
-    BehindHealthbar.ZIndex = -1
-    BehindHealthbar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    BehindHealthbar.BackgroundTransparency = 0
-
-    local HealthText = Instance.new("TextLabel")
-    HealthText.Parent = ESPHolder
-    HealthText.Position = UDim2.new(0.5, 0, 0, 31)
-    HealthText.Size = UDim2.new(0, 100, 0, 20)
-    HealthText.AnchorPoint = Vector2.new(0.5, 0.5)
-    HealthText.BackgroundTransparency = 1
-    HealthText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    HealthText.Font = Enum.Font.Code
-    HealthText.TextSize = ESP.FontSize
-    HealthText.TextStrokeTransparency = 0
-    HealthText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-
-    local function hideESP()
-        Box.Visible = false
-        Name.Visible = false
-        Distance.Visible = false
-        Healthbar.Visible = false
-        BehindHealthbar.Visible = false
-        HealthText.Visible = false
-        if not plr then
-            ESPHolder:Destroy()
-        end
-    end
-
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local HRP = plr.Character.HumanoidRootPart
-            local Humanoid = plr.Character:FindFirstChild("Humanoid")
-            local Pos, OnScreen = camera:WorldToScreenPoint(HRP.Position)
-            local Dist = (camera.CFrame.Position - HRP.Position).Magnitude / 3.5714285714
-
-            if OnScreen and Dist <= ESP.MaxDistance then
-                if ESP.TeamCheck and plr ~= localPlayer and ((localPlayer.Team ~= plr.Team and plr.Team) or (not localPlayer.Team and not plr.Team)) then
-                    local Size = HRP.Size.Y
-                    local scaleFactor = (Size * camera.ViewportSize.Y) / (Pos.Z * 2)
-                    local w, h = 3 * scaleFactor, 4.5 * scaleFactor
-
-                    -- Boxes
-                    Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
-                    Box.Size = UDim2.new(0, w, 0, h)
-                    Box.Visible = ESP.Drawing.Boxes.Full.Enabled
-                    Box.BackgroundColor3 = ESP.Drawing.Boxes.Full.RGB
-
-                    -- Healthbar
-                    if Humanoid then
-                        local health = Humanoid.Health / Humanoid.MaxHealth
-                        Healthbar.Visible = ESP.Drawing.Healthbar.Enabled
-                        Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
-                        Healthbar.Size = UDim2.new(0, ESP.Drawing.Healthbar.Width, 0, h * health)
-
-                        BehindHealthbar.Visible = ESP.Drawing.Healthbar.Enabled
-                        BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
-                        BehindHealthbar.Size = UDim2.new(0, ESP.Drawing.Healthbar.Width, 0, h)
-
-                        if ESP.Drawing.Healthbar.HealthText then
-                            local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
-                            HealthText.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
-                            HealthText.Text = tostring(healthPercentage)
-                            HealthText.Visible = Humanoid.Health < Humanoid.MaxHealth
-                        end
-                    end
-
-                    -- Names
-                    Name.Visible = ESP.Drawing.Names.Enabled
-                    Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
-                    Name.Text = plr.Name
-
-                    -- Distance
-                    if ESP.Drawing.Distances.Enabled then
-                        if ESP.Drawing.Distances.Position == "Text" then
-                            Distance.Visible = false
-                            Name.Text = string.format("%s [%d]", plr.Name, math.floor(Dist))
-                            Name.Visible = ESP.Drawing.Names.Enabled
-                        end
-                    end
+            toggle.Button.MouseButton2Click:Connect(function()
+                if toggle.SettingsFrame.Visible then
+                    toggle.SettingsFrame.Visible = false
                 else
-                    hideESP()
+                    updateSettingsPosition()
+                    showSettings()
                 end
-            else
-                hideESP()
+            end)
+
+            return toggle
+        end
+
+        -- Create a slider
+        function section:CreateSlider(options)
+            local slider = {}
+            slider.Value = options.default or options.min or 0
+            slider.Min = options.min or 0
+            slider.Max = options.max or 100
+            slider.Unit = options.unit or ""
+            slider.Callback = options.callback or function() end
+
+            slider.Label = Instance.new("TextLabel")
+            slider.Label.Size = UDim2.new(0.8, 0, 0, 20)
+            slider.Label.BackgroundTransparency = 1
+            slider.Label.Text = options.name .. ": " .. slider.Value .. " " .. slider.Unit
+            slider.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+            slider.Label.TextSize = 12
+            slider.Label.Font = Enum.Font.Code
+            slider.Label.Parent = toggle.SettingsFrame
+
+            slider.Frame = Instance.new("Frame")
+            slider.Frame.Size = UDim2.new(0.8, 0, 0, 20)
+            slider.Frame.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+            slider.Frame.BackgroundTransparency = 0.2
+            slider.Frame.BorderSizePixel = 1
+            slider.Frame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            slider.Frame.Parent = toggle.SettingsFrame
+
+            createCorner(slider.Frame, 5)
+
+            slider.Knob = Instance.new("TextButton")
+            slider.Knob.Size = UDim2.new(0, 20, 1, 0)
+            slider.Knob.Position = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), 0, 0, 0)
+            slider.Knob.BackgroundColor3 = Color3.fromRGB(0, 50, 80)
+            slider.Knob.BorderSizePixel = 1
+            slider.Knob.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            slider.Knob.Text = ""
+            slider.Knob.Parent = slider.Frame
+
+            createCorner(slider.Knob, 5)
+
+            local isDragging = false
+            slider.Knob.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    isDragging = true
+                end
+            end)
+
+            slider.Knob.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    isDragging = false
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(input)
+                if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local mousePos = input.Position.X
+                    local framePos = slider.Frame.AbsolutePosition.X
+                    local frameWidth = slider.Frame.AbsoluteSize.X - slider.Knob.AbsoluteSize.X
+                    local relativeX = math.clamp((mousePos - framePos) / frameWidth, 0, 1)
+
+                    slider.Knob.Position = UDim2.new(relativeX, 0, 0, 0)
+                    slider.Value = math.floor(slider.Min + (slider.Max - slider.Min) * relativeX)
+                    slider.Label.Text = options.name .. ": " .. slider.Value .. " " .. slider.Unit
+                    slider.Callback(slider.Value)
+                end
+            end)
+
+            return slider
+        end
+
+        -- Create a keybind
+        function section:CreateKeybind(options)
+            local keybind = {}
+            keybind.SelectedKey = options.default or nil
+            keybind.IsSelecting = false
+            keybind.Callback = options.callback or function() end
+
+            keybind.Label = Instance.new("TextLabel")
+            keybind.Label.Size = UDim2.new(0.8, 0, 0, 20)
+            keybind.Label.BackgroundTransparency = 1
+            keybind.Label.Text = "Keybind: " .. (keybind.SelectedKey and keybind.SelectedKey.Name or "Not Set")
+            keybind.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+            keybind.Label.TextSize = 12
+            keybind.Label.Font = Enum.Font.Code
+            keybind.Label.Parent = toggle.SettingsFrame
+
+            keybind.SetButton = Instance.new("TextButton")
+            keybind.SetButton.Size = UDim2.new(0.8, 0, 0, 30)
+            keybind.SetButton.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+            keybind.SetButton.BackgroundTransparency = 0.2
+            keybind.SetButton.BorderSizePixel = 1
+            keybind.SetButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            keybind.SetButton.Text = "Set Keybind"
+            keybind.SetButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+            keybind.SetButton.TextSize = 14
+            keybind.SetButton.Font = Enum.Font.Code
+            keybind.SetButton.Parent = toggle.SettingsFrame
+
+            createCorner(keybind.SetButton, 10)
+
+            keybind.RemoveButton = Instance.new("TextButton")
+            keybind.RemoveButton.Size = UDim2.new(0.8, 0, 0, 30)
+            keybind.RemoveButton.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+            keybind.RemoveButton.BackgroundTransparency = 0.2
+            keybind.RemoveButton.BorderSizePixel = 1
+            keybind.RemoveButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            keybind.RemoveButton.Text = "Remove Keybind"
+            keybind.RemoveButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+            keybind.RemoveButton.TextSize = 14
+            keybind.RemoveButton.Font = Enum.Font.Code
+            keybind.RemoveButton.Parent = toggle.SettingsFrame
+
+            createCorner(keybind.RemoveButton, 10)
+
+            keybind.SetButton.MouseButton1Click:Connect(function()
+                keybind.IsSelecting = true
+                keybind.SetButton.Text = "Press a Key..."
+            end)
+
+            keybind.RemoveButton.MouseButton1Click:Connect(function()
+                keybind.SelectedKey = nil
+                keybind.Label.Text = "Keybind: Not Set"
+            end)
+
+            UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+                if gameProcessedEvent then return end
+                if keybind.IsSelecting and input.UserInputType == Enum.UserInputType.Keyboard then
+                    keybind.SelectedKey = input.KeyCode
+                    keybind.SetButton.Text = "Set Keybind"
+                    keybind.Label.Text = "Keybind: " .. keybind.SelectedKey.Name
+                    keybind.IsSelecting = false
+                elseif keybind.SelectedKey and input.KeyCode == keybind.SelectedKey then
+                    keybind.Callback()
+                end
+            end)
+
+            return keybind
+        end
+
+        -- Create a color picker
+        function section:CreateColorPicker(options)
+            local colorPicker = {}
+            colorPicker.Color = options.default or Color3.fromRGB(255, 255, 255)
+            colorPicker.Callback = options.callback or function() end
+
+            local sliders = {"Red", "Green", "Blue"}
+            local colors = {Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 0, 255)}
+            colorPicker.Sliders = {}
+
+            for i, colorName in ipairs(sliders) do
+                local slider = {}
+                slider.Value = math.floor(colorPicker.Color[colorName:sub(1, 1)] * 255)
+
+                slider.Label = Instance.new("TextLabel")
+                slider.Label.Size = UDim2.new(0.8, 0, 0, 20)
+                slider.Label.BackgroundTransparency = 1
+                slider.Label.Text = colorName .. ": " .. slider.Value
+                slider.Label.TextColor3 = colors[i]
+                slider.Label.TextSize = 12
+                slider.Label.Font = Enum.Font.Code
+                slider.Label.Parent = toggle.SettingsFrame
+
+                slider.Frame = Instance.new("Frame")
+                slider.Frame.Size = UDim2.new(0.8, 0, 0, 20)
+                slider.Frame.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+                slider.Frame.BackgroundTransparency = 0.2
+                slider.Frame.BorderSizePixel = 1
+                slider.Frame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+                slider.Frame.Parent = toggle.SettingsFrame
+
+                createCorner(slider.Frame, 5)
+
+                slider.Knob = Instance.new("TextButton")
+                slider.Knob.Size = UDim2.new(0, 20, 1, 0)
+                slider.Knob.Position = UDim2.new(slider.Value / 255, 0, 0, 0)
+                slider.Knob.BackgroundColor3 = colors[i]
+                slider.Knob.BorderSizePixel = 1
+                slider.Knob.BorderColor3 = Color3.fromRGB(0, 255, 0)
+                slider.Knob.Text = ""
+                slider.Knob.Parent = slider.Frame
+
+                createCorner(slider.Knob, 5)
+
+                slider.IsDragging = false
+                slider.Knob.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        slider.IsDragging = true
+                    end
+                end)
+
+                slider.Knob.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        slider.IsDragging = false
+                    end
+                end)
+
+                UserInputService.InputChanged:Connect(function(input)
+                    if slider.IsDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local mousePos = input.Position.X
+                        local framePos = slider.Frame.AbsolutePosition.X
+                        local frameWidth = slider.Frame.AbsoluteSize.X - slider.Knob.AbsoluteSize.X
+                        local relativeX = math.clamp((mousePos - framePos) / frameWidth, 0, 1)
+
+                        slider.Knob.Position = UDim2.new(relativeX, 0, 0, 0)
+                        slider.Value = math.floor(255 * relativeX)
+                        slider.Label.Text = colorName .. ": " .. slider.Value
+
+                        local r = colorPicker.Sliders.Red.Value
+                        local g = colorPicker.Sliders.Green.Value
+                        local b = colorPicker.Sliders.Blue.Value
+                        colorPicker.Color = Color3.fromRGB(r, g, b)
+                        colorPicker.Callback(colorPicker.Color)
+                    end
+                end)
+
+                colorPicker.Sliders[colorName] = slider
             end
-        else
-            hideESP()
-        end
-    end)
 
-    plr.AncestryChanged:Connect(function()
-        if not plr:IsDescendantOf(game) then
-            hideESP()
-            connection:Disconnect()
+            return colorPicker
         end
-    end)
+
+        -- Create a label
+        function section:CreateLabel(options)
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(0.8, 0, 0, 30)
+            label.BackgroundColor3 = Color3.fromRGB(0, 50, 80)
+            label.BackgroundTransparency = 0.2
+            label.BorderSizePixel = 1
+            label.BorderColor3 = Color3.fromRGB(0, 255, 0)
+            label.Text = options.text or "Label"
+            label.TextColor3 = Color3.fromRGB(0, 255, 0)
+            label.TextSize = 14
+            label.Font = Enum.Font.Code
+            label.Parent = toggle.SettingsFrame
+
+            createCorner(label, 10)
+            return label
+        end
+
+        return section
+    end
+
+    return window
 end
 
--- Initialize ESP
-for _, plr in pairs(Players:GetPlayers()) do
-    if plr ~= localPlayer then
-        createESP(plr)
-    end
-end
-
-Players.PlayerAdded:Connect(function(plr)
-    createESP(plr)
-end)
-
--- Category Button Click Handler
-for _, category in ipairs(categories) do
-    UI.CategoryButtons[category].MouseButton1Click:Connect(function()
-        if activeCategory ~= category then
-            UI.CategoryFrames[activeCategory].Visible = false
-            UI.CategoryFrames[category].Visible = true
-            activeCategory = category
-        end
-    end)
-end
-
--- FlyingTitlesToggle Click Handler
-flyingTitlesToggle.MouseButton1Click:Connect(function()
-    flyingTitlesEnabled = not flyingTitlesEnabled
-    if flyingTitlesEnabled then
-        flyingTitlesToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        updateFlyingLabels()
-    else
-        flyingTitlesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        for _, label in ipairs(flyingLabels) do
-            label:Destroy()
-        end
-        flyingLabels = {}
-    end
-end)
-
--- RGBTitlesToggle Click Handler
-rgbTitlesToggle.MouseButton1Click:Connect(function()
-    rgbTitlesEnabled = not rgbTitlesEnabled
-    if rgbTitlesEnabled then
-        rgbTitlesToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        updateFlyingLabels()
-    else
-        rgbTitlesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        for _, label in ipairs(flyingLabels) do
-            if label.Parent then
-                label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            end
-        end
-    end
-end)
-
--- NotTransparencyToggle Click Handler
-notTransparencyToggle.MouseButton1Click:Connect(function()
-    notTransparencyEnabled = not notTransparencyEnabled
-    if notTransparencyEnabled then
-        notTransparencyToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        notTransparencyToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-    updateTransparency()
-end)
-
--- EnablePlayerESPToggle Click Handler
-enablePlayerESPToggle.MouseButton1Click:Connect(function()
-    playerESPEnabled = not playerESPEnabled
-    ESP.Enabled = playerESPEnabled
-    if playerESPEnabled then
-        enablePlayerESPToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        enablePlayerESPToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-end)
-
--- ShowHPToggle Click Handler
-showHPToggle.MouseButton1Click:Connect(function()
-    showHP = not showHP
-    ESP.Drawing.Healthbar.Enabled = showHP
-    if showHP then
-        showHPToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        showHPToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-end)
-
--- ShowDistanceToggle Click Handler
-showDistanceToggle.MouseButton1Click:Connect(function()
-    showDistance = not showDistance
-    ESP.Drawing.Distances.Enabled = showDistance
-    if showDistance then
-        showDistanceToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        showDistanceToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-end)
-
--- ShowNameToggle Click Handler
-showNameToggle.MouseButton1Click:Connect(function()
-    showName = not showName
-    ESP.Drawing.Names.Enabled = showName
-    if showName then
-        showNameToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        showNameToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-end)
-
--- EnableBoxesToggle Click Handler
-enableBoxesToggle.MouseButton1Click:Connect(function()
-    boxesEnabled = not boxesEnabled
-    ESP.Drawing.Boxes.Full.Enabled = boxesEnabled
-    if boxesEnabled then
-        enableBoxesToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    else
-        enableBoxesToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end
-end)
-
--- BoxColorButton Click Handler
-boxColorButton.MouseButton1Click:Connect(function()
-    local colors = {
-        Color3.fromRGB(255, 0, 0),
-        Color3.fromRGB(0, 255, 0),
-        Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0),
-        Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(0, 255, 255),
-    }
-    boxColor = colors[math.random(1, #colors)]
-    ESP.Drawing.Boxes.Full.RGB = boxColor
-    boxColorButton.BackgroundColor3 = boxColor
-end)
-
--- Slider Handlers
-sliderHandle.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDragging = true
-    end
-end)
-
-sliderHandle.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDragging = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local sliderWidth = sliderFrame.AbsoluteSize.X
-        local mouseX = input.Position.X - sliderFrame.AbsolutePosition.X
-        local newX = math.clamp(mouseX, 0, sliderWidth - sliderHandle.AbsoluteSize.X)
-        sliderHandle.Position = UDim2.new(0, newX, 0, -5)
-
-        local ratio = newX / (sliderWidth - sliderHandle.AbsoluteSize.X)
-        currentLabelCount = math.floor(minLabelCount + (maxLabelCount - minLabelCount) * ratio)
-        updateFlyingLabels()
-    end
-end)
-
--- KeybindButton Click Handler
-keybindButton.MouseButton1Click:Connect(function()
-    isBinding = true
-    keybindButton.Text = "Press a key..."
-end)
-
--- Input Handler
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-
-    if isBinding then
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            currentHideKey = input.KeyCode
-            keybindButton.Text = input.KeyCode.Name
-            isBinding = false
-        end
-    elseif input.KeyCode == currentHideKey then
-        UI.ScreenGui.Enabled = not UI.ScreenGui.Enabled
-    end
-end)
+return UILibrary
