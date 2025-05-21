@@ -1,1 +1,854 @@
+-- init
+if not game:IsLoaded() then 
+    game.Loaded:Wait()
+end
 
+if not syn or not protectgui then
+    getgenv().protectgui = function() end
+end
+
+local SilentAimSettings = {
+    Enabled = false,
+    EspEnabled = false,
+    EspBoxVisible = true,
+    EspHealthBarVisible = true,
+    EspNameTagVisible = true,
+    EspDistanceTagVisible = true,
+    EspTracerVisible = true,
+    EspBoxThickness = 3,
+    EspHealthBarThickness = 2,
+    EspTracerThickness = 2,
+    EspNameTagSize = 9,
+    EspDistanceTagSize = 9,
+    FOVVisible = false,
+    FOVRadius = 130,
+    FOVThickness = 1,
+    ShowSilentAimTarget = false,
+    ViewModelFOV = 70,
+    NoFog = false,
+    NoShadow = false,
+    ForceDay = false,
+    ClassName = "MIDLITE ROST RELEASE",
+    ToggleKey = "RightAlt",
+    TeamCheck = false,
+    VisibleCheck = false, 
+    TargetPart = "HumanoidRootPart",
+    HitChance = 100,
+    BackgroundTextCount = 10,
+    BackgroundTextSpeed = 2,
+    BackgroundTextMinSize = 80,
+    BackgroundTextMaxSize = 200,
+    BackgroundColorTransitionSpeed = 1,
+    BackgroundEffectEnabled = false,
+    AspectRatioEnabled = true,
+    RatioValue = 0.6
+}
+
+-- variables
+getgenv().SilentAimSettings = SilentAimSettings
+
+local MainFileName = "MIDLITE_ROST"
+local SelectedFile, FileToSave = "", ""
+
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local GetChildren = game.GetChildren
+local GetPlayers = Players.GetPlayers
+local WorldToScreen = Camera.WorldToScreenPoint
+local WorldToViewportPoint = Camera.WorldToViewportPoint
+local GetPartsObscuringTarget = Camera.GetPartsObscuringTarget
+local FindFirstChild = game.FindFirstChild
+local RenderStepped = RunService.RenderStepped
+local Heartbeat = RunService.Heartbeat
+local GuiInset = GuiService.GetGuiInset
+local GetMouseLocation = UserInputService.GetMouseLocation
+
+local resume = coroutine.resume 
+local create = coroutine.create
+
+local ValidTargetParts = {"Head", "HumanoidRootPart"}
+
+local mouse_box = Drawing.new("Square")
+mouse_box.Visible = true 
+mouse_box.ZIndex = 999 
+mouse_box.Color = Color3.fromRGB(54, 57, 241)
+mouse_box.Thickness = 20 
+mouse_box.Size = Vector2.new(20, 20)
+mouse_box.Filled = true 
+
+local fov_circle = Drawing.new("Circle")
+fov_circle.Thickness = SilentAimSettings.FOVThickness
+fov_circle.NumSides = 100
+fov_circle.Radius = SilentAimSettings.FOVRadius
+fov_circle.Filled = false
+fov_circle.Visible = SilentAimSettings.FOVVisible
+fov_circle.ZIndex = 999
+fov_circle.Transparency = 1
+fov_circle.Color = Color3.fromRGB(54, 57, 241)
+
+local ExpectedArguments = {
+    Raycast = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Vector3", "Vector3", "RaycastParams"
+        }
+    }
+}
+
+-- Store initial Lighting values
+local InitialFogStart = Lighting.FogStart
+local InitialFogEnd = Lighting.FogEnd
+local InitialFogColor = Lighting.FogColor
+local InitialGlobalShadows = Lighting.GlobalShadows
+local InitialClockTime = Lighting.ClockTime
+local ForceDayConnection
+
+-- FPS and Ping variables
+local FrameTime = 0
+local FrameCount = 0
+local LastTime = tick()
+local FPS = 0
+local Ping = 0
+
+-- Background effect variables
+local BackgroundTexts = {}
+local DarkPurple = Color3.fromRGB(30, 0, 60)
+local LightPurple = Color3.fromRGB(150, 120, 255)
+local MenuVisible = true -- Menu starts visible due to AutoShow = true
+
+function CalculateChance(Percentage)
+    Percentage = math.floor(Percentage)
+    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+    return chance <= Percentage / 100
+end
+
+-- file handling
+do 
+    if not isfolder(MainFileName) then 
+        makefolder(MainFileName)
+    end
+    
+    if not isfolder(string.format("%s/%s", MainFileName, tostring(game.PlaceId))) then 
+        makefolder(string.format("%s/%s", MainFileName, tostring(game.PlaceId)))
+    end
+end
+
+local Files = listfiles(string.format("%s/%s", MainFileName, tostring(game.PlaceId)))
+
+-- functions
+local function GetFiles()
+    local out = {}
+    for i = 1, #Files do
+        local file = Files[i]
+        if file:sub(-4) == '.lua' then
+            local pos = file:find('.lua', 1, true)
+            local start = pos
+            local char = file:sub(pos, pos)
+            while char ~= '/' and char ~= '\\' and char ~= '' do
+                pos = pos - 1
+                char = file:sub(pos, pos)
+            end
+            if char == '/' or char == '\\' then
+                table.insert(out, file:sub(pos + 1, start - 1))
+            end
+        end
+    end
+    return out
+end
+
+local function UpdateFile(FileName)
+    assert(type(FileName) == "string", "FileName must be a string")
+    writefile(string.format("%s/%s/%s.lua", MainFileName, tostring(game.PlaceId), FileName), HttpService:JSONEncode(SilentAimSettings))
+end
+
+local function LoadFile(FileName)
+    assert(type(FileName) == "string", "FileName must be a string")
+    local File = string.format("%s/%s/%s.lua", MainFileName, tostring(game.PlaceId), FileName)
+    local ConfigData = HttpService:JSONDecode(readfile(File))
+    for Index, Value in next, ConfigData do
+        SilentAimSettings[Index] = Value
+    end
+end
+
+local function getPositionOnScreen(Vector)
+    local Vec3, OnScreen = WorldToScreen(Camera, Vector)
+    return Vector2.new(Vec3.X, Vec3.Y), OnScreen
+end
+
+local function ValidateArguments(Args, RayMethod)
+    local Matches = 0
+    if #Args < RayMethod.ArgCountRequired then
+        return false
+    end
+    for Pos, Argument in next, Args do
+        if typeof(Argument) == RayMethod.Args[Pos] then
+            Matches = Matches + 1
+        end
+    end
+    return Matches >= RayMethod.ArgCountRequired
+end
+
+local function getDirection(Origin, Position)
+    return (Position - Origin).Unit * 1000
+end
+
+local function getMousePosition()
+    return GetMouseLocation(UserInputService)
+end
+
+local function IsPlayerVisible(Player)
+    local PlayerCharacter = Player.Character
+    local LocalPlayerCharacter = LocalPlayer.Character
+    
+    if not (PlayerCharacter and LocalPlayerCharacter) then return end 
+    
+    local PlayerRoot = FindFirstChild(PlayerCharacter, SilentAimSettings.TargetPart) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+    
+    if not PlayerRoot then return end 
+    
+    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+    local ObscuringObjects = #GetPartsObscuringTarget(Camera, CastPoints, IgnoreList)
+    
+    return ObscuringObjects == 0
+end
+
+local function getClosestPlayer()
+    if not SilentAimSettings.TargetPart then return end
+    local Closest
+    local DistanceToMouse
+    for _, Player in next, GetPlayers(Players) do
+        if Player == LocalPlayer then continue end
+        if SilentAimSettings.TeamCheck and Player.Team == LocalPlayer.Team then continue end
+
+        local Character = Player.Character
+        if not Character then continue end
+        
+        if SilentAimSettings.VisibleCheck and not IsPlayerVisible(Player) then continue end
+
+        local HumanoidRootPart = FindFirstChild(Character, "HumanoidRootPart")
+        local Humanoid = FindFirstChild(Character, "Humanoid")
+        if not HumanoidRootPart or not Humanoid or Humanoid.Health <= 0 then continue end
+
+        local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
+        if not OnScreen then continue end
+
+        local Distance = (getMousePosition() - ScreenPosition).Magnitude
+        if Distance <= (DistanceToMouse or SilentAimSettings.FOVRadius or 2000) then
+            Closest = ((SilentAimSettings.TargetPart == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[SilentAimSettings.TargetPart])
+            DistanceToMouse = Distance
+        end
+    end
+    return Closest
+end
+
+-- ESP functionality
+local ESPObjects = {}
+local HeadOff = Vector3.new(0, 0.5, 0)
+local LegOff = Vector3.new(0, 3, 0)
+
+local function createBoxEsp(v)
+    if ESPObjects[v] then return end
+
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = v.TeamColor.Color
+    Box.Thickness = SilentAimSettings.EspBoxThickness
+    Box.Transparency = 1
+    Box.Filled = false
+
+    local HealthBar = Drawing.new("Line")
+    HealthBar.Visible = false
+    HealthBar.Color = Color3.new(0, 1, 0)
+    HealthBar.Thickness = SilentAimSettings.EspHealthBarThickness
+
+    local NameTag = Drawing.new("Text")
+    NameTag.Visible = false
+    NameTag.Color = Color3.new(1, 1, 1)
+    NameTag.Size = SilentAimSettings.EspNameTagSize
+    NameTag.Center = true
+    NameTag.Outline = true
+    NameTag.OutlineColor = Color3.new(0, 0, 0)
+
+    local DistanceTag = Drawing.new("Text")
+    DistanceTag.Visible = false
+    DistanceTag.Color = Color3.new(1, 1, 1)
+    DistanceTag.Size = SilentAimSettings.EspDistanceTagSize
+    DistanceTag.Center = true
+    DistanceTag.Outline = true
+    DistanceTag.OutlineColor = Color3.new(0, 0, 0)
+
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+    Tracer.Color = v.TeamColor.Color
+    Tracer.Thickness = SilentAimSettings.EspTracerThickness
+
+    ESPObjects[v] = {Box = Box, HealthBar = HealthBar, NameTag = NameTag, DistanceTag = DistanceTag, Tracer = Tracer}
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if SilentAimSettings.EspEnabled and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("HumanoidRootPart") and v ~= LocalPlayer and v.Character.Humanoid.Health > 0 then
+            if SilentAimSettings.TeamCheck and v.Team == LocalPlayer.Team then
+                Box.Visible = false
+                HealthBar.Visible = false
+                NameTag.Visible = false
+                DistanceTag.Visible = false
+                Tracer.Visible = false
+                return
+            end
+
+            local Vector, onScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
+            local RootPart = v.Character.HumanoidRootPart
+            local Head = v.Character.Head
+            local RootPosition = WorldToViewportPoint(Camera, RootPart.Position)
+            local HeadPosition = WorldToViewportPoint(Camera, Head.Position + HeadOff)
+            local LegPosition = WorldToViewportPoint(Camera, RootPart.Position - LegOff)
+
+            Box.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+            Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+            Box.Thickness = SilentAimSettings.EspBoxThickness
+
+            local health = v.Character.Humanoid.Health / v.Character.Humanoid.MaxHealth
+            HealthBar.From = Vector2.new(Box.Position.X + Box.Size.X + 5, Box.Position.Y + Box.Size.Y * (1 - health))
+            HealthBar.To = Vector2.new(Box.Position.X + Box.Size.X + 5, Box.Position.Y + Box.Size.Y)
+            HealthBar.Color = Color3.new(1 - health, health, 0)
+            HealthBar.Thickness = SilentAimSettings.EspHealthBarThickness
+
+            NameTag.Position = Vector2.new(Box.Position.X + Box.Size.X / 2, Box.Position.Y - 20)
+            NameTag.Text = v.Name
+            NameTag.Size = SilentAimSettings.EspNameTagSize
+
+            DistanceTag.Position = Vector2.new(Box.Position.X + Box.Size.X / 2, Box.Position.Y + Box.Size.Y)
+            DistanceTag.Text = tostring(math.floor((LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart and (LocalPlayer.Character.HumanoidRootPart.Position - RootPart.Position).Magnitude) or 0)) .. "m"
+            DistanceTag.Size = SilentAimSettings.EspDistanceTagSize
+
+            Tracer.From = Vector2.new(Camera:WorldToViewportPoint((LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head") and LocalPlayer.Character.Head.Position) or Vector3.new()).X, Camera:WorldToViewportPoint((LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head") and LocalPlayer.Character.Head.Position) or Vector3.new()).Y)
+            Tracer.To = Vector2.new(RootPosition.X, RootPosition.Y)
+            Tracer.Thickness = SilentAimSettings.EspTracerThickness
+
+            Box.Visible = onScreen and SilentAimSettings.EspBoxVisible
+            HealthBar.Visible = onScreen and SilentAimSettings.EspHealthBarVisible
+            NameTag.Visible = onScreen and SilentAimSettings.EspNameTagVisible
+            DistanceTag.Visible = onScreen and SilentAimSettings.EspDistanceTagVisible
+            Tracer.Visible = onScreen and SilentAimSettings.EspTracerVisible
+        else
+            Box.Visible = false
+            HealthBar.Visible = false
+            NameTag.Visible = false
+            DistanceTag.Visible = false
+            Tracer.Visible = false
+        end
+    end)
+
+    v.AncestryChanged:Connect(function()
+        if not v.Parent then
+            Box:Remove()
+            HealthBar:Remove()
+            NameTag:Remove()
+            DistanceTag:Remove()
+            Tracer:Remove()
+            ESPObjects[v] = nil
+            connection:Disconnect()
+        end
+    end)
+end
+
+for _, v in pairs(Players:GetChildren()) do
+    createBoxEsp(v)
+end
+
+Players.PlayerAdded:Connect(function(v)
+    createBoxEsp(v)
+end)
+
+Players.PlayerRemoving:Connect(function(v)
+    if ESPObjects[v] then
+        ESPObjects[v].Box:Remove()
+        ESPObjects[v].HealthBar:Remove()
+        ESPObjects[v].NameTag:Remove()
+        ESPObjects[v].DistanceTag:Remove()
+        ESPObjects[v].Tracer:Remove()
+        ESPObjects[v] = nil
+    end
+end)
+
+-- Environment controls
+local function UpdateEnvironment()
+    if SilentAimSettings.NoFog then
+        Lighting.FogStart = 0
+        Lighting.FogEnd = 999999
+        Lighting.FogColor = InitialFogColor
+    else
+        Lighting.FogStart = InitialFogStart
+        Lighting.FogEnd = InitialFogEnd
+        Lighting.FogColor = InitialFogColor
+    end
+
+    if SilentAimSettings.NoShadow then
+        Lighting.GlobalShadows = false
+    else
+        Lighting.GlobalShadows = InitialGlobalShadows
+    end
+
+    if SilentAimSettings.ForceDay then
+        if not ForceDayConnection then
+            ForceDayConnection = Heartbeat:Connect(function()
+                Lighting.ClockTime = 12
+            end)
+        end
+    else
+        if ForceDayConnection then
+            ForceDayConnection:Disconnect()
+            ForceDayConnection = nil
+            Lighting.ClockTime = InitialClockTime
+        end
+    end
+end
+
+-- Apply initial ViewModel FOV
+if Camera.FieldOfView >= 70 then
+    Camera.FieldOfView = SilentAimSettings.ViewModelFOV
+end
+
+-- Background effect setup
+local function CreateBackgroundText()
+    local text = Drawing.new("Text")
+    text.Text = "MIDLITE ROST RELEASE"
+    text.Size = math.random(SilentAimSettings.BackgroundTextMinSize, SilentAimSettings.BackgroundTextMaxSize)
+    text.Color = DarkPurple
+    text.Position = Vector2.new(math.random(0, Camera.ViewportSize.X), math.random(0, Camera.ViewportSize.Y))
+    text.ZIndex = 1
+    text.Center = true
+    text.Outline = true
+    text.OutlineColor = Color3.new(0, 0, 0)
+    text.Visible = SilentAimSettings.BackgroundEffectEnabled and MenuVisible
+    return {
+        Object = text,
+        Velocity = Vector2.new(math.random(-1, 1) * SilentAimSettings.BackgroundTextSpeed, math.random(-1, 1) * SilentAimSettings.BackgroundTextSpeed),
+        ColorPhase = math.random()
+    }
+end
+
+local function UpdateBackgroundEffect()
+    for _, text in pairs(BackgroundTexts) do
+        text.Object:Remove()
+    end
+    BackgroundTexts = {}
+    for i = 1, SilentAimSettings.BackgroundTextCount do
+        table.insert(BackgroundTexts, CreateBackgroundText())
+    end
+end
+
+-- Aspect Ratio hook
+local oldNewindex
+oldNewindex = hookmetamethod(game, "__newindex", function(object, propertyName, propertyValue)
+    if object == Camera and propertyName == "CFrame" then
+        if SilentAimSettings.AspectRatioEnabled then
+            propertyValue = propertyValue * CFrame.new(0, 0, 0, 1, 0, 0, 0, SilentAimSettings.RatioValue, 0, 0, 0, 1)
+        end
+    end
+    return oldNewindex(object, propertyName, propertyValue)
+end)
+
+-- ui creating & handling
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
+Library:SetWatermark(string.format("MidLIte | %d FPS | %d ms", FPS, Ping))
+
+local Window = Library:CreateWindow({Title = 'MIDLITE ROST RELEASE', Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0.2})
+
+-- Combat Tab
+local CombatTab = Window:AddTab("Combat")
+local CombatBOX = CombatTab:AddLeftTabbox("Silent Aim") do
+    local Main = CombatBOX:AddTab("Silent Aim")
+    
+    Main:AddToggle("aim_Enabled", {Text = "Enabled"}):AddKeyPicker("aim_Enabled_KeyPicker", {Default = "RightAlt", SyncToggleState = true, Mode = "Toggle", Text = "Enabled", NoUI = false})
+    Options.aim_Enabled_KeyPicker:OnClick(function()
+        SilentAimSettings.Enabled = not SilentAimSettings.Enabled
+        Toggles.aim_Enabled.Value = SilentAimSettings.Enabled
+        Toggles.aim_Enabled:SetValue(SilentAimSettings.Enabled)
+        mouse_box.Visible = SilentAimSettings.Enabled
+    end)
+    
+    Main:AddToggle("TeamCheck", {Text = "Team Check", Default = SilentAimSettings.TeamCheck}):OnChanged(function()
+        SilentAimSettings.TeamCheck = Toggles.TeamCheck.Value
+    end)
+    Main:AddToggle("VisibleCheck", {Text = "Visible Check", Default = SilentAimSettings.VisibleCheck}):OnChanged(function()
+        SilentAimSettings.VisibleCheck = Toggles.VisibleCheck.Value
+    end)
+    Main:AddDropdown("TargetPart", {AllowNull = true, Text = "Target Part", Default = SilentAimSettings.TargetPart, Values = {"Head", "HumanoidRootPart", "Random"}}):OnChanged(function()
+        SilentAimSettings.TargetPart = Options.TargetPart.Value
+    end)
+    Main:AddSlider('HitChance', {
+        Text = 'Hit Chance',
+        Default = 100,
+        Min = 0,
+        Max = 100,
+        Rounding = 1,
+        Compact = false,
+    })
+    Options.HitChance:OnChanged(function()
+        SilentAimSettings.HitChance = Options.HitChance.Value
+    end)
+    Main:AddToggle("FOVVisible", {Text = "Show FOV Circle", Default = SilentAimSettings.FOVVisible}):AddColorPicker("FOVColor", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
+        fov_circle.Visible = Toggles.FOVVisible.Value
+        SilentAimSettings.FOVVisible = Toggles.FOVVisible.Value
+        fov_circle.Color = Options.FOVColor.Value
+    end)
+    Main:AddSlider("FOVRadius", {Text = "FOV Circle Radius", Min = 0, Max = 360, Default = SilentAimSettings.FOVRadius, Rounding = 0}):OnChanged(function()
+        fov_circle.Radius = Options.FOVRadius.Value
+        SilentAimSettings.FOVRadius = Options.FOVRadius.Value
+    end)
+    Main:AddSlider("FOVThickness", {Text = "FOV Circle Thickness", Min = 1, Max = 5, Default = SilentAimSettings.FOVThickness, Rounding = 0}):OnChanged(function()
+        fov_circle.Thickness = Options.FOVThickness.Value
+        SilentAimSettings.FOVThickness = Options.FOVThickness.Value
+    end)
+    Main:AddToggle("MousePosition", {Text = "Show Silent Aim Target"}):AddColorPicker("MouseVisualizeColor", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
+        mouse_box.Visible = Toggles.MousePosition.Value 
+        SilentAimSettings.ShowSilentAimTarget = Toggles.MousePosition.Value 
+        mouse_box.Color = Options.MouseVisualizeColor.Value
+    end)
+end
+
+-- Visual Tab
+local VisualTab = Window:AddTab("Visual")
+local ViewModelBOX = VisualTab:AddLeftTabbox("View Model") do
+    local ViewModel = ViewModelBOX:AddTab("View Model")
+    
+    ViewModel:AddSlider("ViewModelFOV", {Text = "Camera FOV", Min = 70, Max = 120, Default = SilentAimSettings.ViewModelFOV, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.ViewModelFOV = Options.ViewModelFOV.Value
+        if Camera.FieldOfView >= 70 then
+            Camera.FieldOfView = SilentAimSettings.ViewModelFOV
+        end
+    end)
+end
+
+local VisualBOX = VisualTab:AddLeftTabbox("ESP") do
+    local ESP = VisualBOX:AddTab("ESP")
+    
+    ESP:AddToggle("EspEnabled", {Text = "Enable ESP", Default = SilentAimSettings.EspEnabled}):OnChanged(function()
+        SilentAimSettings.EspEnabled = Toggles.EspEnabled.Value
+    end)
+    ESP:AddToggle("EspBoxVisible", {Text = "Show Box", Default = SilentAimSettings.EspBoxVisible}):OnChanged(function()
+        SilentAimSettings.EspBoxVisible = Toggles.EspBoxVisible.Value
+    end)
+    ESP:AddToggle("EspHealthBarVisible", {Text = "Show Health Bar", Default = SilentAimSettings.EspHealthBarVisible}):OnChanged(function()
+        SilentAimSettings.EspHealthBarVisible = Toggles.EspHealthBarVisible.Value
+    end)
+    ESP:AddToggle("EspNameTagVisible", {Text = "Show Name Tag", Default = SilentAimSettings.EspNameTagVisible}):OnChanged(function()
+        SilentAimSettings.EspNameTagVisible = Toggles.EspNameTagVisible.Value
+    end)
+    ESP:AddToggle("EspDistanceTagVisible", {Text = "Show Distance Tag", Default = SilentAimSettings.EspDistanceTagVisible}):OnChanged(function()
+        SilentAimSettings.EspDistanceTagVisible = Toggles.EspDistanceTagVisible.Value
+    end)
+    ESP:AddToggle("EspTracerVisible", {Text = "Show Tracer", Default = SilentAimSettings.EspTracerVisible}):OnChanged(function()
+        SilentAimSettings.EspTracerVisible = Toggles.EspTracerVisible.Value
+    end)
+    ESP:AddSlider("EspBoxThickness", {Text = "Box Thickness", Min = 1, Max = 5, Default = SilentAimSettings.EspBoxThickness, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.EspBoxThickness = Options.EspBoxThickness.Value
+    end)
+    ESP:AddSlider("EspHealthBarThickness", {Text = "Health Bar Thickness", Min = 1, Max = 5, Default = SilentAimSettings.EspHealthBarThickness, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.EspHealthBarThickness = Options.EspHealthBarThickness.Value
+    end)
+    ESP:AddSlider("EspTracerThickness", {Text = "Tracer Thickness", Min = 1, Max = 5, Default = SilentAimSettings.EspTracerThickness, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.EspTracerThickness = Options.EspTracerThickness.Value
+    end)
+    ESP:AddSlider("EspNameTagSize", {Text = "Name Tag Size", Min = 8, Max = 14, Default = SilentAimSettings.EspNameTagSize, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.EspNameTagSize = Options.EspNameTagSize.Value
+    end)
+    ESP:AddSlider("EspDistanceTagSize", {Text = "Distance Tag Size", Min = 8, Max = 14, Default = SilentAimSettings.EspDistanceTagSize, Rounding = 0}):OnChanged(function()
+        SilentAimSettings.EspDistanceTagSize = Options.EspDistanceTagSize.Value
+    end)
+end
+
+local EnvironmentBOX = VisualTab:AddRightTabbox("Environment") do
+    local Environment = EnvironmentBOX:AddTab("Environment")
+    
+    Environment:AddToggle("NoFog", {Text = "No Fog", Default = SilentAimSettings.NoFog}):OnChanged(function()
+        SilentAimSettings.NoFog = Toggles.NoFog.Value
+        UpdateEnvironment()
+    end)
+    Environment:AddToggle("NoShadow", {Text = "No Shadow", Default = SilentAimSettings.NoShadow}):OnChanged(function()
+        SilentAimSettings.NoShadow = Toggles.NoShadow.Value
+        UpdateEnvironment()
+    end)
+    Environment:AddToggle("ForceDay", {Text = "Force Day", Default = SilentAimSettings.ForceDay}):OnChanged(function()
+        SilentAimSettings.ForceDay = Toggles.ForceDay.Value
+        UpdateEnvironment()
+    end)
+end
+
+-- Profile Tab
+local ProfileTab = Window:AddTab("Profile")
+local CreateConfigurationBOX = ProfileTab:AddLeftTabbox("Create Configuration") do 
+    local Main = CreateConfigurationBOX:AddTab("Create Configuration")
+    
+    Main:AddInput("CreateConfigTextBox", {Default = "", Numeric = false, Finished = false, Text = "Create Configuration to Create", Tooltip = "Creates a configuration file containing settings you can save and load", Placeholder = "File Name here"}):OnChanged(function()
+        if Options.CreateConfigTextBox.Value and string.len(Options.CreateConfigTextBox.Value) ~= "" then 
+            FileToSave = Options.CreateConfigTextBox.Value
+        end
+    end)
+    
+    Main:AddButton("Create Configuration File", function()
+        if FileToSave ~= "" or FileToSave ~= nil then 
+            UpdateFile(FileToSave)
+        end
+    end)
+end
+
+local SaveConfigurationBOX = ProfileTab:AddLeftTabbox("Save Configuration") do 
+    local Main = SaveConfigurationBOX:AddTab("Save Configuration")
+    Main:AddDropdown("SaveConfigurationDropdown", {AllowNull = true, Values = GetFiles(), Text = "Choose Configuration to Save"})
+    Main:AddButton("Save Configuration", function()
+        if Options.SaveConfigurationDropdown.Value then 
+            UpdateFile(Options.SaveConfigurationDropdown.Value)
+        end
+    end)
+end
+
+local LoadConfigurationBOX = ProfileTab:AddLeftTabbox("Load Configuration") do 
+    local Main = LoadConfigurationBOX:AddTab("Load Configuration")
+    
+    Main:AddDropdown("LoadConfigurationDropdown", {AllowNull = true, Values = GetFiles(), Text = "Choose Configuration to Load"})
+    Main:AddButton("Load Configuration", function()
+        if table.find(GetFiles(), Options.LoadConfigurationDropdown.Value) then
+            LoadFile(Options.LoadConfigurationDropdown.Value)
+            
+            Toggles.aim_Enabled:SetValue(SilentAimSettings.Enabled)
+            Toggles.TeamCheck:SetValue(SilentAimSettings.TeamCheck)
+            Toggles.VisibleCheck:SetValue(SilentAimSettings.VisibleCheck)
+            Options.TargetPart:SetValue(SilentAimSettings.TargetPart)
+            Options.HitChance:SetValue(SilentAimSettings.HitChance)
+            Toggles.FOVVisible:SetValue(SilentAimSettings.FOVVisible)
+            Options.FOVRadius:SetValue(SilentAimSettings.FOVRadius)
+            Options.FOVThickness:SetValue(SilentAimSettings.FOVThickness)
+            Toggles.MousePosition:SetValue(SilentAimSettings.ShowSilentAimTarget)
+            Options.ViewModelFOV:SetValue(SilentAimSettings.ViewModelFOV)
+            Toggles.EspEnabled:SetValue(SilentAimSettings.EspEnabled)
+            Toggles.EspBoxVisible:SetValue(SilentAimSettings.EspBoxVisible)
+            Toggles.EspHealthBarVisible:SetValue(SilentAimSettings.EspHealthBarVisible)
+            Toggles.EspNameTagVisible:SetValue(SilentAimSettings.EspNameTagVisible)
+            Toggles.EspDistanceTagVisible:SetValue(SilentAimSettings.EspDistanceTagVisible)
+            Toggles.EspTracerVisible:SetValue(SilentAimSettings.EspTracerVisible)
+            Options.EspBoxThickness:SetValue(SilentAimSettings.EspBoxThickness)
+            Options.EspHealthBarThickness:SetValue(SilentAimSettings.EspHealthBarThickness)
+            Options.EspTracerThickness:SetValue(SilentAimSettings.EspTracerThickness)
+            Options.EspNameTagSize:SetValue(SilentAimSettings.EspNameTagSize)
+            Options.EspDistanceTagSize:SetValue(SilentAimSettings.EspDistanceTagSize)
+            Toggles.NoFog:SetValue(SilentAimSettings.NoFog)
+            Toggles.NoShadow:SetValue(SilentAimSettings.NoShadow)
+            Toggles.ForceDay:SetValue(SilentAimSettings.ForceDay)
+            Options.BackgroundTextCount:SetValue(SilentAimSettings.BackgroundTextCount)
+            Options.BackgroundTextSpeed:SetValue(SilentAimSettings.BackgroundTextSpeed)
+            Options.BackgroundTextMinSize:SetValue(SilentAimSettings.BackgroundTextMinSize)
+            Options.BackgroundTextMaxSize:SetValue(SilentAimSettings.BackgroundTextMaxSize)
+            Options.BackgroundColorTransitionSpeed:SetValue(SilentAimSettings.BackgroundColorTransitionSpeed)
+            Toggles.BackgroundEffectEnabled:SetValue(SilentAimSettings.BackgroundEffectEnabled)
+            Toggles.AspectRatioEnabled:SetValue(SilentAimSettings.AspectRatioEnabled)
+            Options.RatioValue:SetValue(SilentAimSettings.RatioValue)
+
+            UpdateEnvironment()
+            if Camera.FieldOfView >= 70 then
+                Camera.FieldOfView = SilentAimSettings.ViewModelFOV
+            end
+            UpdateBackgroundEffect()
+        end
+    end)
+end
+
+local BackgroundEffectBOX = ProfileTab:AddRightTabbox("Background Effect") do
+    local Main = BackgroundEffectBOX:AddTab("Background Effect")
+    
+    Main:AddToggle("BackgroundEffectEnabled", {Text = "Enable Background Effect", Default = SilentAimSettings.BackgroundEffectEnabled}):OnChanged(function()
+        SilentAimSettings.BackgroundEffectEnabled = Toggles.BackgroundEffectEnabled.Value
+        UpdateBackgroundEffect()
+    end)
+    Main:AddSlider("BackgroundTextCount", {
+        Text = "Text Count",
+        Default = SilentAimSettings.BackgroundTextCount,
+        Min = 5,
+        Max = 20,
+        Rounding = 0
+    }):OnChanged(function()
+        SilentAimSettings.BackgroundTextCount = Options.BackgroundTextCount.Value
+        UpdateBackgroundEffect()
+    end)
+    Main:AddSlider("BackgroundTextSpeed", {
+        Text = "Text Speed",
+        Default = SilentAimSettings.BackgroundTextSpeed,
+        Min = 0.5,
+        Max = 5,
+        Rounding = 1
+    }):OnChanged(function()
+        SilentAimSettings.BackgroundTextSpeed = Options.BackgroundTextSpeed.Value
+        UpdateBackgroundEffect()
+    end)
+    Main:AddSlider("BackgroundTextMinSize", {
+        Text = "Min Text Size",
+        Default = SilentAimSettings.BackgroundTextMinSize,
+        Min = 50,
+        Max = 150,
+        Rounding = 0
+    }):OnChanged(function()
+        SilentAimSettings.BackgroundTextMinSize = Options.BackgroundTextMinSize.Value
+        UpdateBackgroundEffect()
+    end)
+    Main:AddSlider("BackgroundTextMaxSize", {
+        Text = "Max Text Size",
+        Default = SilentAimSettings.BackgroundTextMaxSize,
+        Min = 100,
+        Max = 300,
+        Rounding = 0
+    }):OnChanged(function()
+        SilentAimSettings.BackgroundTextMaxSize = Options.BackgroundTextMaxSize.Value
+        UpdateBackgroundEffect()
+    end)
+    Main:AddSlider("BackgroundColorTransitionSpeed", {
+        Text = "Color Transition Speed",
+        Default = SilentAimSettings.BackgroundColorTransitionSpeed,
+        Min = 0.1,
+        Max = 2,
+        Rounding = 1
+    }):OnChanged(function()
+        SilentAimSettings.BackgroundColorTransitionSpeed = Options.BackgroundColorTransitionSpeed.Value
+    end)
+end
+
+local AspectRatioBOX = ProfileTab:AddRightTabbox("Aspect Ratio") do
+    local Main = AspectRatioBOX:AddTab("Aspect Ratio")
+    
+    Main:AddToggle("AspectRatioEnabled", {Text = "Enable Aspect Ratio", Default = SilentAimSettings.AspectRatioEnabled}):OnChanged(function()
+        SilentAimSettings.AspectRatioEnabled = Toggles.AspectRatioEnabled.Value
+    end)
+    Main:AddSlider("RatioValue", {
+        Text = "Ratio Value",
+        Default = SilentAimSettings.RatioValue,
+        Min = 0.1,
+        Max = 2.0,
+        Rounding = 2
+    }):OnChanged(function()
+        SilentAimSettings.RatioValue = Options.RatioValue.Value
+    end)
+end
+
+-- Track menu visibility via RightShift key
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        MenuVisible = not MenuVisible
+        -- Update background effect visibility
+        for _, text in pairs(BackgroundTexts) do
+            text.Object.Visible = SilentAimSettings.BackgroundEffectEnabled and MenuVisible
+        end
+    end
+end)
+
+resume(create(function()
+    RenderStepped:Connect(function(delta)
+        -- Update FPS
+        FrameTime = FrameTime + delta
+        FrameCount = FrameCount + 1
+        if FrameTime >= 1 then
+            FPS = math.floor(FrameCount / FrameTime)
+            FrameTime = 0
+            FrameCount = 0
+        end
+
+        -- Update Ping
+        Ping = math.floor((LocalPlayer:GetNetworkPing() * 1000) or 0)
+
+        -- Update Watermark
+        Library:SetWatermark(string.format("MidLIte | %d FPS | %d ms", FPS, Ping))
+
+        -- Silent Aim Target Visualization
+        if Toggles.MousePosition.Value and Toggles.aim_Enabled.Value then
+            if getClosestPlayer() then 
+                local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
+                local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Camera, Root.Position)
+                mouse_box.Visible = IsOnScreen
+                mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
+            else 
+                mouse_box.Visible = false 
+                mouse_box.Position = Vector2.new()
+            end
+        end
+        
+        -- FOV Circle
+        if Toggles.FOVVisible.Value then 
+            fov_circle.Visible = Toggles.FOVVisible.Value
+            fov_circle.Color = Options.FOVColor.Value
+            fov_circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+            fov_circle.Radius = SilentAimSettings.FOVRadius
+            fov_circle.Thickness = SilentAimSettings.FOVThickness
+        else
+            fov_circle.Visible = false
+        end
+
+        -- Initialize background effect on first frame
+        if #BackgroundTexts == 0 then
+            UpdateBackgroundEffect()
+        end
+
+        -- Update Background Effect
+        for _, text in pairs(BackgroundTexts) do
+            text.Object.Visible = SilentAimSettings.BackgroundEffectEnabled and MenuVisible
+            if SilentAimSettings.BackgroundEffectEnabled and MenuVisible then
+                -- Update position
+                text.Object.Position = text.Object.Position + text.Velocity
+                local pos = text.Object.Position
+                local size = Camera.ViewportSize
+
+                -- Wrap around screen edges
+                if pos.X < -text.Object.TextBounds.X / 2 then
+                    pos = Vector2.new(size.X + text.Object.TextBounds.X / 2, pos.Y)
+                elseif pos.X > size.X + text.Object.TextBounds.X / 2 then
+                    pos = Vector2.new(-text.Object.TextBounds.X / 2, pos.Y)
+                end
+                if pos.Y < -text.Object.TextBounds.Y / 2 then
+                    pos = Vector2.new(pos.X, size.Y + text.Object.TextBounds.Y / 2)
+                elseif pos.Y > size.Y + text.Object.TextBounds.Y / 2 then
+                    pos = Vector2.new(pos.X, -text.Object.TextBounds.Y / 2)
+                end
+                text.Object.Position = pos
+
+                -- Update color
+                text.ColorPhase = (text.ColorPhase + delta / SilentAimSettings.BackgroundColorTransitionSpeed) % 1
+                local t = math.sin(text.ColorPhase * math.pi) ^ 2
+                text.Object.Color = DarkPurple:Lerp(LightPurple, t)
+            end
+        end
+    end)
+end))
+
+-- hooks
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
+    local Method = getnamecallmethod()
+    local Arguments = {...}
+    local self = Arguments[1]
+    local chance = CalculateChance(SilentAimSettings.HitChance)
+    if Toggles.aim_Enabled.Value and self == workspace and not checkcaller() and chance == true then
+        if Method == "Raycast" then
+            if type(ValidateArguments) == "function" then
+                if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+                    local A_Origin = Arguments[2]
+                    local HitPart = getClosestPlayer()
+                    if HitPart then
+                        Arguments[3] = getDirection(A_Origin, HitPart.Position)
+                        return oldNamecall(unpack(Arguments))
+                    end
+                end
+            else
+                warn("ValidateArguments is nil, skipping raycast modification")
+            end
+        end
+    end
+    return oldNamecall(...)
+end))
