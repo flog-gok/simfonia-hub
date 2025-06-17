@@ -1,0 +1,1943 @@
+------------------ Variables & Functions
+local Players = game:GetService("Players")
+local RStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local Remotes = RStorage.Remotes
+
+local Tribes = Remotes.Tribes
+local Hats = Remotes.Hats
+
+local Characters = workspace.Characters
+local Regions = workspace.Regions
+local BlockTerrain = workspace.BlockTerrain
+local Resources = workspace.Resources
+local Structures = workspace.Structures
+local Details = workspace.Details
+
+local function Block(Model)
+	local Barrier = Instance.new("Part")
+	Barrier.Parent = workspace
+	Barrier.Size = Model:GetExtentsSize()
+	Barrier.Anchored = true
+	Barrier.Transparency = 0.5
+	Barrier.Color = Color3.new(1, 0, 0)
+	Barrier.Material = Enum.Material.SmoothPlastic
+	Barrier.CFrame = Model:GetPivot()
+
+	local C
+	C = Model.Parent.ChildRemoved:Connect(function(Obj)
+		if Obj == Model then
+			Barrier:Destroy()
+			C:Disconnect()
+		end
+	end)
+
+	return Barrier
+end
+
+local function GetOthers()
+	local Others = {}
+	for _, Plr in Players:GetPlayers() do
+		if Plr ~= LocalPlayer then
+			table.insert(Others, Plr)
+		end
+	end
+	return Others
+end
+
+local function RandomString(Length)
+    local Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local Result = ""
+    
+    for i = 1, Length do
+        local RNG = math.random(1, #Chars)
+        Result = Result .. Chars:sub(RNG, RNG)
+    end
+    
+    return Result
+end
+
+local function GetRoot(Target)
+	Target = Target or LocalPlayer
+	local Char = Target.Character
+	if not Char then return end
+
+	return Char:FindFirstChild("Torso")
+end
+
+local function GetHumanoid(Target)
+	Target = Target or LocalPlayer
+	local Char = Target.Character
+	if not Char then return end
+
+	return Char:FindFirstChildOfClass("Humanoid")
+end
+
+local function GetHeal()
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Backpack = LocalPlayer.Backpack
+	if not Backpack then return end
+
+    for _, Tool in Backpack:GetChildren() do
+		if Tool.ClassName ~= "Tool" then continue end
+		
+		local FS = Tool:FindFirstChild("FoodScripts")
+		if not FS then continue end
+
+		local R = FS:FindFirstChild("Eat")
+		if not R then continue end
+
+		return Tool
+	end
+
+	for _, Tool in Char:GetChildren() do
+		if Tool.ClassName ~= "Tool" then continue end
+		
+		local FS = Tool:FindFirstChild("FoodScripts")
+		if not FS then continue end
+
+		local R = FS:FindFirstChild("Eat")
+		if not R then continue end
+
+		return Tool
+	end
+end
+
+local function GetWeapons()
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Backpack = LocalPlayer.Backpack
+	if not Backpack then return end
+
+	local Weapons = {}
+
+	local function Handle(Tool)
+		if Tool.ClassName ~= "Tool" then return end
+		
+		local TS = Tool:FindFirstChild("ToolScripts")
+		if not TS then return end
+
+		local R = TS:FindFirstChild("MobileSwing")
+		if not R then return end
+
+		Weapons[#Weapons + 1] = Tool
+	end
+
+    for _, Tool in Backpack:GetChildren() do
+		Handle(Tool)
+	end
+
+	for _, Tool in Char:GetChildren() do
+		Handle(Tool)
+	end
+
+	return Weapons
+end
+
+------------------ Relief Ui
+local Relief = loadstring(game:HttpGet("https://raw.githubusercontent.com/PeaPattern/relief-lib/main/new.lua"))()
+
+Relief.addCategory("Movement", "rbxassetid://1114393432")
+Relief.addCategory("Render", "rbxassetid://13321848320")
+Relief.addCategory("Combat", "rbxassetid://7485051715")
+Relief.addCategory("World", "rbxassetid://17640958405")
+Relief.addCategory("Utility", "rbxassetid://1538581893")
+
+------------------ Threads Library
+local Threads = {}
+Threads.Container = {}
+
+function Threads:New(Name, Callback)
+	if Threads.Container[Name] then
+		Threads:Stop(Name)
+	end
+
+	local Running = true
+	local ThreadObj = {}
+	function ThreadObj:Disconnect()
+		Running = false
+		local Found = table.find(Threads.Container, ThreadObj)
+		if Found then
+			table.remove(Threads.Container, Found)
+		end
+	end
+	Threads.Container[Name] = ThreadObj
+
+	task.spawn(function()
+		while Running do
+			task.wait()
+			local S, F = pcall(Callback)
+			if not S then
+				warn(F)
+				ThreadObj:Disconnect()
+				break
+			end
+		end
+	end)
+
+	return ThreadObj
+end
+
+function Threads:Get(Name)
+	local Found = Threads.Container[Name]
+	if Found then
+		return Found
+	end
+end
+
+function Threads:Stop(Name)
+	local Found = Threads:Get(Name)
+	if Found then
+		Found:Disconnect()
+	end
+end
+
+------------------ Maid Library
+local Maid = {}
+
+function Maid:Tag(Name, Connection)
+	if not Maid[Name] then Maid[Name] = {} end
+	table.insert(Maid[Name], Connection)
+end
+
+function Maid:Disconnect(Name)
+	local Found = Maid[Name]
+	if Found then
+		for _, Connection in Found do
+			if Connection then
+				Connection:Disconnect()
+			end
+		end
+		Maid[Name] = nil
+	end
+end
+
+------------------ Tribe Library
+local Tribe = {}
+
+function Tribe:Create(Name)
+	Tribes.CreateTribe:InvokeServer(Name)
+end
+
+function Tribe:Join(Name)
+	Tribes.JoinTribe:FireServer(Name)
+end
+
+function Tribe:Leave()
+	Tribes.LeaveTribe:FireServer()
+end
+
+function Tribe:Kick(Player)
+	Tribes.KickPlayer:FireServer(Player)
+end
+
+function Tribe:ToggleInviteOnly()
+	Tribes.ToggleInviteOnly:FireServer()
+end
+
+------------------ Tool Library
+local Tool = {}
+
+function Tool:GetCurrent()
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Tool = Char:FindFirstChildOfClass("Tool")
+	if not Tool then return end
+
+	return Tool
+end
+
+function Tool:Unequip()
+	local Char = LocalPlayer.Character
+	if not Char then return end
+	
+	local Backpack = LocalPlayer.Backpack
+	if not Backpack then return end
+	
+	for _, Tool in Char:GetChildren() do
+		if Tool.ClassName ~= "Tool" then return end
+		Tool.Parent = Backpack
+	end
+end
+
+function Tool:Swing()
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Hum = Char:FindFirstChildOfClass("Humanoid")
+	if not Hum or Hum.Health <= 0 then return end
+	
+	local Tool = Tool:GetCurrent()
+	if not Tool then return end
+
+	local TS = Tool:FindFirstChild("ToolScripts")
+	if not TS then return end
+
+	local Remote = TS:FindFirstChild("MobileSwing")
+	if not Remote then return end
+
+	Remote:Fire()
+end
+
+local ToolHolder = {}
+function Tool:Save(Name)
+	local Tool = Tool:GetCurrent()
+	if not Tool then return end
+	
+	if not ToolHolder[Name] then ToolHolder[Name] = {} end
+	table.insert(ToolHolder[Name], Tool)
+end
+
+function Tool:Load(Name)
+	if not ToolHolder[Name] then return end
+
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Backpack = LocalPlayer.Backpack
+	if not Backpack then return end
+
+	Tool:Unequip()
+	for _, Tool in ToolHolder[Name] do
+		if Tool and (Tool.Parent == Backpack or Tool.Parent == Char) then
+			Tool.Parent = Char
+		end
+	end
+	ToolHolder[Name] = nil
+end
+
+local MultiSwinging = false
+local Healing = false
+
+function Tool:Heal()
+	if Healing then return end
+	
+	local Heal = GetHeal()
+	if not Heal then return end
+
+	local Stats = Heal:FindFirstChild("Stats")
+	if not Stats then return end
+
+	local Price = Stats:GetAttribute("FoodCost")
+	if not Price then return end
+
+	local Char = LocalPlayer.Character
+	if not Char then return end
+
+	local Resources = Char:FindFirstChild("Resources")
+	if not Resources then return end
+
+	local Food = Resources:GetAttribute("Food")
+	if not Food then return end
+	
+	local FS = Heal:FindFirstChild("FoodScripts")
+	if not FS then return end
+
+	local Remote = FS:FindFirstChild("Eat")
+	if not Remote then return end
+	
+	if Food >= Price then
+		task.spawn(function()
+			Healing = true
+			Tool:Save("Heal")
+			Tool:Unequip()
+		end)
+		wait()
+		Heal.Parent = Char
+		wait()
+		task.spawn(function()
+			Remote:FireServer()
+		end)
+		wait()
+		task.spawn(function()
+			Tool:Unequip()
+			wait()
+			Tool:Load("Heal")
+		end)
+		wait()
+		Healing = false
+	end
+end
+
+function Tool:MultiSwing()
+	task.spawn(function()
+		if MultiSwinging then return end
+
+		local Char = LocalPlayer.Character
+		if not Char then return end
+
+		local Backpack = LocalPlayer.Backpack
+		if not Backpack then return end
+
+		local Hum = Char:FindFirstChildOfClass("Humanoid")
+		if not Hum or Hum.Health <= 0 then return end
+
+		local Weapons = GetWeapons()
+		if not Weapons then return end
+
+		if #Weapons == 1 then
+			Tool:Swing()
+			return
+		end
+
+		MultiSwinging = true
+
+		for _, Weapon in Weapons do
+			if Healing then repeat wait() until not Healing end
+			if not Weapon or not Weapon.Parent then return end
+			if Weapon.Parent == Backpack then
+				Weapon.Parent = Char
+			end
+			Weapon.ToolScripts.MobileSwing:Fire()
+			wait()
+			if Weapon and Weapon.Parent then Weapon.Parent = LocalPlayer.Backpack end
+		end
+
+		MultiSwinging = false
+	end)
+end
+
+------------------ Player Library
+local Player = {}
+
+function Player:Respawn()
+	Remotes.Respawn:FireServer()
+end
+
+function Player:GetStat(Name)
+	return LocalPlayer:GetAttribute(Name)
+end
+
+function Player:InWater()
+	local Root = GetRoot()
+	if not Root then return end
+
+	local Hitbox = Instance.new("Part")
+	Hitbox.Parent = workspace
+	Hitbox.CFrame = Root.CFrame
+	Hitbox.Size = Vector3.new(0.01, 8, 0.01)
+
+	local PartList = Hitbox:GetTouchingParts()
+	Hitbox:Destroy()
+
+	for _, Part in PartList do
+		if Part.Parent == BlockTerrain and Part.Name == "River" then
+			return true
+		end
+	end
+end
+
+function Player:GetSpeed()
+	local Speed = 17
+
+	local Char = LocalPlayer.Character
+	if not Char then return end
+	
+	local Tool = Tool:GetCurrent()
+	if not Tool then return end
+	
+	local Stats = Tool:FindFirstChild("Stats")
+	if Stats then
+		local WalkspeedStat = Stats:GetAttribute("WalkSpeed")
+		if WalkspeedStat then
+			Speed = WalkspeedStat
+		end
+	end	
+
+	local Hat = Char:FindFirstChild("Hat")
+	if Hat then
+		local Stats = Hat:FindFirstChild("Stats")
+		if Stats then
+			local WalkspeedStat = Hat:GetAttribute("WalkSpeed")
+			if WalkspeedStat then
+				Speed += WalkspeedStat
+			end
+		end	
+	end
+
+	return Speed
+end
+
+------------------ Hat Library
+local Hat = {}
+
+function Hat:OpenCrate()
+	if Player:GetStat("Money") >= 100000 then
+		Hats.BuyHatCrate:InvokeServer()
+	end
+end
+
+function Hat:Equip(Name)
+	Hats.EquipHat:FireServer(Name)
+end
+
+------------------ Arrow Library
+local Arrow = {}
+
+local ArrowScreen = Instance.new("ScreenGui")
+ArrowScreen.Parent = CoreGui
+ArrowScreen.IgnoreGuiInset = true
+
+function Arrow.new(TargetPart)
+	local Connection
+
+	local ArrowFrame = Instance.new("Frame")
+	ArrowFrame.Size = UDim2.new(0, 40, 0, 40)
+	ArrowFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	ArrowFrame.BackgroundTransparency = 0.5
+	ArrowFrame.BorderSizePixel = 1
+	ArrowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	ArrowFrame.Parent = ArrowScreen
+
+	local Label = Instance.new("TextLabel")
+	Label.Size = UDim2.new(0, 100, 0, 20)
+	Label.BackgroundTransparency = 1
+	Label.TextColor3 = Color3.new(1, 1, 1)
+	Label.Font = Enum.Font.SourceSansBold
+	Label.TextScaled = true
+	Label.Text = ""
+	Label.AnchorPoint = Vector2.new(0.5, 0.5)
+	Label.Parent = ArrowScreen
+	Label.TextStrokeTransparency = 0
+
+	local Callback
+
+	local Object = {
+		Hide = function()
+			ArrowFrame.Visible = false
+		end,
+		Show = function()
+			ArrowFrame.Visible = true
+		end,
+		Delete = function()
+			if ArrowFrame then ArrowFrame:Destroy() end
+			if Label then Label:Destroy() end
+			Connection:Disconnect()
+		end,
+		SetText = function(Text)
+			Label.Text = Text or "???"
+		end,
+		SetColor = function(Color)
+			ArrowFrame.BackgroundColor3 = Color or Color3.new(1, 1, 1)
+		end,
+		SetCallback = function(Query)
+			Callback = Query
+		end,
+	}
+
+	Connection = RunService.Heartbeat:Connect(function()
+		if not TargetPart or not TargetPart:IsDescendantOf(workspace) then Object.Delete() return end
+
+		local Char = LocalPlayer.Character
+		if not Char then Object.Hide() return end
+
+		local Root = Char:FindFirstChild("HumanoidRootPart")
+		if not Root then Object.Hide() return end
+
+		local Value
+		if Callback then
+			Value = Callback(ArrowFrame)
+		end
+		if Value then return end
+
+		local rootScreenPos = Camera:WorldToViewportPoint(Root.Position)
+		local targetScreenPos = Camera:WorldToViewportPoint(TargetPart.Position)
+
+		local delta = targetScreenPos - rootScreenPos
+		local direction = delta.Unit
+
+		local clampedX = math.clamp(targetScreenPos.X, 10, Camera.ViewportSize.X - 10)
+		local clampedY = math.clamp(targetScreenPos.Y, 10, Camera.ViewportSize.Y - 10)
+		local clampedTargetPos = Vector2.new(clampedX, clampedY)
+
+		local displayLength = Camera.ViewportSize.Y / 3
+		local arrowStart = rootScreenPos
+		local arrowEnd = arrowStart + direction * displayLength
+		local midpoint = arrowStart + direction * (displayLength / 2)
+		local angle = math.deg(math.atan2(direction.Y, direction.X))
+
+		ArrowFrame.Position = UDim2.fromOffset(midpoint.X, midpoint.Y)
+		ArrowFrame.Size = UDim2.new(0, displayLength, 0, 4)
+		ArrowFrame.Rotation = angle
+
+		Label.Position = UDim2.fromOffset(arrowEnd.X, arrowEnd.Y)
+
+		Object.Show()
+	end)
+
+	return Object
+end
+
+local function GetDistanceColor(Obj1, Obj2, Max)
+	local Distance = (Obj1.Position - Obj2.Position).Magnitude
+	local Limited = math.clamp(Distance / Max, 0, 1)
+	return Color3.fromRGB(255, 0, 0):Lerp(Color3.fromRGB(0, 255, 0), 1 - Limited)
+end
+
+------------------ Main
+local ArrowCache = {}
+Relief.addModule("Render", "PlayerESP", function(Toggled)
+    if Toggled then
+		local function Handle(Target)
+			local function OnCharacter(Char)
+				if not Char then return end
+				local tRoot = Char:WaitForChild("HumanoidRootPart")
+
+				if not tRoot then return end
+				local Arrow = Arrow.new(tRoot)
+				Arrow.SetText(Target.Name)
+				Arrow.SetCallback(function(Frame)
+					local Root = LocalPlayer.Character.HumanoidRootPart
+					local Color = GetDistanceColor(Root, tRoot, 500)
+					Frame.BackgroundColor3 = Color
+					local Hum = GetHumanoid(Target)
+					if Hum and Hum.Health > 0 then
+						Arrow.Show()
+					else
+						Arrow.Hide()
+					end
+				end)
+				ArrowCache[#ArrowCache + 1] = Arrow
+			end
+
+			OnCharacter(Target.Character)
+			Maid:Tag("PlayerESP", Target.CharacterAdded:Connect(OnCharacter))
+		end
+
+        for _, Target in GetOthers() do Handle(Target) end
+		Maid:Tag("PlayerESP", Players.PlayerAdded:Connect(Handle))
+	else
+		for _, Arrow in ArrowCache do
+			Arrow.Delete()
+		end
+		Maid:Disconnect("PlayerESP")
+    end
+end)
+
+local Multi = false
+Relief.addModule("Combat", "AutoSwing", function(Toggled)
+	if Toggled then
+		Tool:Save("AutoSwing")
+		Threads:New("AutoSwing", function()
+			if Multi then
+				Tool:MultiSwing()
+				repeat task.wait() until not MultiSwinging
+			else
+				Tool:Swing()
+			end
+		end)
+	else
+		Threads:Stop("AutoSwing")
+		if MultiSwinging then
+			repeat task.wait() until not MultiSwinging
+			Tool:Load("AutoSwing")
+		end
+	end
+end, {
+	{
+        ["Type"] = "Toggle",
+        ["Title"] = "MultiSwing",
+        ["Callback"] = function(Toggled)
+            Multi = Toggled
+			if not Toggled then
+				repeat task.wait() until not MultiSwinging
+				Tool:Load("AutoSwing")
+			end
+        end,
+    },
+})
+
+local SCD = false
+local OldHat
+local WaterSpeed = false
+local Snorkling = false
+Relief.addModule("Movement", "Speed", function(Toggled)
+	if Toggled then
+		Threads:New("Speed", function()
+			local Hum = GetHumanoid()
+			if not Hum then return end
+
+			local Speed = Player:GetSpeed()
+			if not Speed then return end
+
+			local InWater = Player:InWater()
+			if InWater and WaterSpeed then
+				if Snorkeling then
+					local CurrentHat = Player:GetStat("EquippedHat")
+					if not SCD and not OldHat and CurrentHat ~= "Snorkeling Gear" then
+						OldHat = CurrentHat
+						Hat:Equip("Snorkeling Gear")
+						SCD = true
+						task.spawn(function()
+							task.wait(1)
+							SCD = false
+						end)
+					end
+					Hum.WalkSpeed = Speed + 22
+					return
+				end
+				Hum.WalkSpeed = Speed + 10
+			else
+				if OldHat then
+					task.spawn(function()
+						local Archive = OldHat
+						OldHat = nil
+						task.wait(1)
+						Hat:Equip(Archive)
+					end)
+				end
+				Hum.WalkSpeed = Speed + 3
+			end
+		end)
+	else
+		Threads:Stop("Speed")
+	end
+end, {
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Water Speed",
+		["Callback"] = function(Toggled)
+			WaterSpeed = Toggled
+		end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Snorkeling",
+		["Callback"] = function(Toggled)
+			Snorkeling = Toggled
+		end
+	}
+})
+
+local OldVelocity = {}
+Relief.addModule("Movement", "Jesus", function(Toggled)
+	if Toggled then
+		for _, River in BlockTerrain:GetChildren() do
+			if River.Name == "River" then
+				table.insert(OldVelocity, {River, River.Velocity})
+				River.Velocity = Vector3.zero
+			end
+		end
+	else
+		for _, Data in OldVelocity do
+			local River, Velocity = Data[1], Data[2]
+			River.Velocity = Velocity
+		end
+	end
+end)
+
+Relief.addModule("Utility", "Anonymous", function(Toggled)
+	if Toggled then
+		Tribe:Leave()
+		Tribe:Create("\n\n\n" .. RandomString(6))
+	else
+		Tribe:Leave()
+	end
+end)
+
+local Prefix = "ZEN$X | "
+Relief.addModule("Utility", "TribeSpam", function(Toggled)
+	if Toggled then
+		Tribe:Leave()
+		Threads:New("TribeSpam", function()
+			Tribe:Create(Prefix .. RandomString(6))
+			Tribe:Kick(LocalPlayer)
+			Tribe:Leave()
+			wait()
+		end)
+	else
+		local Found = Threads:Get("TribeSpam")
+		if Found then
+			Found:Disconnect()
+		end
+	end
+end)
+
+Relief.addModule("Utility", "AutoCrate", function(Toggled)
+	if Toggled then
+		Threads:New("AutoCrate", function()
+			Hat:OpenCrate()
+		end)
+	else
+		Threads:Stop("AutoCrate")
+	end
+end)
+
+Relief.addModule("Combat", "AutoHeal", function(Toggled)
+	if Toggled then
+		Threads:New("AutoHeal", function()
+			local Hum = GetHumanoid()
+			if not Hum or Hum.Health > (Hum.MaxHealth - 10) then return end
+
+			Tool:Heal()
+			repeat task.wait() until not Healing
+		end)
+	else
+		Threads:Stop("AutoHeal")
+	end
+end)
+
+local NoclipCache = {}
+Relief.addModule("Movement", "Noclip", function(Toggled)
+	if Toggled then
+		local Character = LocalPlayer.Character
+		if not Character then return end
+
+		for _, BodyPart in Character:GetChildren() do
+			if BodyPart:IsA("BasePart") then
+				table.insert(NoclipCache, {BodyPart, BodyPart.CanCollide})
+			end
+		end
+
+		Maid:Tag("Noclip", RunService.Stepped:Connect(function()
+			local Character = LocalPlayer.Character
+			if not Character then return end
+
+			for _, BodyPart in Character:GetChildren() do
+				if BodyPart:IsA("BasePart") then
+					BodyPart.CanCollide = false
+				end
+			end
+		end))
+	else
+		Maid:Disconnect("Noclip")
+		for _, Data in NoclipCache do
+			local BodyPart, Collides = Data[1], Data[2]
+			BodyPart.CanCollide = Collides
+			print(Data)
+		end
+	end
+end)
+
+local CactusCache = {}
+Relief.addModule("World", "AntiCactus", function(Toggled)
+	if Toggled then
+		for _, Cactus in Resources:GetChildren() do
+			if Cactus.Name == "Tree" and Cactus:FindFirstChild("cactus") then
+				local Barrier = Block(Cactus)
+				table.insert(CactusCache, Barrier)
+			end
+		end
+	else
+		for _, Cactus in CactusCache do
+			Cactus:Destroy()
+		end
+		CactusCache = {}
+	end
+end)
+
+local SpikeCache = {}
+Relief.addModule("World", "AntiSpike", function(Toggled)
+	if Toggled then
+		local function Validate(Spike)
+			if Spike.Name == "Spikes" or Spike.Name == "Super Spikes" or Spike.Name == "Poisoned Spikes" or Spike.Name == "Spike Trap" then
+				local Barrier = Block(Spike)
+				table.insert(SpikeCache, Barrier)
+			end
+		end
+
+		for _, Spike in Structures:GetChildren() do
+			Validate(Spike)
+		end
+
+		Maid:Tag("AntiSpike", Structures.ChildAdded:Connect(Validate))
+	else
+		for _, Spike in SpikeCache do
+			Spike:Destroy()
+		end
+		SpikeCache = {}
+		Maid:Disconnect("AntiSpike")
+	end
+end)
+
+local Baseplate = workspace.Baseplate
+Relief.addModule("World", "AntiLag", function(Toggled)
+	if Toggled then
+		Details.Parent = RStorage
+		Baseplate.Parent = RStorage
+	else
+		Details.Parent = workspace
+		Baseplate.Parent = workspace
+	end
+end)
+
+local TargetFOV = 90
+local DefaultFOV = Camera.FieldOfView
+Relief.addModule("Render", "FOV", function(Toggled)
+	if Toggled then
+		DefaultFOV = Camera.FieldOfView
+		Camera.FieldOfView = TargetFOV
+		Maid:Tag("FOV", Camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+			if Camera.FieldOfView ~= TargetFOV then
+				Camera.FieldOfView = TargetFOV
+			end
+		end))
+	else
+		Maid:Disconnect("FOV")
+		Camera.FieldOfView = DefaultFOV
+	end
+end, {
+    {
+        ["Type"] = "TextBox",
+        ["Title"] = "FOV Amount",
+        ["Placeholder"] = "FOV Here (90 Default)",
+        ["Callback"] = function(Text)
+            local Amount = tonumber(Text) or 90
+			TargetFOV = Amount
+			Camera.FieldOfView = TargetFOV
+        end,
+    }
+})
+
+Relief.addModule("Utility", "AutoRespawn", function(Toggled)
+	if Toggled then
+		Threads:New("AutoRespawn", function()
+			Player:Respawn()
+		end)
+	else
+		Threads:Stop("AutoRespawn")
+	end
+end)
+
+local function GetNearestPlayer()
+	local Root = GetRoot()
+	if not Root then return end 
+
+	local Data = {nil, nil}
+	for _, Target in GetOthers() do
+		local TRoot = GetRoot(Target)
+		if not TRoot then continue end
+
+		local Distance = (Root.Position - TRoot.Position).Magnitude
+		local CurrentDistance = Data[2]
+
+		if CurrentDistance then
+			if Distance < CurrentDistance then
+				Data = {Target, Distance}
+			end
+		else
+			Data = {Target, Distance}
+		end
+	end
+
+	return Data
+end
+
+
+-- ПЕРЕМЕННЫЕ ДЛЯ НИЖЕ УВИДЕНОГО
+
+local Range = 8
+local TargetHat = ""
+local IgnoreTeam = false
+local HatSwap = false
+local IgnoreFriends = false
+local AttackDelay = 0.1
+local WalkSpeed = 32
+local KillAuraEnabled = false
+local TrailLength = 10
+local NoSlowSpeed = 16
+local LeaveDistance = 20
+local UltraKillEnabled = false
+local YameteKudasaiEnabled = false
+
+-- КОНЕЦ ПЕРЕМЕННЫХ
+
+
+-- Модуль KillAura с улучшенными визуальными эффектами (вращающийся круг и частицы-звёздочки)
+KillAuraEnabled = false -- Глобальная переменная для проверки состояния KillAura
+local RunService = game:GetService("RunService")
+
+local function CreateCircleEffect(TargetRoot)
+	local CirclePart = Instance.new("Part")
+	CirclePart.Anchored = true
+	CirclePart.CanCollide = false
+	CirclePart.Transparency = 1
+	CirclePart.Size = Vector3.new(0.1, 0.1, 0.1) -- Маленький для BillboardGui
+	CirclePart.Position = Vector3.new(TargetRoot.Position.X, TargetRoot.Position.Y, TargetRoot.Position.Z) -- У RootPart
+	CirclePart.Parent = workspace
+
+	local BillboardGui = Instance.new("BillboardGui")
+	BillboardGui.Size = UDim2.new(15, 0, 15, 0) -- Увеличенный диаметр 15 единиц
+	BillboardGui.AlwaysOnTop = true
+	BillboardGui.Parent = CirclePart
+
+	local ImageLabel = Instance.new("ImageLabel")
+	ImageLabel.BackgroundTransparency = 1
+	ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+	ImageLabel.Image = "rbxassetid://1478500977" -- Текстура круга
+	ImageLabel.ImageColor3 = Color3.new(0, 0.5, 1) -- Синий оттенок
+	ImageLabel.ImageTransparency = 0.3
+	ImageLabel.Parent = BillboardGui
+
+	-- Плавное вращение по часовой стрелке
+	local Rotation = 0
+	local Connection
+	Connection = RunService.Heartbeat:Connect(function(deltaTime)
+		if not CirclePart.Parent then
+			Connection:Disconnect()
+			return
+		end
+		Rotation = Rotation + 90 * deltaTime -- 90 градусов/сек
+		ImageLabel.Rotation = Rotation % 360
+	end)
+
+	-- Удаляем через 3 секунды
+	task.spawn(function()
+		task.wait(3)
+		Connection:Disconnect()
+		CirclePart:Destroy()
+	end)
+
+	return CirclePart
+end
+
+local function CreateStarParticles(HitPosition)
+	local EmitterPart = Instance.new("Part")
+	EmitterPart.Anchored = true
+	EmitterPart.CanCollide = false
+	EmitterPart.Transparency = 1
+	EmitterPart.Size = Vector3.new(0.2, 0.2, 0.2)
+	EmitterPart.Position = Vector3.new(HitPosition.X, HitPosition.Y + 0.5, HitPosition.Z) -- Чуть выше для 2D
+	EmitterPart.Parent = workspace
+
+	local ParticleEmitter = Instance.new("ParticleEmitter")
+	ParticleEmitter.Texture = "rbxassetid://11716557686" -- Текстура звёздочки
+	ParticleEmitter.Size = NumberSequence.new(1.5, 0) -- Размер от 1.5 до 0
+	ParticleEmitter.Lifetime = NumberRange.new(0.4, 0.8) -- Жизнь 0.4-0.8 сек
+	ParticleEmitter.Rate = 30 -- 20 частиц в сек
+	ParticleEmitter.Speed = NumberRange.new(2, 5) -- Скорость
+	ParticleEmitter.SpreadAngle = Vector2.new(360, 360) -- Разброс в 2D
+	ParticleEmitter.Color = ColorSequence.new(Color3.new(1, 1, 0)) -- Жёлтый
+	ParticleEmitter.Brightness = 4 -- Яркость
+	ParticleEmitter.Enabled = true
+	ParticleEmitter.Parent = EmitterPart
+
+	-- Отключаем и удаляем через 0.4 секунды
+	task.spawn(function()
+		task.wait(0.4)
+		ParticleEmitter.Enabled = false
+		task.wait(0.8) -- Ждём, пока частицы исчезнут
+		EmitterPart:Destroy()
+	end)
+end
+
+Relief.addModule("Combat", "KillAura", function(Toggled)
+	if Toggled then
+		KillAuraEnabled = true
+		local OldWeapon = nil
+		local OldHat = nil
+		local Attacking = false
+		local CurrentCircle = nil -- Отслеживаем текущий круг
+
+		local function Start()
+			if not Attacking then
+				OldWeapon = Tool:GetCurrent()
+				if HatSwap then
+					OldHat = Player:GetStat("EquippedHat")
+					Hat:Equip(TargetHat)
+				end
+			end
+			Attacking = true
+		end
+
+		local function Stop()
+			if Attacking then
+				if OldWeapon then
+					wait()
+					Tool:Unequip()
+					OldWeapon.Parent = LocalPlayer.Character
+				end
+				if HatSwap and OldHat then
+					wait()
+					task.spawn(function()
+						local Archive = OldHat
+						task.wait(1)
+						Hat:Equip(Archive)
+					end)
+				end
+				OldHat = nil
+				OldWeapon = nil
+			end
+			Attacking = false
+			if CurrentCircle then
+				CurrentCircle:Destroy()
+				CurrentCircle = nil
+			end
+		end
+
+		Threads:New("KillAura", function()
+			local Root = GetRoot()
+			if not Root then Attacking = false return end
+
+			local Data = GetNearestPlayer()
+			local Target = Data[1]
+			if not Data or not Target then Stop() return end
+
+			local Tutorial = Target.Character:GetAttribute("InTutorial")
+			if Tutorial then Stop() return end
+
+			local Distance = Data[2]
+			if Distance > Range then Stop() return end
+
+			local TRoot = GetRoot(Target)
+			if not TRoot then Stop() return end
+
+			local THum = GetHumanoid(Target)
+			if not THum or THum.Health <= 0 then Stop() return end
+
+			if IgnoreTeam and LocalPlayer.Team and Target.Team == LocalPlayer.Team then return end
+			if IgnoreFriends and LocalPlayer:IsFriendsWith(Target.UserId) then return end
+
+			Start()
+
+			-- Создаём или обновляем вращающийся круг у RootPart цели
+			if not CurrentCircle or not CurrentCircle.Parent then
+				if CurrentCircle then CurrentCircle:Destroy() end
+				CurrentCircle = CreateCircleEffect(TRoot)
+			else
+				CurrentCircle.Position = Vector3.new(TRoot.Position.X, TRoot.Position.Y, TRoot.Position.Z)
+			end
+
+			-- Поворачиваем персонажа к цели (в 2D)
+			Root.CFrame = CFrame.new(Root.Position, Vector3.new(TRoot.Position.X, Root.Position.Y, TRoot.Position.Z))
+
+			-- Проверяем наличие текущего оружия
+			local CurrentTool = Tool:GetCurrent()
+			if not CurrentTool then
+				Stop()
+				return
+			end
+
+			-- Проверяем наличие RemoteEvent Swing
+			local ToolScripts = CurrentTool:FindFirstChild("ToolScripts")
+			if not ToolScripts then Stop() return end
+
+			local SwingRemote = ToolScripts:FindFirstChild("Swing")
+			if not SwingRemote then Stop() return end
+
+			-- Формируем аргументы для Swing
+			local args = {
+				Root.CFrame, -- Текущая позиция и ориентация персонажа
+				{ Target.Character } -- Цель атаки
+			}
+
+			-- Вызываем RemoteEvent
+			SwingRemote:FireServer(unpack(args))
+
+			-- Создаём частицы-звёздочки в точке удара
+			CreateStarParticles(TRoot.Position)
+
+			-- Сбрасываем скорость и вращение для стабильности
+			for _, BP in LocalPlayer.Character:GetChildren() do
+				if BP:IsA("BasePart") then
+					BP.Velocity, BP.RotVelocity = Vector3.zero, Vector3.zero
+				end
+			end
+
+			-- Задержка для предотвращения спама
+			task.wait(AttackDelay)
+		end)
+	else
+		KillAuraEnabled = false
+		Threads:Stop("KillAura")
+		if Attacking then
+			Stop()
+		end
+	end
+end, {
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Hat Swap",
+		["Callback"] = function(Toggled)
+			HatSwap = Toggled
+		end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Team Check",
+		["Callback"] = function(Toggled)
+			IgnoreTeam = Toggled
+		end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Ignore Friends",
+		["Callback"] = function(Toggled)
+			IgnoreFriends = Toggled
+		end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Target Hat",
+		["Placeholder"] = "Hat Name Here",
+		["Callback"] = function(Text)
+			TargetHat = Text
+		end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Attack Range",
+		["Placeholder"] = "Range Here (Default 8)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 8
+			Range = Amount
+		end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Attack Delay",
+		["Placeholder"] = "Delay in seconds (Default 0.1)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 0.1
+			AttackDelay = Amount
+		end
+	}
+})
+
+local Prediction = 0.5
+
+-- Модуль BowAim с автоматическим прицеливанием и предсказанием движения игрока
+Relief.addModule("Combat", "BowAim", function(Toggled)
+	if Toggled then
+		local Attacking = false
+		local Mode = Mode or "Arbit" -- Начальное значение, если не выбрано в UI
+
+		local function Start()
+			if not Attacking then
+				Attacking = true
+			end
+		end
+
+		local function Stop()
+			if Attacking then
+				Attacking = false
+			end
+		end
+
+		Threads:New("BowAim", function()
+			local Root = GetRoot()
+			if not Root then Stop() return end
+
+			local Data = GetNearestPlayer()
+			local Target = Data[1]
+			if not Data or not Target then Stop() return end
+
+			local Tutorial = Target.Character:GetAttribute("InTutorial")
+			if Tutorial then Stop() return end
+
+			local Distance = Data[2]
+			local CurrentRange = (Mode == "Legit") and 30 or Range
+			if Distance > CurrentRange then Stop() return end
+
+			local TRoot = GetRoot(Target)
+			if not TRoot then Stop() return end
+
+			local THum = GetHumanoid(Target)
+			if not THum or THum.Health <= 0 then Stop() return end
+
+			if IgnoreTeam and LocalPlayer.Team and Target.Team == LocalPlayer.Team and Mode == "Arbit" then return end
+			if IgnoreFriends and LocalPlayer:IsFriendsWith(Target.UserId) and Mode == "Arbit" then return end
+
+			-- Проверка препятствий только в Legit Mode
+			if Mode == "Legit" then
+				local RaycastParams = RaycastParams.new()
+				RaycastParams.FilterDescendantsInstances = {LocalPlayer.Character, Target.Character}
+				RaycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+				local RayResult = workspace:Raycast(Root.Position, (TRoot.Position - Root.Position), RaycastParams)
+				if RayResult and RayResult.Instance then return end
+			end
+
+			Start()
+
+			-- Проверяем наличие текущего оружия (Bow)
+			local CurrentTool = Tool:GetCurrent()
+			if not CurrentTool or CurrentTool.Name ~= "Bow" then
+				Stop()
+				return
+			end
+
+			-- Проверяем наличие RemoteEvent Swing в RangedScripts
+			local RangedScripts = CurrentTool:FindFirstChild("RangedScripts")
+			if not RangedScripts then Stop() return end
+
+			local SwingRemote = RangedScripts:FindFirstChild("Swing")
+			if not SwingRemote then Stop() return end
+
+			-- Рассчитываем прогнозируемую позицию с учётом движения цели
+			local TargetPosition = TRoot.Position
+			local TravelTime = Distance / 50 -- Примерная скорость стрелы: 50 единиц/сек
+			local PredictedPosition = TargetPosition + (TRoot.Velocity * TravelTime * Prediction)
+			local Direction = (PredictedPosition - Root.Position).Unit
+			local BowCFrame = CFrame.new(Root.Position, Root.Position + Direction)
+
+			-- Формируем аргументы для Swing
+			local args = {
+				BowCFrame -- Направляем CFrame на прогнозируемую позицию
+			}
+
+			-- Вызываем RemoteEvent
+			SwingRemote:FireServer(unpack(args))
+
+			-- Сбрасываем скорость и вращение для стабильности
+			for _, BP in LocalPlayer.Character:GetChildren() do
+				if BP:IsA("BasePart") then
+					BP.Velocity, BP.RotVelocity = Vector3.zero, Vector3.zero
+				end
+			end
+
+			-- Задержка для предотвращения спама
+			task.wait(AttackDelay)
+		end)
+	else
+		Threads:Stop("BowAim")
+		if Attacking then
+			Stop()
+		end
+	end
+end, {
+	{
+		["Type"] = "Dropdown",
+		["Title"] = "Mode",
+		["47e4a63e-8b3a-4b1e-a1f8-42b08b2d3c9e"] = "Arbit", -- Начальное значение Dropdown
+		["Options"] = {"Legit", "Arbit"},
+		["Callback"] = function(Option)
+			Mode = Option
+		end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Team Check",
+		["Callback"] = function(Toggled)
+			IgnoreTeam = Toggled
+		end,
+		["Visible"] = function() return Mode == "Arbit" end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Ignore Friends",
+		["Callback"] = function(Toggled)
+			IgnoreFriends = Toggled
+		end,
+		["Visible"] = function() return Mode == "Arbit" end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Attack Range",
+		["Placeholder"] = "Range Here (Default 30)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 30
+			Range = Amount
+		end,
+		["Visible"] = function() return Mode == "Arbit" end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Attack Delay",
+		["Placeholder"] = "Delay in seconds (0.5-1 for Legit, any for Arbit)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or (Mode == "Legit" and 0.5 or 0.3)
+			if Mode == "Legit" then
+				AttackDelay = math.clamp(Amount, 0.5, 1)
+			else
+				AttackDelay = Amount
+			end
+		end
+	},
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Prediction",
+		["Placeholder"] = "Prediction strength (0.1-1, default 0.5)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 0.5
+			Prediction = math.clamp(Amount, 0.1, 1)
+		end
+	}
+})
+
+-- Модуль TargetStrafe для притягивания к цели в 2D-игре с видом сверху
+Relief.addModule("Combat", "TargetStrafe", function(Toggled)
+	if Toggled then
+		if not KillAuraEnabled then
+			Toggled = false -- Отключаем, если KillAura не активна
+			return
+		end
+
+		local OriginalWalkSpeed = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") and LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed or 16
+
+		Threads:New("TargetStrafe", function()
+			local Root = GetRoot()
+			if not Root then return end
+
+			local Data = GetNearestPlayer()
+			local Target = Data[1]
+			if not Data or not Target then return end
+
+			local Tutorial = Target.Character:GetAttribute("InTutorial")
+			if Tutorial then return end
+
+			local Distance = Data[2]
+			if Distance > Range then return end
+
+			local TRoot = GetRoot(Target)
+			if not TRoot then return end
+
+			local THum = GetHumanoid(Target)
+			if not THum or THum.Health <= 0 then return end
+
+			if IgnoreTeam and LocalPlayer.Team and Target.Team == LocalPlayer.Team then return end
+			if IgnoreFriends and LocalPlayer:IsFriendsWith(Target.UserId) then return end
+
+			-- Устанавливаем ускоренную скорость ходьбы
+			local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+			if Humanoid then
+				Humanoid.WalkSpeed = WalkSpeed
+			end
+
+			-- Двигаемся прямо к цели в плоскости X-Z (2D)
+			local TargetPos = Vector3.new(TRoot.Position.X, Root.Position.Y, TRoot.Position.Z) -- Игнорируем Y
+			local Direction = (TargetPos - Root.Position).Unit
+			if Humanoid then
+				Humanoid:Move(Direction, true)
+			end
+
+			-- Сбрасываем вращение для стабильности
+			for _, BP in LocalPlayer.Character:GetChildren() do
+				if BP:IsA("BasePart") then
+					BP.RotVelocity = Vector3.zero
+				end
+			end
+		end)
+	else
+		Threads:Stop("TargetStrafe")
+		-- Восстанавливаем стандартную скорость ходьбы
+		local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			Humanoid.WalkSpeed = 16 -- Стандартная скорость Roblox
+		end
+	end
+end, {
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Walk Speed",
+		["Placeholder"] = "Movement speed (16-50, default 32)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 32
+			WalkSpeed = math.clamp(Amount, 16, 50)
+		end
+	}
+})
+
+-- Модуль Trails для создания линии, следующей за RootPart персонажа
+Relief.addModule("Render", "Trails", function(Toggled)
+	if Toggled then
+		local TrailAttachment = nil
+		local Trail = nil
+
+		local function SetupTrail()
+			local Root = GetRoot()
+			if not Root then return end
+
+			-- Проверяем TrailLength, используем 10 по умолчанию
+			local CurrentTrailLength = TrailLength or 10
+
+			-- Создаём Attachment сзади персонажа
+			TrailAttachment = Instance.new("Attachment")
+			TrailAttachment.Position = Vector3.new(0, 0, CurrentTrailLength) -- Сзади на расстоянии TrailLength
+			TrailAttachment.Parent = Root
+
+			-- Создаём Attachment на RootPart
+			local RootAttachment = Instance.new("Attachment")
+			RootAttachment.Parent = Root
+
+			-- Создаём Trail
+			Trail = Instance.new("Trail")
+			Trail.Attachment0 = RootAttachment
+			Trail.Attachment1 = TrailAttachment
+			Trail.Color = ColorSequence.new(Color3.new(0, 0.5, 1)) -- Синий
+			Trail.Transparency = NumberSequence.new(0, 1) -- От непрозрачного к прозрачному
+			Trail.WidthScale = NumberSequence.new(0.5) -- Ширина 0.5
+			Trail.Lifetime = CurrentTrailLength / 10 -- Длина трейла пропорциональна TrailLength
+			Trail.Enabled = true
+			Trail.Parent = Root
+		end
+
+		Threads:New("Trails", function()
+			local Root = GetRoot()
+			if not Root then
+				if Trail then
+					Trail:Destroy()
+					TrailAttachment:Destroy()
+					Trail = nil
+					TrailAttachment = nil
+				end
+				return
+			end
+
+			if not Trail or not TrailAttachment or not Trail.Parent then
+				SetupTrail()
+			end
+		end)
+
+		-- Обновляем позицию TrailAttachment при движении
+		local Connection
+		Connection = game:GetService("RunService").Heartbeat:Connect(function()
+			if not Toggled or not TrailAttachment or not GetRoot() then
+				if Trail then
+					Trail:Destroy()
+					TrailAttachment:Destroy()
+					Trail = nil
+					TrailAttachment = nil
+				end
+				Connection:Disconnect()
+				return
+			end
+			-- Проверяем TrailLength
+			local CurrentTrailLength = TrailLength or 10
+			TrailAttachment.Position = Vector3.new(0, 0, CurrentTrailLength) -- Обновляем длину
+			if Trail then
+				Trail.Lifetime = CurrentTrailLength / 10
+			end
+		end)
+	else
+		Threads:Stop("Trails")
+		if Trail then
+			Trail:Destroy()
+			TrailAttachment:Destroy()
+			Trail = nil
+			TrailAttachment = nil
+		end
+	end
+end, {
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Trail Length",
+		["Placeholder"] = "Length (5-20, default 10)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 10
+			TrailLength = math.clamp(Amount, 5, 20)
+		end
+	}
+})
+
+-- Модуль NoSlow для постоянного поддержания заданной скорости персонажа
+Relief.addModule("Movement", "NoSlow", function(Toggled)
+	if Toggled then
+		local OriginalWalkSpeed = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") and LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed or 16
+		local Connection
+
+		Threads:New("NoSlow", function()
+			local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+			if not Humanoid then return end
+
+			-- Устанавливаем заданную скорость
+			Humanoid.WalkSpeed = NoSlowSpeed or 16
+		end)
+
+		-- Постоянно обновляем WalkSpeed через Heartbeat
+		Connection = game:GetService("RunService").Heartbeat:Connect(function()
+			if not Toggled then
+				Connection:Disconnect()
+				return
+			end
+			local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+			if Humanoid then
+				Humanoid.WalkSpeed = NoSlowSpeed or 16
+			end
+		end)
+	else
+		Threads:Stop("NoSlow")
+		-- Восстанавливаем стандартную скорость
+		local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			Humanoid.WalkSpeed = 16 -- Стандартная скорость Roblox
+		end
+	end
+end, {
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Walk Speed",
+		["Placeholder"] = "Speed (16-50, default 16)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 16
+			NoSlowSpeed = math.clamp(Amount, 16, 50)
+		end
+	}
+})
+
+-- Модуль AutoLeave для автоматического выхода при приближении игрока
+Relief.addModule("Utility", "AutoLeave", function(Toggled)
+	if Toggled then
+		Threads:New("AutoLeave", function()
+			local Root = GetRoot()
+			if not Root then return end
+
+			local Data = GetNearestPlayer()
+			local Target = Data[1]
+			if not Data or not Target then return end
+
+			local Tutorial = Target.Character:GetAttribute("InTutorial")
+			if Tutorial then return end
+
+			local Distance = Data[2]
+			if Distance > LeaveDistance then return end
+
+			local TRoot = GetRoot(Target)
+			if not TRoot then return end
+
+			local THum = GetHumanoid(Target)
+			if not THum or THum.Health <= 0 then return end
+
+			if IgnoreTeam and LocalPlayer.Team and Target.Team == LocalPlayer.Team then return end
+			if IgnoreFriends and LocalPlayer:IsFriendsWith(Target.UserId) then return end
+
+			-- Кик игрока, если кто-то подошёл ближе заданной дистанции
+			game.Players.LocalPlayer:Kick("AutoLeave: Player too close!")
+		end)
+	else
+		Threads:Stop("AutoLeave")
+	end
+end, {
+	{
+		["Type"] = "TextBox",
+		["Title"] = "Leave Distance",
+		["Placeholder"] = "Distance (10-40, default 10)",
+		["Callback"] = function(Text)
+			local Amount = tonumber(Text) or 20
+			LeaveDistance = math.clamp(Amount, 10, 40)
+		end
+	}
+})
+
+-- Модуль KillSound для проигрывания мелодий при убийстве игрока через тогглы
+Relief.addModule("Utility", "KillSound", function(Toggled)
+	if Toggled then
+		local LastTarget = nil
+		local ActiveSounds = {}
+
+		Threads:New("KillSound", function()
+			if not KillAuraEnabled then return end -- Работает только с KillAura
+
+			local Root = GetRoot()
+			if not Root then return end
+
+			local Data = GetNearestPlayer()
+			local Target = Data[1]
+			if not Data or not Target then return end
+
+			local Tutorial = Target.Character:GetAttribute("InTutorial")
+			if Tutorial then return end
+
+			local Distance = Data[2]
+			if Distance > Range then return end
+
+			local TRoot = GetRoot(Target)
+			if not TRoot then return end
+
+			local THum = GetHumanoid(Target)
+			if not THum or THum.Health <= 0 then return end
+
+			if IgnoreTeam and LocalPlayer.Team and Target.Team == LocalPlayer.Team then return end
+			if IgnoreFriends and LocalPlayer:IsFriendsWith(Target.UserId) then return end
+
+			-- Отслеживаем смерть цели
+			if LastTarget ~= Target then
+				LastTarget = Target
+				local HealthConnection
+				local CharacterConnection
+
+				HealthConnection = THum:GetPropertyChangedSignal("Health"):Connect(function()
+					if THum.Health <= 0 then
+						-- Очищаем предыдущие звуки
+						for _, Sound in ipairs(ActiveSounds) do
+							Sound:Destroy()
+						end
+						ActiveSounds = {}
+
+						-- Проигрываем выбранные звуки
+						if UltraKillEnabled then
+							local SoundInstance = Instance.new("Sound")
+							SoundInstance.SoundId = "rbxassetid://937885646" -- ULTRA KILL
+							SoundInstance.Volume = 1
+							SoundInstance.Parent = workspace
+							SoundInstance:Play()
+							table.insert(ActiveSounds, SoundInstance)
+
+							task.spawn(function()
+								SoundInstance.Ended:Wait()
+								for i, Sound in ipairs(ActiveSounds) do
+									if Sound == SoundInstance then
+										table.remove(ActiveSounds, i)
+										Sound:Destroy()
+										break
+									end
+								end
+							end)
+						end
+
+						if YameteKudasaiEnabled then
+							local SoundInstance = Instance.new("Sound")
+							SoundInstance.SoundId = "rbxassetid://6249372894" -- Yamete Kudasai!
+							SoundInstance.Volume = 1
+							SoundInstance.Parent = workspace
+							SoundInstance:Play()
+							table.insert(ActiveSounds, SoundInstance)
+
+							task.spawn(function()
+								SoundInstance.Ended:Wait()
+								for i, Sound in ipairs(ActiveSounds) do
+									if Sound == SoundInstance then
+										table.remove(ActiveSounds, i)
+										Sound:Destroy()
+										break
+									end
+								end
+							end)
+						end
+
+						HealthConnection:Disconnect()
+						if CharacterConnection then
+							CharacterConnection:Disconnect()
+						end
+					end
+				end)
+
+				CharacterConnection = Target.Character.AncestryChanged:Connect(function()
+					if not Target.Character or not Target.Character.Parent then
+						HealthConnection:Disconnect()
+						CharacterConnection:Disconnect()
+					end
+				end)
+			end
+		end)
+	else
+		Threads:Stop("KillSound")
+		-- Очищаем все активные звуки
+		for _, Sound in ipairs(ActiveSounds) do
+			Sound:Destroy()
+		end
+		ActiveSounds = {}
+	end
+end, {
+	{
+		["Type"] = "Toggle",
+		["Title"] = "ULTRA KILL",
+		["Callback"] = function(Toggled)
+			UltraKillEnabled = Toggled
+		end
+	},
+	{
+		["Type"] = "Toggle",
+		["Title"] = "Yamete Kudasai!",
+		["Callback"] = function(Toggled)
+			YameteKudasaiEnabled = Toggled
+		end
+	}
+})
+
+-- Модуль AntiAFK для автоматического движения вперёд и назад
+Relief.addModule("Utility", "AntiAFK", function(Toggled)
+	if Toggled then
+		local InitialPosition = nil
+		local MoveDistance = 5 -- Дистанция движения вперёд
+		local MoveInterval = 10 -- Интервал между движениями (сек)
+
+		Threads:New("AntiAFK", function()
+			local Root = GetRoot()
+			local Humanoid = GetHumanoid()
+			if not Root or not Humanoid then return end
+
+			-- Сохраняем исходную позицию при первом запуске
+			if not InitialPosition then
+				InitialPosition = Root.Position
+			end
+
+			-- Проверяем, не активен ли TargetStrafe, чтобы избежать конфликтов
+			if KillAuraEnabled then return end
+
+			-- Направление взгляда персонажа (в 2D, игнорируем Y)
+			local LookVector = Root.CFrame.LookVector
+			local MoveForward = Vector3.new(LookVector.X, 0, LookVector.Z).Unit * MoveDistance
+			local ForwardPosition = Root.Position + MoveForward
+
+			-- Двигаемся вперёд
+			Humanoid:MoveTo(ForwardPosition)
+			task.wait(1) -- Ждём, пока персонаж дойдёт
+
+			-- Возвращаемся на исходную позицию
+			Humanoid:MoveTo(InitialPosition)
+			task.wait(1) -- Ждём возвращения
+
+			-- Ждём интервал перед следующим движением
+			task.wait(MoveInterval - 2) -- Учитываем время движения
+		end)
+	else
+		Threads:Stop("AntiAFK")
+	end
+end)
+
+local TreasureCache = {}
+Relief.addModule("Render", "TreasureESP", function(Toggled)
+	if Toggled then
+		local function Handle(Obj)
+			if Obj.Name == "Treasure" then
+				local tRoot = Obj:FindFirstChild("HumanoidRootPart")
+				if not tRoot then return end
+
+				local Arrow = Arrow.new(tRoot)
+				Arrow.SetText("Treasure")
+				Arrow.SetCallback(function(Frame)
+					local Root = LocalPlayer.Character.HumanoidRootPart
+					local Color = GetDistanceColor(Root, tRoot, 500)
+					Frame.BackgroundColor3 = Color
+				end)
+				table.insert(TreasureCache, Arrow)
+			end
+		end
+
+		for _, Treasure in Resources:GetChildren() do Handle(Treasure) end
+		Maid:Tag("TreasureESP", Resources.ChildAdded:Connect(Handle))
+	else
+		Maid:Disconnect("TreasureESP")
+		for _, Arr in TreasureCache do
+			Arr.Delete()
+		end
+	end
+end)
+
+Relief.addModule("Render", "ModuleList", function(Toggled)
+    Relief.ModuleList.Visible = Toggled
+end, {}, nil, true)
+
+Relief.addModule("Render", "MobileButton", function(Toggled)
+    Relief.MobileButton.Visible = Toggled
+end, {}, nil, true)
+
+Relief.addModule("Utility", "KillScript", function(Toggled)
+    Relief.KillScript()
+end)
+
+-- HUD для чита ZEN$X, отображаемый через CoreGui
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Создаём ScreenGui в CoreGui
+local ZENXHUD = Instance.new("ScreenGui")
+ZENXHUD.Name = "ZENXHUD"
+ZENXHUD.IgnoreGuiInset = true
+ZENXHUD.Parent = CoreGui
+
+-- Функция для создания фрейма с тёмно-синим полупрозрачным фоном
+local function CreateFrame(name, position, size)
+	local Frame = Instance.new("Frame")
+	Frame.Name = name
+	Frame.Position = position
+	Frame.Size = size
+	Frame.BackgroundColor3 = Color3.new(0, 0.1, 0.3) -- Тёмно-синий
+	Frame.BackgroundTransparency = 0.5
+	Frame.BorderSizePixel = 0
+	Frame.Parent = ZENXHUD
+	return Frame
+end
+
+-- Функция для создания текстового лейбла
+local function CreateTextLabel(parent, text, position, size, fontSize)
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Text = text
+	TextLabel.Position = position
+	TextLabel.Size = size
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.TextColor3 = Color3.new(1, 1, 1) -- Белый
+	TextLabel.TextScaled = true
+	TextLabel.Font = Enum.Font.SourceSansBold
+	TextLabel.TextSize = fontSize
+	TextLabel.Parent = parent
+	return TextLabel
+end
+
+-- 1. Название чита и логотип
+local TitleFrame = CreateFrame("TitleFrame", UDim2.new(0.5, -150, 0, 10), UDim2.new(0, 300, 0, 40))
+local Logo = Instance.new("ImageLabel")
+Logo.Image = "rbxassetid://11716557686"
+Logo.Size = UDim2.new(0, 40, 0, 40)
+Logo.Position = UDim2.new(0, 10, 0, 0)
+Logo.BackgroundTransparency = 1
+Logo.Parent = TitleFrame
+local TitleLabel = CreateTextLabel(TitleFrame, "ZEN$X", UDim2.new(0, 60, 0, 0), UDim2.new(0, 230, 1, 0), 24)
+
+-- 2. Координаты
+local CoordFrame = CreateFrame("CoordFrame", UDim2.new(0.5, -150, 0, 60), UDim2.new(0, 300, 0, 30))
+local CoordLabel = CreateTextLabel(CoordFrame, "X: 0, Z: 0", UDim2.new(0, 10, 0, 0), UDim2.new(1, -20, 1, 0), 18)
+
+-- 3. FPS
+local FPSFrame = CreateFrame("FPSFrame", UDim2.new(0.5, -150, 0, 100), UDim2.new(0, 100, 0, 30))
+local FPSLabel = CreateTextLabel(FPSFrame, "FPS: 0", UDim2.new(0, 10, 0, 0), UDim2.new(1, -20, 1, 0), 18)
+
+-- 4. Пинг
+local PingFrame = CreateFrame("PingFrame", UDim2.new(0.5, -50, 0, 100), UDim2.new(0, 100, 0, 30))
+local PingLabel = CreateTextLabel(PingFrame, "Ping: 0 ms", UDim2.new(0, 10, 0, 0), UDim2.new(1, -20, 1, 0), 18)
+
+-- 5. Тикрейт
+local TickFrame = CreateFrame("TickFrame", UDim2.new(0.5, 50, 0, 100), UDim2.new(0, 100, 0, 30))
+local TickLabel = CreateTextLabel(TickFrame, "Tick: 0 Hz", UDim2.new(0, 10, 0, 0), UDim2.new(1, -20, 1, 0), 18)
+
+-- Обновление координат
+RunService.Heartbeat:Connect(function()
+	local Root = GetRoot()
+	if Root then
+		local X = math.clamp(math.floor(Root.Position.X), -2000, 2000) -- Карта 4000x4000
+		local Z = math.clamp(math.floor(Root.Position.Z), -2000, 2000)
+		CoordLabel.Text = string.format("X: %d, Z: %d", X, Z)
+	end
+end)
+
+-- Обновление FPS
+local FrameCount = 0
+local LastTime = tick()
+RunService.RenderStepped:Connect(function()
+	FrameCount = FrameCount + 1
+	local CurrentTime = tick()
+	if CurrentTime - LastTime >= 1 then
+		FPSLabel.Text = string.format("FPS: %d", FrameCount)
+		FrameCount = 0
+		LastTime = CurrentTime
+	end
+end)
+
+-- Обновление пинга
+local function UpdatePing()
+	local Ping = math.floor(LocalPlayer:GetNetworkPing() * 1000) -- В миллисекундах
+	PingLabel.Text = string.format("Ping: %d ms", Ping)
+end
+UpdatePing()
+RunService.Heartbeat:Connect(function()
+	if tick() % 2 < 0.1 then -- Обновляем каждые 2 секунды
+		UpdatePing()
+	end
+end)
+
+-- Обновление тикрейта
+local LastTickTime = tick()
+local TickCount = 0
+RunService.Heartbeat:Connect(function()
+	TickCount = TickCount + 1
+	local CurrentTime = tick()
+	if CurrentTime - LastTickTime >= 1 then
+		TickLabel.Text = string.format("Tick: %d Hz", TickCount)
+		TickCount = 0
+		LastTickTime = CurrentTime
+	end
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification", {Title = "ZEN$X", Text = "GOOD GAME CHEATER)", Duration = 5})
+setclipboard("HELLO BRO")
